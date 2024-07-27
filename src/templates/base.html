@@ -5,16 +5,15 @@
 
     <title> {% block head_title %} DiscAuto {% endblock head_title%} </title>
 
+    {% include 'base/css.html' %}
+
 <head>
 
 <body>
-
-    <h1> Hello DiscAuto </h1>
-
+    {% include 'nav/navbar.html' %}
     {% block content%}
-
     {% endblock content %}
-
+    {% include 'base/js.html' %}
 </body>
 
 </html>
