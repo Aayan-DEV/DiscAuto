@@ -23,7 +23,7 @@ def about_view(request, *args, **kwargs):
     my_context = {
         "page_title": my_title,
         "Page_visit_count": page_qs.count(),
-        "Percent": (page_qs.count() * 100.0) / qs.count(),
+        "Percent": percent,
         "Total_visit_count": qs.count(),
     }
     html_template = "home.html"
