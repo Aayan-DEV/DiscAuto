@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
@@ -6,7 +6,25 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 @login_required
-# Create your views here.
-def profile_view(request,  username=None, *args, **kwargs,):
-    User.objects.get(username=username) 
-    return HttpResponse(f"Profile Page of {username}")
+def profile_list_view(request):
+    context = {
+        "object_list": User.objects.filter(is_active=True)
+    }
+    return render(request, "profiles/list.html", context)
+
+@login_required
+def profile_detail_view(request,  username=None, *args, **kwargs,):
+    user = request.user
+    print(user.has_perm("subscriptions.paid"))
+    print(user.has_perm("subscriptions.free"))
+    # user_groups = user.groups.all()
+    # if user_groups.filter(name="Paid").exists():
+    #     return HttpResponse("You are a Paid member")
+    profile_user_obj = get_object_or_404(User, username=username)  
+    is_me = profile_user_obj == user
+    context = {
+        "object": profile_user_obj,
+        "instance": profile_user_obj, 
+        "owner": is_me,
+    }
+    return render(request, "profiles/detail.html", context)

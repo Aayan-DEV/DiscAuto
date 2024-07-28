@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block head_title %} Users - {{ block.super }} {% endblock head_title%}
+
+{% block content %}
+
+<p> {{ instance.username }} </p>
+
+    {% if perms.auth or owner %}
+    {% if perms.auth.view_user or owner %}
+    <div>
+        {{ instance.first_name }} - {{ instance.last_name }} - {{ instance.last_login }}
+    </div> 
+
+    {% else %} 
+    
+    <p>You do not have permission to view this page.</p>
+    {% endif %}
+    {% endif %}
+
+{% endblock content %}
