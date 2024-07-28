@@ -23,10 +23,17 @@ class Subscription(models.Model):
     groups = models.ManyToManyField(Group)
     permissions = models.ManyToManyField(Permission, limit_choices_to={"content_type__app_label":"subscriptions", "codename__in": [x[0]for x in SUBSCRIPTION_PERMISSIONS]})
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
+
+    order = models.IntegerField(default=-1, help_text="Ordering on Django pricing page")
+    featured = models.BooleanField(default=True, help_text="Featured on the subscription page.")
+    updated = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return f"{self.name}"
 
     class Meta:
+        ordering = ["order", "featured", "-updated"]
         permissions = SUBSCRIPTION_PERMISSIONS
 
     def save(self, *args, **kwargs):
@@ -54,6 +61,14 @@ class SubscriptionPrice(models.Model):
 
     price = models.DecimalField(max_digits=10, decimal_places=2, default=99.99)
 
+    order = models.IntegerField(default=-1, help_text="Ordering on Django pricing page")
+    featured = models.BooleanField(default=True, help_text="Featured on the subscription page.")
+    updated = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["subscription__order", "order", "featured", "-updated"]
+
     @property
     def stripe_currency(self):
         return "usd"
@@ -72,19 +87,17 @@ class SubscriptionPrice(models.Model):
         return self.subscription.stripe_id
     
     def save(self, *args, **kwargs):
-        if (self.stripe_id and self.stripe_id is not None):
+        if (not self.stripe_id and self.product_stripe_id is not None):
             stripe_id = helpers.billing.create_price(
-            currency=self.stripe_currency,
-            unit_amount=1000,
-            interval=self.interval,
-            product=self.product_stripe_id,
-            metadata={
-                "subscription_plan_price_id": self.id,
-            },
-            raw=False
+                currency=self.stripe_currency,
+                unit_amount=1000,
+                interval=self.interval,
+                product=self.product_stripe_id,
+                metadata={
+                    "subscription_plan_price_id": self.id,
+                },
+                raw=False
             )
-            self.stripe_id = stripe_id
-        super().save(*args, **kwargs)
     
 
 class UserSubscription(models.Model):
@@ -107,11 +120,11 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
         if subscription_obj is not None:
             subs_qs = subs_qs.exclude(id=subscription_obj.id)
         subs_groups = subs_qs.values_list('groups__id', flat=True)
-        subs_groups_Set = set(subs_groups)
+        subs_groups_set = set(subs_groups)
         # groups_ids = groups.values_list('id', flat=True)
         current_groups = user.groups.all().values_list('id', flat=True)
         groups_ids_set = set(groups_ids)
-        current_groups_set = set(current_groups) - subs_groups_Set
+        current_groups_set = set(current_groups) - subs_groups_set
         final_group_ids = list(groups_ids_set | current_groups_set)
         user.groups.set(final_group_ids)
 
