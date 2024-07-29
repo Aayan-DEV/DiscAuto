@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
             ],
             options={
-                'permissions': [('Paid', 'Paid Perm'), ('Free', 'Free Perm')],
+                'permissions': [('pro', 'pro Perm'), ('starter', 'starter Perm')],
             },
         ),
     ]

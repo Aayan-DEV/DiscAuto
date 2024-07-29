@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='subscription',
-            options={'ordering': ['order', 'featured', '-updated'], 'permissions': [('Paid', 'Paid Perm'), ('Free', 'Free Perm')]},
+            options={'ordering': ['order', 'featured', '-updated'], 'permissions': [('pro', 'pro Perm'), ('starter', 'starter Perm')]},
         ),
         migrations.AddField(
             model_name='subscription',

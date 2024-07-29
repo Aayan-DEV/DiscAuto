@@ -15,8 +15,8 @@ def profile_list_view(request):
 @login_required
 def profile_detail_view(request,  username=None, *args, **kwargs,):
     user = request.user
-    print(user.has_perm("subscriptions.paid"))
-    print(user.has_perm("subscriptions.free"))
+    print(user.has_perm("subscriptions.pro"))
+    print(user.has_perm("subscriptions.starter"))
     # user_groups = user.groups.all()
     # if user_groups.filter(name="Paid").exists():
     #     return HttpResponse("You are a Paid member")

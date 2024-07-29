@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='subscription',
             name='permissions',
-            field=models.ManyToManyField(limit_choices_to={'codename__in': ['Paid', 'Free'], 'content_type__app_label': 'subscriptions'}, to='auth.permission'),
+            field=models.ManyToManyField(limit_choices_to={'codename__in': ['pro', 'starter'], 'content_type__app_label': 'subscriptions'}, to='auth.permission'),
         ),
     ]
