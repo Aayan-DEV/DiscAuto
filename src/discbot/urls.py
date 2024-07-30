@@ -6,6 +6,7 @@ from subscriptions import views as subscriptions_views
 from checkouts import views as checkout_views
 
 urlpatterns = [
+    path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name="user_subscription_cancel"),
     path('accounts/billing/', subscriptions_views.user_subscription_view, name="user_subscription"),
     path('accounts/', include('allauth.urls')),
     path('profiles/', include('profiles.urls')),

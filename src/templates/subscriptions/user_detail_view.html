@@ -1,22 +1,68 @@
 {% extends "base.html" %}
 
-{% block head_title %} Your Subscription - {{ block.super }} {% endblock head_title%}
+{% block head_title %} Your Subscription - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
 <h1 class="text-lg font-medium">Your Subscription</h1>
 
-<form action="" method="POST"> {% csrf_token %}
-    <button type="sumbit"> Refresh</button>
+<form action="" method="POST" class="mt-2"> {% csrf_token %}
+    <button type="submit">Refresh</button>
 </form>
 
-<p> Plan name: {{ subscription.plan_name }} </p>
+<a href="{{ subscription.get_cancel_url }}">Cancel Membership</a>
 
-<p> Status: {{ subscription.status|title }}</p>
+{% if messages %}
+    <div id="messages-container">
+        {% for message in messages %}
+            <div>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
-<p> Membership Age: {{ subscription.original_period_start|timesince }}</p>
+<p>Your Email: {{ user.email }}</p>
 
-<p> Start date: {{ subscription.current_period_start }}</p>
+<p>Plan name: {{ subscription.plan_name }}</p>
 
-<p> End date: {{ subscription.current_period_end|timeuntil }} ({{subscription.current_period_end}})</p>
+<p>Status: {% if subscription.cancel_at_period_end %}
+    Your subscription is CANCELLED, you will lose access to all premium features on {{ subscription.current_period_end|date:"F j, Y" }}.
+ {% else %}
+ {% if subscription.current_period_end == None %}
+    Your have not Purchased any subscriptions!
+  {% else %} 
+    Your subscription is ACTIVE, you will be billed at {{ subscription.current_period_end|date:"F j, Y" }}.
+ {% endif %}
+ {% endif %}
+</p>
+
+<p>Membership Age: 
+    {% if subscription.original_period_start != None %}
+    {{ subscription.original_period_start|timesince }}
+    {% else %}
+    -
+    {% endif %}
+</p>
+
+<p>Start date: 
+    {% if subscription.current_period_start != None %}
+    {{ subscription.current_period_start|date:"F j, Y" }}
+    {% else %}
+    You have not started any subscriptions!
+    {% endif %}
+</p>
+
+<p>End date: 
+    {% if subscription.current_period_end != None %}
+    {{ subscription.current_period_end|date:"F j, Y" }}
+    {% else %}
+    You have not started any subscriptions!
+    {% endif %}
+
+</p>
 
 {% endblock content %}
+
+{% block extra_css %}
+<!-- Tailwind CSS handles responsive design automatically -->
+{% endblock extra_css %}

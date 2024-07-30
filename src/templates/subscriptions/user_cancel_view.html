@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block head_title %} Your Subscription - {{ block.super }} {% endblock head_title%}
+
+{% block content %}
+
+{% if subscription.is_active_status %}
+<h1 class="text-lg font-medium">Are you sure you want to cancel your Subscription? <p> Plan name: {{ subscription.plan_name }} </p> </h1>
+
+<form action="" method="POST"> {% csrf_token %}
+    <button type="sumbit"> Yes, Cancel</button>
+</form>
+
+<a href="{{ subscription.get_absolute_url}}"> No, Go back </a>
+
+{% else %}
+{% if subscription.current_period_end == None %}
+<h1 class="text-lg font-medium"> You have No Active Subscriptions to cancel. </h1>
+
+{% else %}
+<h1 class="text-lg font-medium"> Your Membership is no longer Active!</h1>
+{% endif %}
+
+{% endif %}
+{% endblock content %}

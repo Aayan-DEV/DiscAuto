@@ -1,6 +1,10 @@
 from pathlib import Path
 from decouple import config
+from dotenv import load_dotenv
+import dj_database_url
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,18 +18,18 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str, default=None)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)  # Use EMAIL_PORT 465 for SSL
 
-#500 errors
-ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Admin user")
-ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
+# 500 errors
+ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
+ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
 
-MANAGERS=[]
-ADMINS=[]
+MANAGERS = []
+ADMINS = []
 if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
-    ADMINS +=[
+    ADMINS += [
         (f'{ADMIN_USER_NAME}', f'{ADMIN_USER_EMAIL}')
     ]
-    MANAGERS=ADMINS
-    
+    MANAGERS = ADMINS
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -36,14 +40,13 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DJANGO_DEBUG", cast=bool)
 BASE_URL = config("BASE_URL", default=None)
 ALLOWED_HOSTS = [
-    ".railway.app" # https://discbot.railway.app
+    ".railway.app"  # https://discbot.railway.app
 ]
 
 if DEBUG:
     ALLOWED_HOSTS += [
         'localhost', '127.0.0.1'
     ]
-
 
 # Application definition
 
@@ -69,7 +72,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     "widget_tweaks",
     "slippers",
-    
 ]
 
 MIDDLEWARE = [
@@ -104,27 +106,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'discbot.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
 DATABASE_URL = config("DATABASE_URL", default=None)
 
 if DATABASE_URL is not None:
-    import dj_database_url
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
             conn_health_checks=True,
-            conn_max_age= CONN_MAX_AGE,
+            conn_max_age=CONN_MAX_AGE,
         )
     }
 
@@ -154,13 +147,11 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = "[DiscBot]"
 ACCOUNT_EMAIL_REQUIRED = True
 
 AUTHENTICATION_BACKENDS = [
-    # ...
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
 
     # `allauth` specific authentication methods, such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
-    # ...
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -183,7 +174,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
@@ -201,10 +191,7 @@ STATICFILES_DIRS = [
 # local cdn
 STATIC_ROOT = BASE_DIR / "local-cdn"
 
-# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 STORAGES = {
-    # ...
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
