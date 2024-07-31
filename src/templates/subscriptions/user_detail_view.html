@@ -9,56 +9,58 @@
     <button type="submit">Refresh</button>
 </form>
 
-<a href="{{ subscription.get_cancel_url }}">Cancel Membership</a>
-
-{% if messages %}
-    <div id="messages-container">
-        {% for message in messages %}
-            <div>
-                <span>{{ message }}</span>
-            </div>
-        {% endfor %}
-    </div>
+{% if subscription %}
+    <a href="{{ subscription.get_cancel_url }}">Cancel Membership</a>
 {% endif %}
 
 <p>Your Email: {{ user.email }}</p>
 
-<p>Plan name: {{ subscription.plan_name }}</p>
+<p>Plan name: 
+    {% if subscription %}
+        {{ subscription.plan_name }}
+    {% else %}
+        No Plan
+    {% endif %}
+</p>
 
-<p>Status: {% if subscription.cancel_at_period_end %}
-    Your subscription is CANCELLED, you will lose access to all premium features on {{ subscription.current_period_end|date:"F j, Y" }}.
- {% else %}
- {% if subscription.current_period_end == None %}
-    Your have not Purchased any subscriptions!
-  {% else %} 
-    Your subscription is ACTIVE, you will be billed at {{ subscription.current_period_end|date:"F j, Y" }}.
- {% endif %}
- {% endif %}
+<p>Status: 
+    {% if subscription %}
+        {% if subscription.cancel_at_period_end %}
+            Your subscription is CANCELLED, you will lose access to all premium features on {{ subscription.current_period_end|date:"F j, Y" }}.
+        {% else %}
+            {% if subscription.current_period_end == None %}
+                You have not purchased any subscriptions!
+            {% else %} 
+                Your subscription is ACTIVE, you will be billed at {{ subscription.current_period_end|date:"F j, Y" }}.
+            {% endif %}
+        {% endif %}
+    {% else %}
+        You have not started any subscriptions!
+    {% endif %}
 </p>
 
 <p>Membership Age: 
-    {% if subscription.original_period_start != None %}
-    {{ subscription.original_period_start|timesince }}
+    {% if subscription and subscription.original_period_start != None %}
+        {{ subscription.original_period_start|timesince }}
     {% else %}
-    -
+        -
     {% endif %}
 </p>
 
 <p>Start date: 
-    {% if subscription.current_period_start != None %}
-    {{ subscription.current_period_start|date:"F j, Y" }}
+    {% if subscription and subscription.current_period_start != None %}
+        {{ subscription.current_period_start|date:"F j, Y" }}
     {% else %}
-    You have not started any subscriptions!
+        You have not started any subscriptions!
     {% endif %}
 </p>
 
 <p>End date: 
-    {% if subscription.current_period_end != None %}
-    {{ subscription.current_period_end|date:"F j, Y" }}
+    {% if subscription and subscription.current_period_end != None %}
+        {{ subscription.current_period_end|date:"F j, Y" }}
     {% else %}
-    You have not started any subscriptions!
+        You have not started any subscriptions!
     {% endif %}
-
 </p>
 
 {% endblock content %}

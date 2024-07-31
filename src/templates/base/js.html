@@ -1,2 +1,15 @@
 {% load static %}
 <script src="{% static 'vendors/flowbite.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var closeButton = document.getElementById('close-banner');
+        if (closeButton) {
+            closeButton.addEventListener('click', function() {
+                var messagesContainer = document.getElementById('messages-container');
+                if (messagesContainer) {
+                    messagesContainer.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>

@@ -44,7 +44,7 @@ def create_product(name="", metadata={}, raw=False):
     return stripe_id
 
 def create_price(currency="usd",
-                 unit_amount="9999",
+                 unit_amount=9999,  # Ensure this is an integer
                  interval="month",
                  product=None,
                  metadata={}, 
@@ -70,9 +70,9 @@ def delete_price(stripe_id):
             active=False
         )
     except Exception as e:
-        print(f"Error deleting price: {e}")
+        print(f"Error deactivating price: {e}")
 
-def update_price(stripe_id, currency="usd", unit_amount="9999", interval="month", product=None, metadata={}, raw=False):
+def update_price(stripe_id, currency="usd", unit_amount=9999, interval="month", product=None, metadata={}, raw=False):
     if product is None:
         raise ValueError("Product ID is required.")
     try:
@@ -96,7 +96,7 @@ def update_price(stripe_id, currency="usd", unit_amount="9999", interval="month"
 
 def start_checkout_session(customer_id, 
         success_url="https://example.com/success", 
-        cancel_url="", 
+        cancel_url="https://example.com/cancel",  # Set a default cancel_url
         price_stripe_id="", 
         raw=True):
     if not success_url.endswith("?session_id={CHECKOUT_SESSION_ID}"):
@@ -107,57 +107,77 @@ def start_checkout_session(customer_id,
         cancel_url=cancel_url,
         line_items=[{"price": price_stripe_id, "quantity": 1}],
         mode="subscription",
-        )
+    )
     if raw:
         return response
     return response.url
 
 def get_checkout_session(stripe_id, raw=True):
-    response = stripe.checkout.Session.retrieve(stripe_id,)
-    if raw:
-        return response
-    return response.url
+    try:
+        response = stripe.checkout.Session.retrieve(stripe_id,)
+        if raw:
+            return response
+        return response.url
+    except Exception as e:
+        print(f"Error retrieving checkout session: {e}")
+        return None
 
 def get_subscription(stripe_id, raw=True):
-    response = stripe.Subscription.retrieve(stripe_id)
-    if raw:
-        return response
-    return serialize_subscription_data(response)
+    try:
+        response = stripe.Subscription.retrieve(stripe_id)
+        if raw:
+            return response
+        return serialize_subscription_data(response)
+    except Exception as e:
+        print(f"Error retrieving subscription: {e}")
+        return None
 
 def get_customer_active_subscriptions(customer_stripe_id):
-    response = stripe.Subscription.list(
+    try:
+        response = stripe.Subscription.list(
             customer = customer_stripe_id,
             status = "active"
         )
-    return response
+        return response
+    except Exception as e:
+        print(f"Error retrieving active subscriptions for customer {customer_stripe_id}: {e}")
+        return []
 
 def cancel_subscription(stripe_id, reason="", feedback="other", cancel_at_period_end=False, raw=True):
-    if cancel_at_period_end:
-        response = stripe.Subscription.modify(
-            stripe_id,
-            cancel_at_period_end=True,
-            cancellation_details={
-                "comment": reason,
-                "feedback": feedback
-            }
-        )
-    else:
-        response = stripe.Subscription.delete(
-            stripe_id,
-            cancellation_details={
-                "comment": reason,
-                "feedback": feedback
-            }
-        )
-    if raw:
-        return response
-    return serialize_subscription_data(response)
+    try:
+        if cancel_at_period_end:
+            response = stripe.Subscription.modify(
+                stripe_id,
+                cancel_at_period_end=True,
+                cancellation_details={
+                    "comment": reason,
+                    "feedback": feedback
+                }
+            )
+        else:
+            response = stripe.Subscription.delete(
+                stripe_id,
+                cancellation_details={
+                    "comment": reason,
+                    "feedback": feedback
+                }
+            )
+        if raw:
+            return response
+        return serialize_subscription_data(response)
+    except Exception as e:
+        print(f"Error cancelling subscription: {e}")
+        return None
 
 def get_checkout_customer_plan(session_id):
     checkout_r = get_checkout_session(session_id, raw=True)
+    if not checkout_r:
+        return None
     customer_id = checkout_r.customer
     sub_stripe_id = checkout_r.subscription
     sub_r = get_subscription(sub_stripe_id, raw=True)
+    if not sub_r:
+        return None
     # current_period_start
     # current_period_end
     sub_plan = sub_r.plan

@@ -1,0 +1,11 @@
+<!-- templates/snippets/banner.html -->
+{% if messages %}
+    <div id="messages-container" class="relative bg-blue-500 text-white text-center p-4">
+        {% for message in messages %}
+            <div>
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+        <button id="close-banner" class="absolute top-0 right-0 m-2 bg-blue-700 text-white p-2 rounded">X</button>
+    </div>
+{% endif %}

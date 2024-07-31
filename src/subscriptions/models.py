@@ -1,9 +1,11 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
-from django.conf import settings
 from django.db.models.signals import post_save
 from django.urls import reverse
+from django.db.models import Q
+from django.utils import timezone
+import datetime
 
 User = get_user_model()
 
@@ -161,14 +163,14 @@ class SubscriptionPrice(models.Model):
                 self.stripe_id = new_stripe_id
 
         super().save(*args, **kwargs)
+        self._original_price = self.price
+        self._original_interval = self.interval
         if self.featured and self.subscription:
             qs = SubscriptionPrice.objects.filter(
                 subscription=self.subscription, interval=self.interval
             ).exclude(id=self.id)
             qs.update(featured=False)
 
-        self._original_price = self.price
-        self._original_interval = self.interval
 
 class SubscriptionStatus(models.TextChoices):
     ACTIVE = "active", 'Active'
@@ -179,6 +181,64 @@ class SubscriptionStatus(models.TextChoices):
     CANCELLED = "cancelled", 'Cancelled'
     UNPAID = "unpaid", 'Unpaid'
     PAUSED = "paused", 'Paused'
+
+class UserSubscriptionQuerySet(models.QuerySet):
+    def by_range(self, days_start=7, days_end=120):
+            now = timezone.now()
+            days_start_from_now = now + datetime.timedelta(days=days_start)
+            days_end_from_now = now + datetime.timedelta(days=days_end)
+            range_start = days_start_from_now.replace(hour=0, minute=0, second=0, microsecond=0)
+            range_end = days_end_from_now.replace(hour=23, minute=59, second=59, microsecond=59)
+            return self.filter(
+                current_period_end__gte = range_start,
+                current_period_end__lte = range_end
+            )
+
+    def by_days_left(self, days_left=7):
+            now = timezone.now()
+            in_n_days = now + datetime.timedelta(days=days_left)
+            day_start = in_n_days.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = in_n_days.replace(hour=23, minute=59, second=59, microsecond=59)
+            return self.filter(
+                current_period_end__gte = day_start,
+                current_period_end__lte = day_end
+            )
+    
+    def by_days_ago(self, days_ago=3):
+            now = timezone.now()
+            in_n_days = now - datetime.timedelta(days=days_ago)
+            day_start = in_n_days.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = in_n_days.replace(hour=23, minute=59, second=59, microsecond=59)
+            return self.filter(
+                current_period_end__gte = day_start,
+                current_period_end__lte = day_end
+            )
+
+    def by_active_trialing(self):
+        active_qs_lookup = (
+            Q(status = SubscriptionStatus.ACTIVE) |
+            Q(status = SubscriptionStatus.TRAILING)
+        )
+        return self.filter(active_qs_lookup)
+    def by_user_ids(self, user_ids=None):
+        qs = self
+        if isinstance(user_ids, list):
+            qs = self.filter(user_id__in=user_ids)
+        elif isinstance(user_ids, int):
+            qs = self.filter(user_id__in=[user_ids])
+        elif isinstance(user_ids, str):
+            qs = self.filter(user_id__in=[user_ids])
+        return qs
+
+class UserSubscriptionManager(models.Manager):
+    def get_queryset(self):
+        return UserSubscriptionQuerySet(self.model, using=self._db)
+    
+    # def by_user_ids(self, user_ids=None):
+    #     return self.get_queryset().by_user_ids(user_ids=user_ids)
+        
+
+    
 
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -191,6 +251,8 @@ class UserSubscription(models.Model):
     current_period_end = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
     cancel_at_period_end = models.BooleanField(default=False)
     status = models.CharField(max_length=20,choices=SubscriptionStatus.choices, null=True, blank=True)
+
+    objects = UserSubscriptionManager()
 
     def get_absolute_url(self):
         return reverse("user_subscription")
@@ -225,7 +287,8 @@ class UserSubscription(models.Model):
         """
         if not self.current_period_end:
             return None
-        return int(self.current_period_end.timezone())
+        return int(self.current_period_end.timestamp())
+
 
 
     def save(self, *args, **kwargs):
