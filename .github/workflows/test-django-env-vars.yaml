@@ -1,4 +1,4 @@
-name: 2 - Test Django Basics
+name: 3 - Test Django Env Vars
 
 on: 
   workflow_dispatch: 
@@ -7,14 +7,9 @@ on:
       - main
 
 jobs: 
-  hello: 
-    runs-on: ubuntu-latest
+  test: 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
           python-version: '3.12'
       - name: Install Requirements
         run: |
@@ -22,5 +17,7 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Django Tests
         working-directory: ./src
+        env:
+          DJANGO_SECRET_KEY: not-good
         run: |
           python manage.py test
