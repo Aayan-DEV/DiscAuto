@@ -1,9 +1,9 @@
-name : 1 - Hello world github actions
+name: 1 - Hello world github actions
 
 on: 
   workflow_dispatch: 
   push:
-    branch:
+    branches:
       - main
 
 jobs: 
@@ -20,7 +20,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-       - name: Django Tests
-         working-directory: ./src
+      - name: Django Tests
+        working-directory: ./src
         run: |
           python manage.py test
