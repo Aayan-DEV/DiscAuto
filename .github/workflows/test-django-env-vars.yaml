@@ -21,8 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Setup Django Secret Key
         run: |
-          MY_GEN_KEY=$(openssl rand -base64 32)
-          echo "DJANGO_SECRET_KEY=$MY_GEN_KEY" >> $GITHUB_ENV
+          echo "DJANGO_SECRET_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
       - name: Install Requirements
         run: |
           python -m pip install --upgrade pip
