@@ -1,2 +1,5 @@
-{% load static %}
+{% load static compress %}
 <link href="{% static 'vendors/flowbite.min.css' %}" rel="stylesheet" />
+{% compress css %}
+<link rel="stylesheet" href="{% static 'css\output.css' %}">
+{% endcompress %}
