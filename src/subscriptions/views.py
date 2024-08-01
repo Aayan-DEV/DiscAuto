@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from subscriptions.models import SubscriptionPrice, UserSubscription
+from subscriptions.models import SubscriptionPrice, UserSubscription, Subscription
 from django.contrib.auth.decorators import login_required
 import helpers.billing
 from django.contrib import messages

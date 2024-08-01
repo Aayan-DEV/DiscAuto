@@ -8,6 +8,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'custom-purple': '#3a1d72',
+        'custom-blue': '#2c324b',
+        'custom-blue-2': '#382759',
+        'custom-blue-3': '#7784be',
+        'custom-pink-color': '#d7c2ff',
+        'custom-purple': '#2A2D5D',
         primary: {
           "50": "#eff6ff",
           "100": "#dbeafe",
@@ -57,7 +63,25 @@ module.exports = {
           'Segoe UI Symbol', 
           'Noto Color Emoji'
         ]
-      }
+      },
+      spacing: {
+        '20px': '20px',
+      },
+      borderWidth: {
+        '1': '1px',
+        '2': '2px',
+        '3': '3px',
+        '4': '4px',
+        '5': '5px',
+        '6': '6px',
+        '7': '7px',
+        '8': '8px',
+        '9': '9px',
+        '10': '10px',
+      },
+      backgroundImage: {
+        'radial-gradient': 'radial-gradient(circle, #2A2D5D, black)',
+      },
     }
   },
   plugins: [

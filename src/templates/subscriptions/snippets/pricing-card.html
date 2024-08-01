@@ -18,5 +18,21 @@
         </li>
         {% endfor %}
     </ul>
-    <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">Select Plan</a>
+    {% if subscription_plan_name == object.display_sub_name.lower and subscription_interval == object.interval %}
+        <span class="text-gray-400 bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-gray-400 dark:bg-gray-700 cursor-not-allowed">
+            Your Chosen Plan
+        </span>
+    {% elif subscription_plan_name == object.display_sub_name.lower %}
+        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+            Change Plan Type
+        </a>
+    {% elif subscription_plan_name == "pro plan" %}
+        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+            Downgrade Plan
+        </a>
+    {% else %}
+        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+            Upgrade Plan
+        </a>
+    {% endif %}
 </div>

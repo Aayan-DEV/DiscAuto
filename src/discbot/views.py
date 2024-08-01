@@ -1,10 +1,11 @@
 import pathlib
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from visits.models import PageVisits
 from django.conf import settings
+from subscriptions.models import UserSubscription
 
 LOGIN_URL = settings.LOGIN_URL
 
@@ -14,8 +15,6 @@ def home_view(request, *args, **kwargs):
     if request.user.is_authenticated:
         print(request.user.username)
     return about_view(request, *args, **kwargs)
-
-
 
 def about_view(request, *args, **kwargs):
     qs = PageVisits.objects.all()
@@ -41,7 +40,6 @@ VALID_CODE = "abcd1234"
 
 def pw_proted_view(request, *args, **kwargs):
     is_allowed = request.session.get('protected_page_allowed') or 0
-    # print(request.session.get('protected_page_allowed'), type(request.session.get("protected_page_allowed")))
     if request.method == "POST":
         user_pw_sent = request.POST.get("code") or None        
         if user_pw_sent == VALID_CODE:
@@ -58,3 +56,13 @@ def user_only_view(request, *args, **kwargs):
 @staff_member_required(login_url = LOGIN_URL)
 def staff_only_view(request, *args, **kwargs):
     return render(request, "protected/user-only.html", {})
+
+def auto_ad(request, *args, **kwargs):
+    return render(request, "features/auto-ad/auto-ad.html", {})
+
+@login_required
+def cold_dm(request, *args, **kwargs):
+    user_subscription = UserSubscription.objects.filter(user=request.user).first()
+    if not user_subscription or user_subscription.subscription.name.lower() != "pro plan":
+        raise Http404("This page does not exist.")
+    return render(request, "features/cold-dm/cold-dm.html", {})

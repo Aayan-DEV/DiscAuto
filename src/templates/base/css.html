@@ -1,5 +1,12 @@
 {% load static compress %}
 <link href="{% static 'vendors/flowbite.min.css' %}" rel="stylesheet" />
 {% compress css %}
-<link rel="stylesheet" href="{% static 'css\output.css' %}">
+<link rel="stylesheet" href="{% static 'css/output.css' %}">
 {% endcompress %}
+<style>
+    .bg-radial-gradient {
+        background: radial-gradient(circle, #2A2D5D, black);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+</style>
