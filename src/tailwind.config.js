@@ -14,6 +14,7 @@ module.exports = {
         'custom-blue-3': '#7784be',
         'custom-pink-color': '#d7c2ff',
         'custom-purple': '#2A2D5D',
+        'custom-purple-2': '#7952c4',
         primary: {
           "50": "#eff6ff",
           "100": "#dbeafe",

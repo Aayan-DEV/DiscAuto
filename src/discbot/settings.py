@@ -16,7 +16,13 @@ if str(SRC_DIR) not in os.sys.path:
 
 # Initialise environment variables
 env = environ.Env()
-environ.Env.read_env()  # This reads from the .env file
+
+# Define the base directory
+BASE_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BASE_DIR.parent
+
+# Read .env file
+env.read_env(os.path.join(ROOT_DIR, '.env'))
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

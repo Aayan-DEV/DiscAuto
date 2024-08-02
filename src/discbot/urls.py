@@ -10,7 +10,7 @@ urlpatterns = [
     path("contact/", contact, name="contact"),
     path("auto-ad/",auto_ad, name="auto_ad"),
     path("cold-dm/",cold_dm, name="cold_dm"),
-    path("", landing_views.landing_dashboard_page_view, name="home"),
+    path("", landing_views.landing_dashboard_page_view, name="dashboard"),
     path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name="user_subscription_cancel"),
     path('accounts/billing/', subscriptions_views.user_subscription_view, name="user_subscription"),
     path('accounts/', include('allauth.urls')),
