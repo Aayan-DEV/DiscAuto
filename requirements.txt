@@ -11,3 +11,5 @@ django-widget-tweaks
 slippers
 stripe
 python-dotenv
+python-environ
+django-compressor

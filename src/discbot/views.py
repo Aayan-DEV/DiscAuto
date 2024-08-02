@@ -6,6 +6,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from visits.models import PageVisits
 from django.conf import settings
 from subscriptions.models import UserSubscription
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.conf import settings
+from forms.contact_form import ContactForm
+
 
 LOGIN_URL = settings.LOGIN_URL
 
@@ -34,7 +40,7 @@ def about_view(request, *args, **kwargs):
     }
     html_template = "home.html"
     PageVisits.objects.create(path=request.path)
-    return render(request, html_template, my_context)
+    return render(request, html_template, my_context, {'current_page': 'home'})
 
 VALID_CODE = "abcd1234"
 
@@ -66,3 +72,28 @@ def cold_dm(request, *args, **kwargs):
     if not user_subscription or user_subscription.subscription.name.lower() != "pro plan":
         raise Http404("This page does not exist.")
     return render(request, "features/cold-dm/cold-dm.html", {})
+
+def contact(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            message = form.cleaned_data['message']
+            full_message = f"Name: {name}\nEmail: {email}\nMessage:\n{message}"
+            
+            send_mail(
+                'New Contact Form Submission',
+                full_message,
+                email,  # sender's email
+                [settings.EMAIL_HOST_USER],  # receiver's email
+            )
+            messages.success(request, 'Your message has been sent successfully!')
+            return redirect('contact')
+    else:
+        form = ContactForm()
+    
+    return render(request, 'contact/contact.html', {
+        'form': form,
+        'current_page': 'contact',        
+        },)

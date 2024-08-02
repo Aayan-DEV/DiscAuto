@@ -74,4 +74,5 @@ def subscription_price_view(request, interval="week"):
         "wk_url": wk_url,
         "mo_url": mo_url,
         "active": active,
+        'current_page': 'pricing',
     })

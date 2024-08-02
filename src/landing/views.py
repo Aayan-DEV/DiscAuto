@@ -8,4 +8,4 @@ def landing_dashboard_page_view(request):
     if request.user.is_authenticated:
         return dashboard_view(request)
 
-    return render(request, 'landing/main.html', {})
+    return render(request, 'landing/main.html', {'current_page': 'home'})

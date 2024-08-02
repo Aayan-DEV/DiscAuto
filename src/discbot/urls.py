@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include 
 from auth import views as auth_views
-from .views import home_view,about_view, pw_proted_view, user_only_view, staff_only_view, auto_ad, cold_dm
+from .views import home_view,about_view, pw_proted_view, user_only_view, staff_only_view, auto_ad, cold_dm, contact
 from subscriptions import views as subscriptions_views
 from checkouts import views as checkout_views
 from landing import views as landing_views
 
 urlpatterns = [
+    path("contact/", contact, name="contact"),
     path("auto-ad/",auto_ad, name="auto_ad"),
     path("cold-dm/",cold_dm, name="cold_dm"),
     path("", landing_views.landing_dashboard_page_view, name="home"),
