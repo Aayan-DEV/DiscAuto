@@ -1,11 +1,9 @@
 import pathlib
 from django.shortcuts import render
-from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from visits.models import PageVisits
 from django.conf import settings
-from subscriptions.models import UserSubscription
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -62,16 +60,6 @@ def user_only_view(request, *args, **kwargs):
 @staff_member_required(login_url = LOGIN_URL)
 def staff_only_view(request, *args, **kwargs):
     return render(request, "protected/user-only.html", {})
-
-def auto_ad(request, *args, **kwargs):
-    return render(request, "features/auto-ad/auto-ad.html", {})
-
-@login_required
-def cold_dm(request, *args, **kwargs):
-    user_subscription = UserSubscription.objects.filter(user=request.user).first()
-    if not user_subscription or user_subscription.subscription.name.lower() != "pro plan":
-        raise Http404("This page does not exist.")
-    return render(request, "features/cold-dm/cold-dm.html", {})
 
 def contact(request):
     if request.method == 'POST':

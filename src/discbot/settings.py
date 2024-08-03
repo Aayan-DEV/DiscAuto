@@ -78,6 +78,13 @@ INSTALLED_APPS = [
     "profiles",
     'subscriptions',
     'customers',
+    'autoad',
+    'autodm',
+    'products',
+    "ticketbot",
+    'colddm',
+    'tickets',
+    'auths',
     # third-party-apps
     "allauth_ui",
     'allauth',
