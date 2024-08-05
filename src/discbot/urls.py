@@ -14,6 +14,9 @@ from auths import views as auths_views
 
 urlpatterns = [
     path('delete_discord_token/<int:token_id>/', auths_views.delete_discord_token, name='delete_discord_token'),
+    path('start_bot/<int:token_id>/', auths_views.start_bot, name='start_bot'),
+    path('stop_bot/<int:token_id>/', auths_views.stop_bot, name='stop_bot'),
+    path('delete_discord_token/<int:token_id>/', auths_views.delete_discord_token, name='delete_discord_token'),
     path("auths/",auths_views.auths, name="auths"),
     path("tickets/",tickets_views.tickets, name="tickets"),
     path("ticket-bot/",ticketbot_views.ticket_bot, name="ticket_bot"),

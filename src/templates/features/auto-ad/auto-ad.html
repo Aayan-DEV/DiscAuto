@@ -13,18 +13,30 @@
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary text-blue-500">Send</button>
     </form>
-
-    <form method="post" novalidate class="mt-3 text-blue-500">
-        {% csrf_token %}
-        {{ stop_form.as_p }}
-        <button type="submit" class="btn btn-danger text-blue-500">Stop Bot</button>
-    </form>
 </div>
 
-{% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
+{% if slowmode_info %}
+    <div class="mt-5">
+        <p class="text-blue-500">Slow Mode Information</p>
+        <table class="table-auto w-full text-blue-500">
+            <thead>
+                <tr>
+                    <th class="px-4 py-2">Server ID</th>
+                    <th class="px-4 py-2">Username</th>
+                    <th class="px-4 py-2">Slow Mode (seconds)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for info in slowmode_info %}
+                    <tr>
+                        <td class="border px-4 py-2">{{ info.token }}</td>
+                        <td class="border px-4 py-2">{{ info.username }}</td>
+                        <td class="border px-4 py-2">{{ info.slowmode_duration }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-{% endfor %}
+{% endif %}
 
 {% endblock content %}

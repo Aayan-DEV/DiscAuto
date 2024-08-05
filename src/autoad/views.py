@@ -1,4 +1,3 @@
-# views.py
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
@@ -6,65 +5,42 @@ from django.contrib.auth.decorators import login_required
 import requests
 import json
 from .forms import DataForm, StopBotForm
-from auths.models import DiscordToken  # Import the DiscordToken model
+from auths.models import DiscordToken
 
-# URL of the request handler server
-request_handler_url = "http://127.0.0.1:5001/send_data"
-stop_bot_url = "http://127.0.0.1:5001/stop_bot"  # Add the URL for stopping the bot
+get_slowmode_url = "http://127.0.0.1:5001/get_slowmode"  # Update with your Flask server IP
 
 @login_required
 def auto_ad(request):
+    slowmode_info = []
     if request.method == 'POST':
-        if 'channel_id' in request.POST:  # Changed from 'token' to 'channel_id' to identify the correct form submission
-            form = DataForm(request.POST)
-            if form.is_valid():
-                channel_id = form.cleaned_data['channel_id']
+        form = DataForm(request.POST, user=request.user)
+        if form.is_valid():
+            channel_id = form.cleaned_data['channel_id']
+            tokens = form.cleaned_data['token']
 
-                # Fetch the token from the database for the logged-in user
-                try:
-                    discord_token = DiscordToken.objects.get(user=request.user)
-                    token = discord_token.token
+            if 'all' in tokens:
+                tokens = DiscordToken.objects.filter(user=request.user).values_list('token', flat=True)
 
-                    data = {
-                        "token": token,
-                        "channel_id": channel_id
-                    }
-
-                    headers = {
-                        "Content-Type": "application/json"
-                    }
-
-                    response = requests.post(request_handler_url, headers=headers, data=json.dumps(data))
-
-                    if response.status_code == 200:
-                        messages.success(request, 'Data sent successfully!')
-                    else:
-                        messages.error(request, 'Failed to send data.')
-                except DiscordToken.DoesNotExist:
-                    messages.error(request, 'Discord token not found for the user.')
-
-                return redirect(reverse('auto_ad'))
-        elif 'confirm' in request.POST:
-            stop_form = StopBotForm(request.POST)
-            if stop_form.is_valid():
-                data = {
-                    "confirm": stop_form.cleaned_data['confirm']
-                }
-
+            for token in tokens:
                 headers = {
                     "Content-Type": "application/json"
                 }
+                data = {
+                    "token": token,
+                    "channel_id": channel_id
+                }
 
-                response = requests.post(stop_bot_url, headers=headers, data=json.dumps(data))
+                response = requests.post(get_slowmode_url, headers=headers, data=json.dumps(data))
+                response_data = response.json()
 
                 if response.status_code == 200:
-                    messages.success(request, 'Bot stopped successfully!')
+                    slowmode_duration = response_data.get('slowmode_duration')
+                    username = DiscordToken.objects.get(token=token).username
+                    slowmode_info.append({'token': token, 'username': username, 'slowmode_duration': slowmode_duration})
                 else:
-                    messages.error(request, 'Failed to stop bot.')
+                    messages.error(request, response_data.get('message', 'Error retrieving slow mode info'))
 
-                return redirect(reverse('auto_ad'))
     else:
-        form = DataForm()
-        stop_form = StopBotForm()
+        form = DataForm(user=request.user)
 
-    return render(request, 'features/auto-ad/auto-ad.html', {'form': form, 'stop_form': stop_form})
+    return render(request, 'features/auto-ad/auto-ad.html', {'form': form, 'slowmode_info': slowmode_info})
