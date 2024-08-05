@@ -3,6 +3,7 @@ from decouple import config
 from dotenv import load_dotenv
 import dj_database_url
 import environ
+from cryptography.fernet import Fernet
 import os
 
 # Load environment variables from .env file
@@ -234,3 +235,7 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 ]
+
+# Add this line to your settings file
+DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
+

@@ -13,6 +13,7 @@ from tickets import views as tickets_views
 from auths import views as auths_views
 
 urlpatterns = [
+    path('delete_discord_token/<int:token_id>/', auths_views.delete_discord_token, name='delete_discord_token'),
     path("auths/",auths_views.auths, name="auths"),
     path("tickets/",tickets_views.tickets, name="tickets"),
     path("ticket-bot/",ticketbot_views.ticket_bot, name="ticket_bot"),
