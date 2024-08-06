@@ -57,12 +57,13 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DJANGO_DEBUG", cast=bool)
 BASE_URL = config("BASE_URL", default=None)
 ALLOWED_HOSTS = [
-    ".railway.app"  # https://discbot.railway.app
+    ".railway.app",  # https://discbot.railway.app
+    ".ngrok-free.app"
 ]
 
 if DEBUG:
     ALLOWED_HOSTS += [
-        'localhost', '127.0.0.1'
+        'localhost', '127.0.0.1', ".ngrok-free.app"
     ]
 
 # Application definition
