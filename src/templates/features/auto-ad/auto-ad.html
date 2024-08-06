@@ -4,45 +4,133 @@
 
 {% block content %}
 
-<div class="pt-5">
-    <p class="text-blue-500">Auto Ad</p>
-    
-    <form method="post" novalidate class="text-blue-500">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary text-blue-500">Send</button>
-    </form>
-</div>
-
-{% if slowmode_info %}
-    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for info in slowmode_info %}
-            <div class="p-4 bg-blue-100 border border-blue-200 rounded-lg relative" data-channel-id="{{ info.channel_id }}">
-                <button class="absolute top-2 right-2 text-blue-500 remove-box" onclick="removeBox(this)">x</button>
-                <p class="font-bold text-blue-500">Channel ID: {{ info.channel_id }}</p>
-                <p class="text-blue-500">Channel Name: {{ info.channel_name }}</p>
-                <p class="text-blue-500">Server Name: {{ info.server_name }}</p>
-                <p class="text-blue-500">Usernames: {{ info.usernames|join:", " }}</p>
-                <p class="text-blue-500">Slow Mode: {{ info.slowmode_duration }} seconds</p>
-            </div>
-        {% endfor %}
+{% if no_users %}
+    <div class="mt-5 text-center">
+        <p class="text-blue-600 font-semibold">Add a user to begin using the bot</p>
     </div>
-{% endif %}
+{% else %}
+    <div class="flex flex-wrap pt-5">
+        <!-- Main Form Section -->
+        <div class="w-full lg:w-2/3 pr-0 lg:pr-6 mb-4 lg:mb-0">
+            <div class="p-5 bg-white shadow-md rounded-lg">
+                <p class="text-blue-600 text-lg font-semibold mb-4">Auto Ad</p>
+                
+                <form method="post" novalidate class="space-y-4">
+                    {% csrf_token %}
+                    <div class="flex flex-col">
+                        {{ data_form.channel_id.label_tag }}
+                        {{ data_form.channel_id }}
+                    </div>
+                    <div class="flex flex-col">
+                        {{ data_form.token.label_tag }}
+                        {{ data_form.token }}
+                    </div>
+                    <button type="submit" name="start_autoad" class="btn btn-primary p-2 bg-blue-500 rounded-lg">Start Auto Ad</button>
+                </form>
 
-{% if error_messages %}
-    <div class="mt-5 space-y-4">
-        {% for message in error_messages %}
-            <div class="p-4 bg-red-100 border border-red-200 rounded-lg relative">
-                <button class="absolute top-2 right-2 text-red-500" onclick="this.parentElement.remove();">x</button>
-                <p class="text-red-500">{{ message }}</p>
+                {% if data_form.errors %}
+                    <div class="mt-4 text-red-600">
+                        <ul class="list-disc pl-5">
+                        {% for field in data_form %}
+                            {% if field.errors %}
+                                <li>{{ field.label }}: {{ field.errors|striptags }}</li>
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
             </div>
-        {% endfor %}
+
+            {% if slowmode_info %}
+                {% if slowmode_info|length > 0 %}
+                    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for info in slowmode_info %}
+                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-md relative" data-channel-id="{{ info.channel_id }}">
+                                <p class="font-semibold text-blue-600">Bot Number: {{ info.box_number }}</p>  <!-- Display box number -->
+                                <p class="font-semibold text-blue-600">Channel ID: {{ info.channel_id }}</p>
+                                <p class="text-blue-600">Channel Name: {{ info.channel_name }}</p>
+                                <p class="text-blue-600">Server Name: {{ info.server_name }}</p>
+                                <p class="text-blue-600">Usernames: {{ info.usernames|join:", " }}</p>
+                                <p class="text-blue-600">Slow Mode: {{ info.slowmode_duration }} seconds</p>
+                                <p class="text-blue-600">Universal Message: {{ info.universal_message }}</p>
+                                <p class="text-blue-600">Custom Message: {{ info.custom_message }}</p>
+
+                                <form method="post" class="mt-4 space-y-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
+                                    {% if info.bot_running %}
+                                        <button type="submit" name="stop_bot" class="btn btn-warning p-2 bg-yellow-500 rounded-lg">Stop Bot</button>
+                                    {% else %}
+                                        <button type="submit" name="start_bot" class="btn btn-success p-2 bg-green-500 rounded-lg">Start Bot</button>
+                                    {% endif %}
+                                    <button type="button" onclick="removeBox(this)" class="btn btn-danger p-2 bg-red-500 rounded-lg">Delete Bot</button>
+                                </form>
+
+                                <form method="post" class="mt-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
+                                    <textarea name="custom_message" placeholder="Enter custom message..." class="w-full p-2 border border-gray-300 rounded-md" rows="3">{{ info.custom_message }}</textarea>
+                                    <button type="submit" name="set_custom_message" class="btn btn-primary mt-2 p-2 bg-blue-500 rounded-lg">Set Custom Message</button>
+                                </form>
+
+                                <form method="post" class="mt-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
+                                    <button type="submit" name="remove_custom_message" class="btn btn-secondary p-2 bg-gray-500 rounded-lg">Remove Custom Message</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            {% if error_messages %}
+                <div class="mt-5 space-y-4">
+                    {% for message in error_messages %}
+                        <div class="p-4 bg-red-50 border border-red-200 rounded-lg shadow-md relative">
+                            <button class="absolute top-2 right-2 text-red-600" onclick="this.parentElement.remove();">x</button>
+                            <p class="text-red-600">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Universal Message Section -->
+        <div class="w-full lg:w-1/3 pl-0 lg:pl-6">
+            <div class="p-5 bg-white shadow-md rounded-lg">
+                <p class="text-blue-600 text-lg font-semibold mb-4">Universal Message</p>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="flex flex-col mb-4">
+                        {{ universal_form.universal_message.label_tag }}
+                        {{ universal_form.universal_message }}
+                    </div>
+                    <button type="submit" name="confirm_universal" class="btn btn-primary p-2 bg-blue-500 rounded-lg">Confirm Universal Message</button>
+                    <button type="submit" name="clear_universal" class="btn btn-secondary p-2 bg-gray-500 rounded-lg">Clear Universal Message</button>
+                    <button type="submit" name="remove_universal" class="btn btn-danger p-2 bg-red-500 rounded-lg">Remove Universal Message</button>
+                </form>
+
+                {% if universal_form.errors %}
+                    <div class="mt-4 text-red-600">
+                        <ul class="list-disc pl-5">
+                        {% for field in universal_form %}
+                            {% if field.errors %}
+                                <li>{{ field.label }}: {{ field.errors|striptags }}</li>
+                            {% endif %}
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 {% endif %}
 
 <script>
 function removeBox(button) {
-    const box = button.parentElement;
+    const box = button.closest('div');
     const channelId = box.getAttribute('data-channel-id');
     
     fetch('{% url "remove_box" %}', {
@@ -58,7 +146,7 @@ function removeBox(button) {
         if (data.status === 'success') {
             box.remove();
         } else {
-            alert('Failed to remove the box.');
+            alert('Failed to remove the Bot.');
         }
     })
     .catch(error => {
