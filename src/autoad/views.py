@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import JsonResponse
@@ -9,11 +10,14 @@ from requests.exceptions import RequestException, ConnectionError
 from .forms import DataForm, UniversalMessageForm
 from auths.models import DiscordToken
 
-get_slowmode_url = "http://127.0.0.1:5001/get_slowmode"
-get_channel_name_url = "http://127.0.0.1:5001/get_channel_name"
-get_server_name_url = "http://127.0.0.1:5001/get_server_name"
-send_data_url = "http://127.0.0.1:5001/send_data"
-stop_autoad_url = "http://127.0.0.1:5001/stop_autoad"
+# Get server URL from environment variables
+SERVER_URL = os.getenv('SERVER_URL')
+
+get_slowmode_url = f"{SERVER_URL}/get_slowmode"
+get_channel_name_url = f"{SERVER_URL}/get_channel_name"
+get_server_name_url = f"{SERVER_URL}/get_server_name"
+send_data_url = f"{SERVER_URL}/send_data"
+stop_autoad_url = f"{SERVER_URL}/stop_autoad"
 
 @login_required
 def auto_ad(request):
@@ -64,8 +68,10 @@ def auto_ad(request):
                             server_name = response_server_name.json().get('server_name')
                             username = DiscordToken.objects.get(token=token).username
 
+                            # Check if a box with the same channel_id and token already exists
                             existing_entry = next((info for info in slowmode_info if info['channel_id'] == channel_id and info['token'] == token), None)
                             if existing_entry:
+                                error_messages.append(f"A box with Channel ID:{channel_id} and Username:{username} already exists. Please use a different combination or update the existing box.")
                                 if 'usernames' not in existing_entry:
                                     existing_entry['usernames'] = []
                                 if username not in existing_entry['usernames']:
