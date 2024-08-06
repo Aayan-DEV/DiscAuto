@@ -1,13 +1,14 @@
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 from dotenv import load_dotenv
 import dj_database_url
 import environ
 from cryptography.fernet import Fernet
 import os
 
-# Load environment variables from .env file
-load_dotenv()
+# Load environment variables from .env file if it exists
+if not os.getenv('RAILWAY_ENVIRONMENT'):
+    load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,8 +23,9 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
 
-# Read .env file
-env.read_env(os.path.join(ROOT_DIR, '.env'))
+# Read .env file if not in Railway environment
+if not os.getenv('RAILWAY_ENVIRONMENT'):
+    env.read_env(os.path.join(ROOT_DIR, '.env'))
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -238,4 +240,3 @@ STATICFILES_FINDERS = [
 
 # Add this line to your settings file
 DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
-
