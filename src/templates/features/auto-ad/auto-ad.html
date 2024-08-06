@@ -1,4 +1,3 @@
-<!-- auto-ad.html -->
 {% extends "dashboard/base.html" %}
 
 {% block head_title %} Auto Ad - {{ block.super }} {% endblock head_title %}
@@ -16,27 +15,57 @@
 </div>
 
 {% if slowmode_info %}
-    <div class="mt-5">
-        <p class="text-blue-500">Slow Mode Information</p>
-        <table class="table-auto w-full text-blue-500">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2">Server ID</th>
-                    <th class="px-4 py-2">Username</th>
-                    <th class="px-4 py-2">Slow Mode (seconds)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for info in slowmode_info %}
-                    <tr>
-                        <td class="border px-4 py-2">{{ info.token }}</td>
-                        <td class="border px-4 py-2">{{ info.username }}</td>
-                        <td class="border px-4 py-2">{{ info.slowmode_duration }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for info in slowmode_info %}
+            <div class="p-4 bg-blue-100 border border-blue-200 rounded-lg relative" data-channel-id="{{ info.channel_id }}">
+                <button class="absolute top-2 right-2 text-blue-500 remove-box" onclick="removeBox(this)">x</button>
+                <p class="font-bold text-blue-500">Channel ID: {{ info.channel_id }}</p>
+                <p class="text-blue-500">Channel Name: {{ info.channel_name }}</p>
+                <p class="text-blue-500">Server Name: {{ info.server_name }}</p>
+                <p class="text-blue-500">Usernames: {{ info.usernames|join:", " }}</p>
+                <p class="text-blue-500">Slow Mode: {{ info.slowmode_duration }} seconds</p>
+            </div>
+        {% endfor %}
     </div>
 {% endif %}
+
+{% if error_messages %}
+    <div class="mt-5 space-y-4">
+        {% for message in error_messages %}
+            <div class="p-4 bg-red-100 border border-red-200 rounded-lg relative">
+                <button class="absolute top-2 right-2 text-red-500" onclick="this.parentElement.remove();">x</button>
+                <p class="text-red-500">{{ message }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<script>
+function removeBox(button) {
+    const box = button.parentElement;
+    const channelId = box.getAttribute('data-channel-id');
+    
+    fetch('{% url "remove_box" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ channel_id: channelId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            box.remove();
+        } else {
+            alert('Failed to remove the box.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while removing the box.');
+    });
+}
+</script>
 
 {% endblock content %}

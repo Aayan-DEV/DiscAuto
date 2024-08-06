@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from .views import home_view,about_view, pw_proted_view, user_only_view, staff_only_view, contact
+from .views import home_view, about_view, pw_proted_view, user_only_view, staff_only_view, contact
 from subscriptions import views as subscriptions_views
 from checkouts import views as checkout_views
 from landing import views as landing_views
@@ -16,23 +16,21 @@ urlpatterns = [
     path('delete_discord_token/<int:token_id>/', auths_views.delete_discord_token, name='delete_discord_token'),
     path('start_bot/<int:token_id>/', auths_views.start_bot, name='start_bot'),
     path('stop_bot/<int:token_id>/', auths_views.stop_bot, name='stop_bot'),
-    path('delete_discord_token/<int:token_id>/', auths_views.delete_discord_token, name='delete_discord_token'),
-    path("auths/",auths_views.auths, name="auths"),
-    path("tickets/",tickets_views.tickets, name="tickets"),
-    path("ticket-bot/",ticketbot_views.ticket_bot, name="ticket_bot"),
-    path("products/",products_views.products, name="products"),
-    path("auto-dm/",autodm_views.auto_dm, name="auto_dm"),
+    path("auths/", auths_views.auths, name="auths"),
+    path("tickets/", tickets_views.tickets, name="tickets"),
+    path("ticket-bot/", ticketbot_views.ticket_bot, name="ticket_bot"),
+    path("products/", products_views.products, name="products"),
+    path("auto-dm/", autodm_views.auto_dm, name="auto_dm"),
     path("contact/", contact, name="contact"),
-    path("auto-ad/",autoad_views.auto_ad, name="auto_ad"),
+    path("auto-ad/", autoad_views.auto_ad, name="auto_ad"),
+    path('remove-box/', autoad_views.remove_box, name='remove_box'),
     path("cold-dm/", colddm_views.cold_dm, name="cold_dm"),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),
     path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name="user_subscription_cancel"),
     path('accounts/billing/', subscriptions_views.user_subscription_view, name="user_subscription"),
     path('accounts/', include('allauth.urls')),
     path('profiles/', include('profiles.urls')),
-    # path("register/", auth_views.register_view),
     path("hello-world/", home_view),
-    # path("login/", auth_views.login_view),
     path("about/", about_view),
     path("", home_view, name="home"),
     path('admin/', admin.site.urls),
