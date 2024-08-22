@@ -30,12 +30,11 @@ if not os.getenv('RAILWAY_ENVIRONMENT'):
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env("EMAIL_HOST", cast=str, default="smtp.gmail.com")
-EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587)  # Recommended
+EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587) 
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", cast=str, default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", cast=str, default=None)
-EMAIL_USE_TLS = env("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PORT 587 for TLS
-EMAIL_USE_SSL = env("EMAIL_USE_SSL", cast=bool, default=False)  # Use EMAIL_PORT 465 for SSL
-# 500 errors
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", cast=bool, default=True)  
+EMAIL_USE_SSL = env("EMAIL_USE_SSL", cast=bool, default=False)  
 ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
 
@@ -98,7 +97,14 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     "widget_tweaks",
     "slippers",
+    'django_extensions',
 ]
+
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -239,5 +245,8 @@ STATICFILES_FINDERS = [
     'compressor.finders.CompressorFinder',
 ]
 
-# Add this line to your settings file
 DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://pet-genuinely-raccoon.ngrok-free.app',
+]

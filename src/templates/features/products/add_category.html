@@ -1,0 +1,28 @@
+{% extends "dashboard/base.html" %}
+{% block head_title %}Add Category{% endblock head_title %}
+{% block content %}
+<div class="pt-10 px-4 md:px-0 relative">
+    <div class="flex items-center justify-center mb-6 relative">
+        <a href="{% url 'add_product_options' %}" class="absolute left-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
+            ← Back
+        </a>
+        <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white">Add Product Category</h1>
+    </div>
+    <div class="mt-10 max-w-lg mx-auto">
+        <form method="post" class="bg-white p-8 pt-2 rounded-xl shadow-lg space-y-6">
+            {% csrf_token %}
+            <div class="text-left space-y-6">
+                {{ form.non_field_errors }}
+                <div>
+                    {{ form.name.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.name.label_tag }}</label> 
+                    {{ form.name }} 
+                </div>
+            </div>
+            <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Save Category
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock content %}

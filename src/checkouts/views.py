@@ -11,7 +11,6 @@ from django.http import HttpResponseBadRequest
 BASE_URL = settings.BASE_URL
 User = get_user_model()
 
-# Create your views here.
 def product_price_redirect_view(request, price_id=None, *args, **kwargs):
     request.session['checkout_subscription_price_id'] = price_id
     return redirect('stripe-checkout-start')
@@ -73,7 +72,6 @@ def checkout_finalize_view(request):
     if None in [sub_obj, user_obj, _user_sub_obj]:
         return HttpResponseBadRequest("There was an error with your account. Please contact support.")
     if _user_sub_exists:
-        # cancel old subscription
         old_stripe_id = _user_sub_obj.stripe_id
         same_stripe_id = sub_stripe_id == old_stripe_id
         if old_stripe_id is not None and not same_stripe_id:
@@ -81,7 +79,6 @@ def checkout_finalize_view(request):
                 helpers.billing.cancel_subscription(old_stripe_id, reason="Auto ended, new membership.", feedback="other")
             except:
                 pass
-        # assign new subscription
         for k, v in updated_sub_options.items():
             setattr(_user_sub_obj, k, v)
         _user_sub_obj.save()

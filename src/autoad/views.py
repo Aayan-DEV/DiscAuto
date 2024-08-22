@@ -1,3 +1,4 @@
+# autoad/views.py
 import os
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -9,8 +10,8 @@ import json
 from requests.exceptions import RequestException, ConnectionError
 from .forms import DataForm, UniversalMessageForm
 from auths.models import DiscordToken
+from .models import AutoAdUser, AutoAdConfig, AutoAdDetail
 
-# Get server URL from environment variables
 SERVER_URL = os.getenv('SERVER_URL')
 
 get_slowmode_url = f"{SERVER_URL}/get_slowmode"
@@ -23,14 +24,14 @@ stop_autoad_url = f"{SERVER_URL}/stop_autoad"
 def auto_ad(request):
     data_form = DataForm(user=request.user)
     universal_form = UniversalMessageForm()
-    if 'slowmode_info' not in request.session:
-        request.session['slowmode_info'] = []
-    slowmode_info = request.session['slowmode_info']
     error_messages = []
 
     user_tokens = DiscordToken.objects.filter(user=request.user)
     if not user_tokens.exists():
         return render(request, 'features/auto-ad/auto-ad.html', {'no_users': True})
+
+    auto_ad_user, created = AutoAdUser.objects.get_or_create(user=request.user, defaults={'username': request.user.username})
+    auto_ad_config, created = AutoAdConfig.objects.get_or_create(user=auto_ad_user)
 
     if request.method == 'POST':
         if 'start_autoad' in request.POST:
@@ -66,127 +67,121 @@ def auto_ad(request):
                             slowmode_duration = response_slowmode.json().get('slowmode_duration')
                             channel_name = response_channel_name.json().get('channel_name')
                             server_name = response_server_name.json().get('server_name')
-                            username = DiscordToken.objects.get(token=token).username
+                            username = DiscordToken.objects.filter(token=token).first().username
 
-                            # Check if a box with the same channel_id and token already exists
-                            existing_entry = next((info for info in slowmode_info if info['channel_id'] == channel_id and info['token'] == token), None)
+                            existing_entry = AutoAdDetail.objects.filter(config=auto_ad_config, channel_id=channel_id, token=token).first()
                             if existing_entry:
                                 error_messages.append(f"A box with Channel ID:{channel_id} and Username:{username} already exists. Please use a different combination or update the existing box.")
-                                if 'usernames' not in existing_entry:
-                                    existing_entry['usernames'] = []
-                                if username not in existing_entry['usernames']:
-                                    existing_entry['usernames'].append(username)
-                                existing_entry['universal_message'] = universal_message
                             else:
-                                box_number = len(slowmode_info) + 1  # Assign a number to the new box
-                                slowmode_info.append({
-                                    'box_number': box_number,  # Add the box number here
-                                    'channel_id': channel_id,
-                                    'usernames': [username],
-                                    'slowmode_duration': slowmode_duration,
-                                    'channel_name': channel_name,
-                                    'server_name': server_name,
-                                    'universal_message': universal_message,
-                                    'custom_message': '',
-                                    'bot_running': False,
-                                    'token': token,
-                                })
+                                box_number = AutoAdDetail.objects.filter(config=auto_ad_config).count() + 1
+                                AutoAdDetail.objects.create(
+                                    config=auto_ad_config,
+                                    channel_id=channel_id,
+                                    usernames=username,
+                                    slowmode_duration=slowmode_duration,
+                                    channel_name=channel_name,
+                                    server_name=server_name,
+                                    universal_message=universal_message,
+                                    custom_message='',
+                                    bot_running=False,
+                                    token=token,
+                                    box_number=box_number
+                                )
                         else:
-                            username = DiscordToken.objects.get(token=token).username
+                            username = DiscordToken.objects.filter(token=token).first().username
                             error_messages.append(f"Error retrieving info for username {username}")
                     except (RequestException, ConnectionError) as e:
                         error_messages.append(f"Server unreachable. Please try again later. Error: {str(e)}")
 
-                request.session['slowmode_info'] = slowmode_info
-                request.session.modified = True
-            else:
-                messages.error(request, "Form is not valid. Please correct the errors.")
         elif 'confirm_universal' in request.POST:
             universal_form = UniversalMessageForm(request.POST)
             if universal_form.is_valid():
                 universal_message = universal_form.cleaned_data['universal_message']
-                for info in slowmode_info:
-                    if info['custom_message']:
-                        error_messages.append(f"Remove custom message for channel {info['channel_id']} before setting universal message.")
+                for info in auto_ad_config.details.all():
+                    if info.custom_message:
+                        error_messages.append(f"Remove custom message for channel {info.channel_id} before setting universal message.")
                         break
                 else:
-                    for info in slowmode_info:
-                        info['universal_message'] = universal_message
-                    request.session['slowmode_info'] = slowmode_info
-                    request.session.modified = True
+                    auto_ad_config.universal_message = universal_message
+                    auto_ad_config.save()
+                    for info in auto_ad_config.details.all():
+                        info.universal_message = universal_message
+                        info.save()
+
         elif 'stop_bot' in request.POST or 'start_bot' in request.POST:
             channel_id = int(request.POST.get('channel_id') or 0)
             action = 'stop_bot' if 'stop_bot' in request.POST else 'start_bot'
-            for info in slowmode_info:
-                if info['channel_id'] == channel_id:
-                    if action == 'stop_bot':
-                        info['bot_running'] = False
+            detail = auto_ad_config.details.filter(channel_id=channel_id).first()
+            if detail:
+                if action == 'stop_bot':
+                    detail.bot_running = False
+                    data = {
+                        "token": detail.token,
+                        "channel_id": channel_id
+                    }
+                    try:
+                        response = requests.post(stop_autoad_url, json=data)
+                        if response.status_code != 200:
+                            error_messages.append(f"Error stopping bot for channel {channel_id}")
+                    except (RequestException, ConnectionError) as e:
+                        error_messages.append(f"Server unreachable. Please try again later. Error: {str(e)}")
+                else:
+                    message = detail.custom_message if detail.custom_message else detail.universal_message
+                    if not message:
+                        error_messages.append(f"No message provided for channel {channel_id}")
+                    else:
+                        detail.bot_running = True
                         data = {
-                            "token": info['token'],
-                            "channel_id": channel_id
+                            "token": detail.token,
+                            "channel_id": detail.channel_id,
+                            "message": message,
+                            "infinite_loop": True
                         }
                         try:
-                            response = requests.post(stop_autoad_url, json=data)
+                            response = requests.post(send_data_url, json=data)
                             if response.status_code != 200:
-                                error_messages.append(f"Error stopping bot for channel {channel_id}")
+                                error_messages.append(f"Error starting bot for channel {channel_id}")
                         except (RequestException, ConnectionError) as e:
                             error_messages.append(f"Server unreachable. Please try again later. Error: {str(e)}")
-                    else:
-                        message = info['custom_message'] if info['custom_message'] else info['universal_message']
-                        if not message:
-                            error_messages.append(f"No message provided for channel {channel_id}")
-                        else:
-                            info['bot_running'] = True
-                            data = {
-                                "token": info['token'],
-                                "channel_id": info['channel_id'],
-                                "message": message,
-                                "infinite_loop": True
-                            }
-                            try:
-                                response = requests.post(send_data_url, json=data)
-                                if response.status_code != 200:
-                                    error_messages.append(f"Error starting bot for channel {channel_id}")
-                            except (RequestException, ConnectionError) as e:
-                                error_messages.append(f"Server unreachable. Please try again later. Error: {str(e)}")
-                    break
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
+                detail.save()
+
         elif 'delete_box' in request.POST:
             channel_id = int(request.POST.get('channel_id') or 0)
-            slowmode_info = [info for info in slowmode_info if info['channel_id'] != channel_id]
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
+            auto_ad_config.details.filter(channel_id=channel_id).delete()
+
         elif 'set_custom_message' in request.POST:
             channel_id = int(request.POST.get('channel_id') or 0)
             custom_message = request.POST.get('custom_message', '')
-            for info in slowmode_info:
-                if info['channel_id'] == channel_id:
-                    info['custom_message'] = custom_message
-                    break
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
+            detail = auto_ad_config.details.filter(channel_id=channel_id).first()
+            if detail:
+                detail.custom_message = custom_message
+                detail.save()
+
         elif 'remove_custom_message' in request.POST:
             channel_id = int(request.POST.get('channel_id') or 0)
-            for info in slowmode_info:
-                if info['channel_id'] == channel_id:
-                    info['custom_message'] = ''
-                    break
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
-        elif 'clear_universal' in request.POST:
-            for info in slowmode_info:
-                info['universal_message'] = ''
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
-        elif 'remove_universal' in request.POST:
-            for info in slowmode_info:
-                info['universal_message'] = ''
-            request.session['slowmode_info'] = slowmode_info
-            request.session.modified = True
-            universal_form = UniversalMessageForm()  # Clear the form
+            detail = auto_ad_config.details.filter(channel_id=channel_id).first()
+            if detail:
+                detail.custom_message = ''
+                detail.save()
 
-    return render(request, 'features/auto-ad/auto-ad.html', {'data_form': data_form, 'universal_form': universal_form, 'slowmode_info': slowmode_info, 'error_messages': error_messages})
+        elif 'clear_universal' in request.POST:
+            universal_form = UniversalMessageForm() 
+            auto_ad_config.universal_message = '' 
+            auto_ad_config.save()
+
+        elif 'remove_universal' in request.POST:
+            for info in auto_ad_config.details.all():
+                info.universal_message = ''
+                info.save()
+
+    slowmode_info = auto_ad_config.details.all()
+
+    return render(request, 'features/auto-ad/auto-ad.html', {
+        'data_form': data_form,
+        'universal_form': universal_form,
+        'slowmode_info': slowmode_info,
+        'error_messages': error_messages
+    })
 
 @login_required
 def remove_box(request):
@@ -196,10 +191,26 @@ def remove_box(request):
             channel_id = request_data.get('channel_id')
             if channel_id is None:
                 raise ValueError("Channel ID is required")
-            slowmode_info = request.session.get('slowmode_info', [])
-            updated_info = [info for info in slowmode_info if str(info['channel_id']) != str(channel_id)]
-            request.session['slowmode_info'] = updated_info
-            request.session.modified = True
+            
+            auto_ad_user = AutoAdUser.objects.get(user=request.user)
+            auto_ad_config = AutoAdConfig.objects.get(user=auto_ad_user)
+            detail = auto_ad_config.details.filter(channel_id=channel_id).first()
+
+            if detail:
+                if detail.bot_running:
+                    data = {
+                        "token": detail.token,
+                        "channel_id": channel_id
+                    }
+                    try:
+                        response = requests.post(stop_autoad_url, json=data)
+                        if response.status_code != 200:
+                            return JsonResponse({'status': 'failed', 'message': f"Error stopping bot for channel {channel_id}. Please Stop the bot First!"}, status=400)
+                    except (RequestException, ConnectionError) as e:
+                        return JsonResponse({'status': 'failed', 'message': f"Server unreachable. Please try again later. Error: {str(e)}"}, status=400)
+                
+                detail.delete()
+
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'failed', 'message': str(e)}, status=400)

@@ -12,11 +12,11 @@ def auths(request):
 
     if request.method == 'POST' and 'token' in request.POST:
         token = request.POST.get('token')
-        url = f"{SERVER_URL}/get_username"  # URL of the external server
+        url = f"{SERVER_URL}/get_username" 
         data = {'token': token}
         try:
             response = requests.post(url, json=data)
-            response.raise_for_status()  # Raise an error for bad responses
+            response.raise_for_status()  
             response_data = response.json()
 
             if response_data.get('status') == 'success':
@@ -50,10 +50,10 @@ def start_bot(request, token_id):
     discord_token = DiscordToken.objects.get(id=token_id, user=request.user)
     if discord_token:
         url = f"{SERVER_URL}/send_data"
-        data = {'token': discord_token.token, 'channel_id': 'YOUR_CHANNEL_ID'}  # Replace YOUR_CHANNEL_ID with the actual channel ID
+        data = {'token': discord_token.token, 'channel_id': 'YOUR_CHANNEL_ID'}
         try:
             response = requests.post(url, json=data)
-            response.raise_for_status()  # Raise an error for bad responses
+            response.raise_for_status() 
             response_data = response.json()
 
             if response_data.get('status') == 'success':
@@ -73,7 +73,7 @@ def stop_bot(request, token_id):
         data = {'tokens': [discord_token.token]}
         try:
             response = requests.post(url, json=data)
-            response.raise_for_status()  # Raise an error for bad responses
+            response.raise_for_status()  
             response_data = response.json()
 
             if response_data.get('status') == 'success':

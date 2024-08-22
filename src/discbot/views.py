@@ -73,8 +73,8 @@ def contact(request):
             send_mail(
                 'New Contact Form Submission',
                 full_message,
-                email,  # sender's email
-                [settings.EMAIL_HOST_USER],  # receiver's email
+                email, 
+                [settings.EMAIL_HOST_USER], 
             )
             messages.success(request, 'Your message has been sent successfully!')
             return redirect('contact')

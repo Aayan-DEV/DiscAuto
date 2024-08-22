@@ -16,17 +16,15 @@
         {% include 'dashboard/sidebar.html' %}
 
         <main class="p-4 md:ml-64 h-auto pt-20">
-        <!-- Include the Banner Template -->
+            
         {% include 'snippets/banner.html' %}
-    
-        <!-- Page Content -->
+
         <div>
         {% block content %}
         {% endblock content %}
         </div>
 
         </main>
-
     
     </div>
     {% include 'base/js.html' %}

@@ -35,8 +35,6 @@
         <div class="flex items-center space-x-4">
             <p class="bg-gray-800 text-white text-lg p-2 rounded-full">{{ discord_token.username }}</p>
             <p class="text-green-500 text-lg">Connected</p>
-            <button onclick="location.href='{% url 'start_bot' discord_token.id %}'" class="bg-green-500 text-white text-lg p-2 rounded-full">Start Bot</button>
-            <button onclick="location.href='{% url 'stop_bot' discord_token.id %}'" class="bg-yellow-500 text-white text-lg p-2 rounded-full">Stop Bot</button>
             <button onclick="location.href='{% url 'delete_discord_token' discord_token.id %}'" class="bg-red-500 text-white text-lg p-2 rounded-full">Delete</button>
         </div>
         {% endfor %}
@@ -44,7 +42,7 @@
 </div>
 
 <!-- Modal -->
-<div id="token-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
+<div id="token-modal" class="flex hidden fixed inset-0 bg-gray-600 bg-opacity-50 justify-center items-center">
     <div class="bg-white p-5 rounded-lg">
         <h2 class="text-xl font-bold mb-4">Enter Discord Token</h2>
         <form method="POST" action="{% url 'auths' %}">

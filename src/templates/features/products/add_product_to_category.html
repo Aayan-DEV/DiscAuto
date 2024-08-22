@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+{% block head_title %}Add Product to {{ category.name }}{% endblock head_title %}
+{% block content %}
+<div class="pt-10 px-4 md:px-0 text-center relative">
+    <h1 class="text-4xl font-extrabold text-white">Add Product to {{ category.name }}</h1>
+    <div class="mt-10 max-w-lg mx-auto">
+        <form method="post" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+            {% csrf_token %}
+            <div class="text-left space-y-6">
+                {{ form.non_field_errors }}
+                <div>
+                    {{ form.title.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label>
+                    {{ form.title }}
+                </div>
+                <div>
+                    {{ form.price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label>
+                    {{ form.price }}
+                </div>
+                <div>
+                    {{ form.currency.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label>
+                    {{ form.currency }}
+                </div>
+                <div>
+                    {{ form.description.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label>
+                    {{ form.description }}
+                </div>
+                <div>
+                    {{ form.product_content.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.product_content.label_tag }}</label>
+                    {{ form.product_content }}
+                </div>
+            </div>
+            <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Save Product
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock content %}

@@ -24,7 +24,7 @@ class Customer(models.Model):
             email = self.user.email
             if email != "" or email is not None:
                 stripe_id = helpers.billing.create_customer(
-                    name=self.user.username,  # Pass the username as the name
+                    name=self.user.username,  
                     email=email,
                     metadata={
                         "user_id": self.user.id, 
@@ -34,11 +34,9 @@ class Customer(models.Model):
                 )
                 self.stripe_id = stripe_id
         super().save(*args, **kwargs)
-        # Post save it will not update.
 
 def allauth_user_signed_up_handler(request, user, *args, **kwargs):
     email = user.email
-    # Check if it's a social sign-up
     social_account_exists = SocialAccount.objects.filter(user=user).exists()
     init_email_confirmed = social_account_exists
     customer = Customer.objects.create(user=user, init_email=email, init_email_comfirmed=init_email_confirmed)

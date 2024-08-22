@@ -9,7 +9,6 @@ def subscription_plan(request):
         user_subscription = UserSubscription.objects.filter(user=request.user).first()
         if user_subscription and user_subscription.subscription:
             subscription_plan_name = user_subscription.subscription.name.lower()
-            # Access the SubscriptionPrice through the Subscription model
             subscription_price = user_subscription.subscription.subscriptionprice_set.first()
             if subscription_price:
                 subscription_interval = subscription_price.interval

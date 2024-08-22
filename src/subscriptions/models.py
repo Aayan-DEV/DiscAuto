@@ -15,7 +15,6 @@ SUBSCRIPTION_PERMISSIONS = [
     ("starter", "Starter Perm"),  # subscriptions.starter
 ]
 
-# Create your models here.
 class Subscription(models.Model):
     """
     Subscription Plan = Stripe Product
@@ -148,10 +147,7 @@ class SubscriptionPrice(models.Model):
         else:
             if self.stripe_id and (self.price != self._original_price or self.interval != self._original_interval):
                 from helpers.billing import delete_price, create_price
-                # Delete the existing price on Stripe
                 delete_price(self.stripe_id)
-                
-                # Create a new price with the updated values
                 new_stripe_id = create_price(
                     currency=self.stripe_currency,
                     unit_amount=self.stripe_price,
@@ -236,9 +232,6 @@ class UserSubscriptionManager(models.Manager):
     
     # def by_user_ids(self, user_ids=None):
     #     return self.get_queryset().by_user_ids(user_ids=user_ids)
-        
-
-    
 
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
