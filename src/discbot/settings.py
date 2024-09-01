@@ -211,7 +211,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'local-cdn/'
+STATIC_URL = '/local-cdn/'
 
 # Define the directories that contain static files to be collected
 STATICFILES_DIRS = [
@@ -219,7 +219,7 @@ STATICFILES_DIRS = [
 ]
 
 # Define where collected static files will be stored
-STATIC_ROOT = BASE_DIR / "local-cdn"
+STATIC_ROOT = BASE_DIR / 'local-cdn'
 
 # Storage configuration using WhiteNoise and Compressor
 STORAGES = {
@@ -268,3 +268,5 @@ LOGGING = {
         },
     },
 }
+
+STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
