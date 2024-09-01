@@ -56,13 +56,15 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DJANGO_DEBUG", cast=bool)
 BASE_URL = config("BASE_URL", default=None)
 ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
     ".railway.app",  # https://discbot.railway.app
     ".ngrok-free.app"
 ]
 
 if DEBUG:
     ALLOWED_HOSTS += [
-        'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app"
+        'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app",
     ]
 
 # Application definition
@@ -212,12 +214,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
+STATICFILES_BASE_DIR2 = BASE_DIR / "static"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
 # source for python manage.py collectstatic
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR
+    STATICFILES_BASE_DIR,
+    STATICFILES_BASE_DIR2
 ]
 
 # output for python manage.py collectstatic
@@ -235,7 +239,9 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-COMPRESS_ROOT = BASE_DIR / 'static'
+COMPRESS_ROOT = BASE_DIR / 'local-cdn'
+
+COMPRESS_OUTPUT_DIR = 'CACHE'  # Default, can be omitted
 
 COMPRESS_ENABLED = True
 
@@ -249,5 +255,28 @@ DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 CSRF_TRUSTED_ORIGINS = [
     'https://pet-genuinely-raccoon.ngrok-free.app',
-    'https://discauto-production.up.railway.app'
 ]
+
+
+log_directory = BASE_DIR / 'logs'
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': log_directory / 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
