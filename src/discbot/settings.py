@@ -10,7 +10,7 @@ import os
 if not os.getenv('RAILWAY_ENVIRONMENT'):
     load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Define the base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 SRC_DIR = BASE_DIR / 'src'
 if str(SRC_DIR) not in os.sys.path:
@@ -19,8 +19,7 @@ if str(SRC_DIR) not in os.sys.path:
 # Initialise environment variables
 env = environ.Env()
 
-# Define the base directory
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Define the root directory
 ROOT_DIR = BASE_DIR.parent
 
 # Read .env file if not in Railway environment
@@ -212,36 +211,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
-STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
-STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
+STATIC_URL = 'local-cdn/'
 
-# source for python manage.py collectstatic
+# Define the directories that contain static files to be collected
 STATICFILES_DIRS = [
-    STATICFILES_BASE_DIR,
-    STATIC_URL
+    BASE_DIR / "static",  # Custom static files for the app
 ]
 
-# output for python manage.py collectstatic
-# local cdn
+# Define where collected static files will be stored
 STATIC_ROOT = BASE_DIR / "local-cdn"
 
+# Storage configuration using WhiteNoise and Compressor
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-COMPRESS_ROOT = BASE_DIR / 'local-cdn'
-
-COMPRESS_OUTPUT_DIR = 'CACHE'  # Default, can be omitted
-
+# Compressor settings
+COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_OUTPUT_DIR = 'CACHE'
 COMPRESS_ENABLED = True
 
 STATICFILES_FINDERS = [
@@ -256,7 +245,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://pet-genuinely-raccoon.ngrok-free.app',
 ]
 
-
+# Logging configuration
 log_directory = BASE_DIR / 'logs'
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
