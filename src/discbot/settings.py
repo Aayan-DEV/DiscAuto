@@ -249,5 +249,5 @@ DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 CSRF_TRUSTED_ORIGINS = [
     'https://pet-genuinely-raccoon.ngrok-free.app',
-    '.railway.app'
+    'https://discauto-production.up.railway.app'
 ]
