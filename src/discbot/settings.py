@@ -212,16 +212,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
-STATICFILES_BASE_DIR2 = BASE_DIR / "static"
 STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
 STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
 
 # source for python manage.py collectstatic
 STATICFILES_DIRS = [
     STATICFILES_BASE_DIR,
-    STATICFILES_BASE_DIR2
+    STATIC_URL
 ]
 
 # output for python manage.py collectstatic
