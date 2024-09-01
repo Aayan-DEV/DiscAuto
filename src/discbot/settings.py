@@ -62,7 +62,7 @@ ALLOWED_HOSTS = [
 
 if DEBUG:
     ALLOWED_HOSTS += [
-        'localhost', '127.0.0.1', ".ngrok-free.app", ".vercel.app"
+        'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app"
     ]
 
 # Application definition
@@ -249,4 +249,5 @@ DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 CSRF_TRUSTED_ORIGINS = [
     'https://pet-genuinely-raccoon.ngrok-free.app',
+    '.railway.app'
 ]
