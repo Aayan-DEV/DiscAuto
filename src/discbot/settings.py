@@ -218,6 +218,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",  # Custom static files for the app
 ]
 
+STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
+
 # Define where collected static files will be stored
 STATIC_ROOT = BASE_DIR / 'local-cdn'
 
@@ -280,4 +282,4 @@ LOGGING = {
     },
 }
 
-STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
+
