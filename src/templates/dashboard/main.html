@@ -3,4 +3,19 @@
 {% block head_title %} Dashboard - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
+
+<div class="text-custom-pink-color pt-5">
+    {% if subscription_plan_name == "starter plan" %}
+    <h1 class="text-lg font-medium">You have the Starter Plan!</h1>
+    {% elif subscription_plan_name == "pro plan" %}
+    <h1 class="text-lg font-medium">You have the Pro Plan!</h1>
+    {% else %}
+    <h1 class="text-lg font-medium">You have No plan currently!</h1>
+    <a href="{% url 'pricing' %}">Upgrade Now!</a>
+    {% endif %}
+
+
+    
+</div>
+
 {% endblock content %}
