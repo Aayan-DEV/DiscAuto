@@ -13,7 +13,7 @@
           <span class="ml-3">Dashboard</span>
         </a>
       </li>
-      {% if subscription_plan_name == "starter plan" %}
+      {% if subscription_plan_name == "starter plan" or "pro plan" %}
       <li>
         <a
           href="{% url 'auto_ad' %}"
