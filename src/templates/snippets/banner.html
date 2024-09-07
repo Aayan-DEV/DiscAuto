@@ -1,6 +1,6 @@
-<!-- templates/snippets/banner.html -->
 {% if messages %}
-    <div id="messages-container" class="relative bg-blue-500 text-white text-center p-4">
+    <div id="messages-container" class="relative bg-blue-500 text-white text-center p-4 
+        {% if not request.user.is_authenticated %}mt-16 md:mt-20{% endif %}">
         {% for message in messages %}
             <div>
                 <span>{{ message }}</span>

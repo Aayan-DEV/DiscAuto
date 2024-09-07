@@ -1,41 +1,146 @@
 {% load static %}
-<nav class="bg-transparent">
+<nav class="custom-navbar bg-transparent fixed top-0 left-0 w-full z-50">
   <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <!-- Logo -->
       <a href="{% url 'home' %}" class="flex items-center space-x-3 rtl:space-x-reverse">
         <img src="{% static 'icon/logo.png' %}" alt="Logo" width="50" height="50" class="d-inline-block align-text-top">
       </a>
-      <button data-collapse-toggle="navbar-default" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
+
+      <!-- Mobile Menu Button -->
+      <button data-collapse-toggle="navbar-default" id="mobile-menu-btn" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
           <span class="sr-only">Open main menu</span>
           <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
           </svg>
       </button>
+
+      <!-- Desktop Menu -->
       <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-          <ul class="font-medium flex flex-col md:p-0 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0">
-            <ul class="p-2 flex flex-col md:p-0 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:items-center">
-                {% if request.user.is_authenticated %}
-                {% else %}
-                  <li>
-                      <a href="{% url 'home' %}" class="block py-2 px-3 rounded {% if current_page == 'home' %}text-blue-700 md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500{% else %}text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent{% endif %}" aria-current="page">Home</a>
-                  </li>
-                {% endif %}
-                  <li>
-                      <a href="{% url 'pricing' %}" class="block py-2 px-3 rounded {% if current_page == 'pricing' %}text-blue-700 md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500{% else %}text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent{% endif %}">Pricing</a>
-                  </li>
-                  <li>
-                      <a href="{% url 'contact' %}" class="block py-2 px-3 rounded {% if current_page == 'contact' %}text-blue-700 md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500{% else %}text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent{% endif %}">Contact</a>
-                  </li>
-              </ul>
+        <ul class="font-medium flex flex-col md:flex-row md:space-x-8 justify-center items-center md:mt-0">
               {% if request.user.is_authenticated %}
-              <li>
-                  <a href="{% url 'home' %}" class="block py-2 px-3 rounded {% if current_page == 'dashboard' %}text-blue-700 md:bg-transparent md:text-blue-700 md:p-0 dark:text-white md:dark:text-blue-500{% else %}text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent{% endif %}">Dashboard</a>
-              </li>
+                <li>
+                    <a href="{% url 'dashboard' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Dashboard</a>
+                </li>
               {% else %}
-              <li>
-                  <a href="/accounts/login" class="block py-2 px-3 rounded {% if current_page == 'login' %}text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-mb-2 flex items-center justify-center p-8 py-2 text-base font-medium rounded-full transition duration-75{% else %}text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-mb-2 flex items-center justify-center p-8 py-2 text-base font-medium rounded-full transition duration-75 {% endif %}">Login / Signup</a>
-              </li>
+                <li>
+                    <a href="{% url 'home' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Home</a>
+                </li>
+                <li>
+                    <a href="{% url 'pricing' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Pricing</a>
+                </li>
+                <li>
+                    <a href="{% url 'contact' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Contact</a>
+                </li>
+                <li>
+                    <a href="/accounts/login" class="block py-2 px-3 rounded bg-gradient-to-r from-custom-purple to-custom-blue text-white border-4 text-base font-medium rounded-full transition duration-75">Login / Signup</a>
+                </li>
               {% endif %}
           </ul>
       </div>
   </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="md:hidden fixed inset-0 hidden mobile-menu-bg z-40">
+    <!-- Close Button -->
+    <button id="close-menu-btn" class="close-btn">&times;</button>
+    <div class="flex flex-col h-full justify-between">
+      <ul class="flex flex-col space-y-4 mt-10 ml-4">
+        <li><a href="{% url 'home' %}" class="underline-animation block py-2 px-4 text-white text-lg">Home</a></li>
+        <li><a href="{% url 'pricing' %}" class="underline-animation block py-2 px-4 text-white text-lg">Pricing</a></li>
+        <li><a href="{% url 'contact' %}" class="underline-animation block py-2 px-4 text-white text-lg">Contact</a></li>
+      </ul>
+      <div class="p-4">
+        <a href="/accounts/login" class="py-2 px-4 bg-gradient-to-r from-custom-purple to-custom-blue text-white border-4 text-base font-medium rounded-full w-full text-center block transition duration-75">Login / Signup</a>
+      </div>
+    </div>
+  </div>
 </nav>
+
+<!-- Styles and Script for Blurred Navbar -->
+<style>
+  /* Custom Navbar Base Style */
+  .custom-navbar {
+      background-color: rgba(255, 255, 255, 0);
+      transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+      backdrop-filter: none;
+  }
+
+  /* Navbar when scrolled */
+  .scrolled {
+      background-color: rgba(44, 50, 75, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  }
+
+  /* Adding padding to the body to prevent content from going under the fixed navbar */
+  body {
+      padding-top: 80px; /* Adjust based on your navbar's height */
+  }
+
+  /* Additional styles for the mobile menu background and close button */
+  .mobile-menu-bg {
+      background-color: rgba(44, 50, 75, 0.8);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+  }
+
+  .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      color: white;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+  }
+
+  .no-scroll {
+      overflow: hidden;
+      height: 100%;
+  }
+
+
+  /* Close Button */
+  .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      color: white;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.5rem;
+  }
+</style>
+
+<!-- JavaScript to handle scroll effect and mobile menu -->
+<script>
+  // Handle scroll effect for fixed navbar
+  window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('.custom-navbar');
+    if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+    } else {
+        navbar.classList.remove('scrolled');
+    }
+  });
+
+  // Toggle mobile menu visibility and disable scrolling
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const closeMenuBtn = document.getElementById('close-menu-btn');
+  const body = document.body;
+
+  mobileMenuBtn.addEventListener('click', () => {
+    mobileMenu.classList.toggle('hidden');
+    body.classList.add('no-scroll');
+  });
+
+  closeMenuBtn.addEventListener('click', () => {
+    mobileMenu.classList.add('hidden');
+    body.classList.remove('no-scroll');
+  });
+
+  </script>

@@ -1,32 +1,150 @@
 {% extends "base.html" %}
 
-{% block head_title %} Contact - {{ block.super }} {% endblock head_title%}
+{% block head_title %} Contact - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
 
-<section class="bg-white dark:bg-gray-900">
-    <div class="py-8 lg:py-16 px-4 mx-auto max-w-screen-md">
-        <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center text-gray-900 dark:text-white">Contact Us</h2>
-        <p class="mb-8 lg:mb-16 font-light text-center text-gray-500 dark:text-gray-400 sm:text-xl">Got a technical issue? Want to send feedback about a beta feature? Need details about our Business plan? Let us know.</p>
-        <form method="post" action="{% url 'contact' %}" class="space-y-8">
+<style>
+    .bg-radial-gradient {
+        background: radial-gradient(circle at center, #2A2D5D, black);
+        background-size: cover;
+        background-attachment: fixed;
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .contact-card {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 2rem;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        max-width: 100%; /* Ensures the card fits well on smaller screens */
+    }
+
+    .contact-heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+    }
+
+    .contact-text {
+        color: #d1d5db;
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .form-label {
+        color: #ffffff;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .form-input:focus {
+        border-color: #6366f1;
+        outline: none;
+        box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+    }
+
+    .submit-button {
+        background: linear-gradient(90deg, #6366f1, #3b82f6);
+        padding: 0.75rem 2rem;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .submit-button:hover {
+        background: linear-gradient(90deg, #3b82f6, #6366f1);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .contact-card {
+            padding: 1.5rem; /* Reduce padding for smaller screens */
+        }
+
+        .contact-heading {
+            font-size: 2rem; /* Reduce font size for smaller screens */
+        }
+
+        .contact-text {
+            font-size: 1rem; /* Adjust text size for readability on mobile */
+        }
+
+        .submit-button {
+            padding: 0.75rem 1.5rem; /* Adjust button size */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .bg-radial-gradient {
+            padding: 1rem; /* Ensure there's padding around the content */
+        }
+
+        .contact-heading {
+            font-size: 1.75rem; /* Further reduce heading size */
+        }
+
+        .contact-text {
+            font-size: 0.875rem; /* Smaller text for very small screens */
+        }
+
+        .submit-button {
+            padding: 0.75rem 1rem; /* Adjust button for smaller screens */
+            font-size: 0.875rem; /* Smaller button text for smaller screens */
+        }
+    }
+</style>
+
+<section class="contact-background bg-radial-gradient">
+    <div class="contact-card max-w-lg mx-auto mt-14">
+        <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center contact-heading">Contact Us</h2>
+        <p class="contact-text">Got a technical issue? Want to send feedback about a beta feature? Need details about our Business plan? Let us know.</p>
+        <form method="post" action="{% url 'contact' %}" class="space-y-6">
             {% csrf_token %}
             <div>
-                <label for="id_email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Your email</label>
-                <input type="email" id="id_email" name="email" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light" placeholder="name@flowbite.com" required>
+                <label for="id_email" class="form-label">Your email</label>
+                <input type="email" id="id_email" name="email" class="form-input block w-full" placeholder="name@gmail.com" required>
             </div>
             <div>
-                <label for="id_name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Your Name</label>
-                <input type="text" id="id_name" name="name" class="block p-3 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light" placeholder="Your name" required>
+                <label for="id_name" class="form-label">Your Name</label>
+                <input type="text" id="id_name" name="name" class="form-input block w-full" placeholder="Your name" required>
             </div>
             <div>
-                <label for="id_subject" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Subject</label>
-                <input type="text" id="id_subject" name="subject" class="block p-3 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 shadow-sm focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 dark:shadow-sm-light" placeholder="Let us know how we can help you" required>
+                <label for="id_subject" class="form-label">Subject</label>
+                <input type="text" id="id_subject" name="subject" class="form-input block w-full" placeholder="Let us know how we can help you" required>
             </div>
-            <div class="sm:col-span-2">
-                <label for="id_message" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Your message</label>
-                <textarea id="id_message" name="message" rows="6" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Leave a comment..." required></textarea>
+            <div>
+                <label for="id_message" class="form-label">Your message</label>
+                <textarea id="id_message" name="message" rows="4" class="form-input block w-full" placeholder="Leave a comment..." required></textarea>
             </div>
-            <button type="submit" class="py-3 px-5 text-sm font-medium text-center text-white rounded-lg bg-primary-700 sm:w-fit hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">Send message</button>
+            <div class="text-center">
+                <button type="submit" class="submit-button">Send Message</button>
+            </div>
         </form>
     </div>
 </section>

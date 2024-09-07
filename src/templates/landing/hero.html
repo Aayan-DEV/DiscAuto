@@ -1,149 +1,115 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hero Section</title>
+
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Now+Display:wght@400&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Add custom Tailwind class to apply the Google font */
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
         }
 
-        body {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            background: radial-gradient(circle, #2A2D5D, black);
-            color: #cccccc;
-            margin: 0;
-            padding: 0;
-            background-attachment: fixed;
+        /* Custom styles for the checkmark and button */
+        .checklist-item::before {
+            content: '';
+            background-image: url("{% static 'images/tick.png' %}");
+            background-size: contain;
+            width: 35px;
+            height: 35px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        /* Background image styling */
+        .bg-cover {
+            background-image: url("{% static 'images/background-image.png' %}");
+            background-size: cover;
+            background-position: center;
             position: relative;
+            z-index: 0;
         }
 
-        .hero {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            color: #FFFFFF;
+        /* Ensures all the content appears above the background */
+        .content-wrapper {
+            position: relative;
             z-index: 1;
         }
 
-        .hero-content {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
+        /* Update the button to have a higher z-index */
+        .center-button {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #C4A2F5;
+            color: #1E1E2E;
+            padding: 12px 32px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
+            z-index: 2; /* Ensure button appears above everything */
         }
 
-        .hero-text {
-            text-align: center;
+        .center-button:hover {
+            background-color: #9B8ADB;
         }
 
-        .hero h1,
-        .hero h2 {
-            font-family: 'Helvetica Now Display', sans-serif;
+        @media (max-width: 640px) {
+            .center-button {
+                bottom: 20px;
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
         }
 
-        .hero h1 {
-            font-size: 3.5vw;
-            line-height: 1.2;
-        }
-
-        .hero h2 {
-            font-size: 50px;
-            line-height: 1.2;
-        }
-
-        .custom-font {
-            font-family: 'MADECoachellaRegular', sans-serif;
-            color: #C1A1FF;
-        }
-
-        .custom-helvetica {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            color: #895FDB;
-        }
-
-        .custom-helvetica2 {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            color: #895FDB;
-            font-size: 4vw;
-        }
-
-        .hero .highlight {
-            color: #8a4af3;
-            font-size: 56px;
-            display: inline-block;
-        }
-
-        .cta-button-container {
-            margin-top: 20px;
-        }
-
-        .cta-button {
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .cta-button svg {
-            margin-left: 8px;
-        }
-
-        .features {
-            margin-left: 20px;
-        }
     </style>
 </head>
+<body class="min-h-screen bg-[#1E1E2E] text-white font-poppins">
 
-<body>
-    <section class="hero">
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="text-5xl lg:text-7xl leading-tight">
-                    <span class="font-madecoachella">L</span><span class="font-helvetica">ooking</span><br>
-                    <span class="font-helvetica">To Automate Your</span><br>
-                    <span class="font-madecoachella">D</span><span class="font-helvetica">aily</span>
-                    <span class="font-madecoachella">D</span><span class="font-helvetica">iscord</span><br>
-                    <span class="font-helvetica">Tasks??</span>
-                </h1>
+    <!-- Fullscreen background image container -->
+    <div class="w-full h-screen bg-cover">
+        <!-- Content wrapper to position text over the background image -->
+        <div class="content-wrapper flex flex-col lg:flex-row w-full h-full items-center justify-center lg:justify-between p-4 md:p-8">
+
+            <!-- First section with stylized text -->
+            <div class="w-full lg:w-1/2 flex items-center justify-center text-center lg:text-left p-4 md:p-8">
+                <div>
+                    <h1 class="text-[#C4A2F5] text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
+                        L<span class="italic">ooking</span><br>
+                        To Automate Your <br>
+                        <span class="text-[#C4A2F5] italic">D</span>aily <span class="italic">D</span>iscord <br>
+                        <span class="text-[#C4A2F5]">TASKS??</span>
+                    </h1>
+                </div>
             </div>
-            <div class="features mt-8">
-                <ul class="list-none text-purple-400 space-y-2 text-2xl">
-                    <li>Daily Stats</li>
-                    <li>Payments Automated</li>
-                    <li>Automated Selling</li>
-                    <li>100% Uptime</li>
-                    <li>24/7 Support</li>
-                    <li>Discord Community</li>
+
+            <!-- Second section with checklist -->
+            <div class="w-full lg:w-1/2 flex items-start justify-center space-y-2 md:space-y-3 p-4 md:p-8">
+                <ul class="space-y-2 md:space-y-3 text-xl md:text-2xl lg:text-4xl">
+                    <li class="checklist-item">Daily Stats</li>
+                    <li class="checklist-item">Payments Automated</li>
+                    <li class="checklist-item">Automated Selling</li>
+                    <li class="checklist-item">100% Uptime</li>
+                    <li class="checklist-item">24/7 Support</li>
+                    <li class="checklist-item">Discord Community</li>
                 </ul>
             </div>
         </div>
-        <div class="cta-button-container mt-8">
-            <a href="#" class="cta-button bg-gradient-to-r from-purple-700 to-blue-500 py-3 px-6 rounded-full text-white inline-flex items-center">Automate Now
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right ml-2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
-            </a>
-        </div>
-    </section>
-</body>
 
+        <!-- Centered Button -->
+        <a href="/your-url" class="center-button">
+            Get Started
+        </a>
+        
+</body>
 </html>
