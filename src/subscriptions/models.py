@@ -289,6 +289,10 @@ class UserSubscription(models.Model):
             self.original_period_start = self.current_period_start
         super().save(*args, **kwargs)
 
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan_name}"
+
 
 def user_sub_post_save(sender, instance, *args, **kwargs):
     user_sub_instance = instance

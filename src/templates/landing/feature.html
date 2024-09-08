@@ -1,163 +1,242 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feature Section</title>
+
+    <!-- Import Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Now+Display:wght@400&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Add custom Tailwind class to apply the Google font */
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
         }
 
-        body {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            background: radial-gradient(circle, #2A2D5D, black);
-            color: #cccccc;
-            margin: 0;
-            padding: 0;
-            background-attachment: fixed;
-            position: relative;
+        /* Gradient animation */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
-        .features {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
+        .line-below-features {
+            background: linear-gradient(90deg, #C4A2F5, #895FDB, #6A4DDB, #C4A2F5); /* Gradient colors */
+            background-size: 300% 300%; /* Larger background to create a smoother animation */
+            animation: gradientAnimation 5s ease infinite; /* Infinite animation with a smooth transition */
         }
 
-        .features ul {
-            list-style: none;
-            padding: 0;
-            text-align: left;
-            color: #895FDB;
-        }
 
-        .features li {
-            font-size: 2vw;
-            margin: 10px 0;
-            position: relative;
-            padding-left: 40px;
-            font-family: 'Red Hat Display', sans-serif;
-        }
-
-        .features li::before {
+        /* Custom styles for the checkmark and button */
+        .checklist-item::before {
             content: '';
-            background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Eo_circle_purple_checkmark.svg/1024px-Eo_circle_purple_checkmark.svg.png') no-repeat center center;
-            background-size: 30px 30px;
-            width: 30px;
-            height: 30px;
+            background-image: url("{% static 'images/tick.png' %}");
+            background-size: contain;
+            width: 35px; /* Increased size */
+            height: 35px; /* Increased size */
+            display: inline-block;
+            margin-right: 12px; /* Increased margin */
+            margin-bottom: -7px;
+        }
+
+        /* Gradient glow animation */
+        @keyframes glowAnimation {
+            0% {
+                background-position: 0% 50%;
+                text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+            }
+            50% {
+                background-position: 100% 50%;
+                text-shadow: 0 0 20px #ff66ff, 0 0 40px #ff66ff, 0 0 50px #ff66ff;
+            }
+            100% {
+                background-position: 0% 50%;
+                text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+            }
+        }
+
+        /* Default span styling */
+        .f-main span, .f-eature span {
+            display: inline-block;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Hover effect for individual characters */
+        .f-main span:hover, .f-eature span:hover {
+            animation: glowAnimation 1s ease-in-out infinite;
+            background: linear-gradient(90deg, #ff00ff, #ff66ff, #ff00ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        .content-wrapper-feature {
+            position: relative;
+        }
+
+        .center-button-feature {
             position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .cta-button-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .cta-button {
-            background: linear-gradient(to right, #382759, #7784BE);
-            padding: 0.75em 1.5em;
+            background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
+            background-size: 200% 200%;
+            animation: gradientAnimation 5s ease infinite;
+            padding: 12px 36px;
+            font-size: 1.25rem;
+            font-weight: bold;
             border-radius: 10px;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 1.5em;
-            font-family: 'Red Hat Display', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            transition: background 0.3s;
-            margin-top: 20px;
-        }
-
-        .cta-button:hover {
-            background: linear-gradient(to right, #442f6d, #94a4ec);
-        }
-
-        .new-section {
+            color: white;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-direction: row;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            color: #FFFFFF;
+            gap: 10px;
+            transition: transform 0.3s ease;
+            z-index: 2; /* Ensure button appears above everything */
+            margin-top: -10;
         }
 
-        .left-content {
-            flex: 0 0 50%;
-            text-align: left;
-            padding-right: 20px;
+        .center-button-feature:hover {
+            transform: scale(1.05);
+            background-color: #9B8ADB;
         }
 
-        .right-content {
-            flex: 0 0 50%;
-            text-align: left;
+        /* Arrow styles */
+        .arrow {
+            position: absolute;
+            top: 15%;
+            left: 45%;
+            transform: translate(-40%, -20%); /* Adjust based on where the arrow should be */
+            width: 500px; /* Adjust the width based on the size of your arrow */
+            height: auto;
+            z-index: -1; /* Ensure arrow is behind text */
         }
 
-        .feature-container {
-            border-left: 2px solid white;
-            border-right: 2px solid white;
-            padding: 10px;
-            margin-top: 20px;
+        /* Hide arrow on mobile devices */
+        @media (max-width: 640px) {
+            .arrow {
+                display: none;
+            }
         }
+
+        /* Responsive styles for button */
+        @media (max-width: 640px) {
+            .center-button-feature {
+                bottom: 20px;
+                font-size: 1.5rem; /* Mobile button font size */
+                padding: 15px 30px; /* Mobile button padding */
+            }
+        }
+
+        /* Large text size adjustment */
+        .f-main {
+            font-size: 21rem; /* Decreased size for better fit */
+            font-family: "Poppins";
+        }
+
+        /* Adjust feature margin for larger screens */
+        .f-eature {
+            margin-left: -170px; /* Margin for larger screens */
+            font-size: 10rem; /* Large size for 'Features' */
+            z-index: 2; /* Ensure text stays on top of arrow */
+        }
+
+        .feature-eature {
+            font-size: 3.5rem;
+        }
+
+        /* Mobile font size adjustment */
+        @media (max-width: 640px) {
+            .f-main {
+                font-size: 8rem; /* Smaller font for mobile */
+            }
+            .f-eature {
+                margin-left: 0;
+                font-size: 3rem; /* Adjusted for smaller screens */
+                margin-left: -40px; /* Margin for larger screens */
+            }
+
+            h1.text-6xl {
+                font-size: 2.5rem; /* Mobile font size adjustment */
+            }
+            .line-below-features {
+                margin-top: -24rem;
+                padding: 0.3rem;
+            }
+            .feature-heading {
+                margin-bottom: 22rem;
+            }
+            .feature-eature {
+                font-size: 2rem;
+            }
+
+            .checklist-item::before {
+                width: 30px; /* Increased size */
+                height: 30px; /* Increased size */
+                margin-bottom: -7px;
+            }
+
+            .features-all {
+                font-size: 1.3rem;
+            }
+        }
+
     </style>
 </head>
+<body class="min-h-screen bg-[#1E1E2E] text-white font-poppins">
 
-<body>
-    <section class="hero new-section flex flex-col lg:flex-row w-full max-w-4xl mx-auto text-white mt-16">
-        <div class="left-content flex-1 lg:pr-8 text-left">
-            <div class="hero-text">
-                <h1 class="text-5xl">
-                    <span class="font-madecoachella">F</span><span class="font-helvetica">eatures</span>
+    <div class="content-wrapper-feature flex flex-col lg:flex-row w-full h-full items-center justify-center lg:justify-between ">
+
+        <!-- First section with stylized text -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center text-center lg:text-left relative">
+            <div>
+                <h1 class="feature-heading">
+                    <span class="f-main">
+                        <span>F</span>
+                    </span>
+                    <span class="text-[#C4A2F5] text-5xl md:text-7xl lg:text-9xl leading-tight f-eature italic">
+                        <span>e</span><span>a</span><span>t</span><span>u</span><span>r</span><span>e</span><span>s</span>
+                    </span>
                 </h1>
-                <hr class="border-t border-white my-6">
-                <h2 class="text-4xl">
-                    <span class="font-helvetica">Automate Your</span><br>
-                    <span class="font-helvetica">Discord Business Now</span>
-                </h2>
+                <!-- Adjust hr margins to bring the line up -->
+                <hr class="h-2 bg-purple-600 border-0 rounded-full -mt-16 p-4 line-below-features"> 
+                <!-- Apply negative margin to move the text up -->
+                <h1 class="italic mt-4 feature-eature"> 
+                    Automate Your Discord <br> Business NOW!
+                </h1>
             </div>
-        </div>
-        <div class="right-content flex-1 mt-8 lg:mt-0">
-            <div class="features">
-                <div class="feature-container border-l-2 border-r-2 border-white py-4">
-                    <ul class="list-none text-purple-400 space-y-2 text-2xl">
-                        <li>Auto Ad Bot</li>
-                        <li>Auto Dm Bot</li>
-                        <li>Auto Sell Automation</li>
-                        <li>Ticket Bot</li>
-                        <li>Cold Dm Bot</li>
-                        <li>Custom Commands</li>
-                        <li>Custom Features</li>
-                    </ul>
-                </div>
-                <div class="cta-button-container">
-                    <a href="#" class="cta-button">
-                        Get Started Now
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right ml-2">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-</body>
 
+            
+        </div>        
+        <!-- Add arrow image -->
+        <img src="{% static 'images/arrow.png' %}" class="arrow" alt="Arrow pointing to the right">
+
+        <!-- Second section with checklist -->
+        <div class="w-full lg:w-1/2 flex items-start justify-center space-y-4 md:space-y-5 p-4 md:p-8">
+            <ul class="space-y-4 lg:text-4xl features-all">
+                <li class="checklist-item">Auto Ad Bot</li>
+                <li class="checklist-item">Auto Dm Bot</li>
+                <li class="checklist-item">Auto Sell Automation</li>
+                <li class="checklist-item">Ticket Bot</li>
+                <li class="checklist-item">Cold Dm Bot</li>
+                <li class="checklist-item">Custom Commands</li>
+                <li class="checklist-item">Custom Features</li>
+                <a href="/your-url" class="center-button-feature">
+                    GET STARTED 
+                    <span class="material-symbols-outlined">
+                        arrow_forward
+                    </span>
+                </a>
+            </ul>
+        </div>
+    </div>
+</body>
 </html>

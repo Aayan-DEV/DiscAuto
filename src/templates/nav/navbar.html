@@ -15,29 +15,29 @@
       </button>
 
       <!-- Desktop Menu -->
-      <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-        <ul class="font-medium flex flex-col md:flex-row md:space-x-8 justify-center items-center md:mt-0">
-              {% if request.user.is_authenticated %}
-                <li>
-                    <a href="{% url 'dashboard' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Dashboard</a>
-                </li>
-              {% else %}
-                <li>
-                    <a href="{% url 'home' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Home</a>
-                </li>
-                <li>
-                    <a href="{% url 'pricing' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Pricing</a>
-                </li>
-                <li>
-                    <a href="{% url 'contact' %}" class="block py-2 px-3 rounded text-white hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">Contact</a>
-                </li>
-                <li>
-                    <a href="/accounts/login" class="block py-2 px-3 rounded bg-gradient-to-r from-custom-purple to-custom-blue text-white border-4 text-base font-medium rounded-full transition duration-75">Login / Signup</a>
-                </li>
-              {% endif %}
-          </ul>
-      </div>
-  </div>
+    <div class="w-full md:block md:w-auto  navbar-default">
+      <ul class="font-medium flex flex-col md:flex-row md:space-x-8 justify-center items-center md:mt-0 ">
+          {% if request.user.is_authenticated %}
+            <li>
+                <a href="{% url 'dashboard' %}" class="py-2 px-3 bg-gradient-to-r from-custom-purple to-custom-blue text-white border-4 text-base font-medium rounded-full transition duration-75  lg:block">Dashboard</a>
+            </li>
+          {% else %}
+            <li>
+                <a href="{% url 'home' %}" class="py-2 px-3 rounded text-white hover:text-purple-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:block">Home</a>
+            </li>
+            <li>
+                <a href="{% url 'pricing' %}" class="py-2 px-3 rounded text-white hover:text-purple-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white  lg:block">Pricing</a>
+            </li>
+            <li>
+                <a href="{% url 'contact' %}" class="py-2 px-3 rounded text-white hover:text-purple-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white lg:block">Contact</a>
+            </li>
+            <li>
+                <a href="/accounts/login" class="py-2 px-3 bg-gradient-to-r from-custom-purple to-custom-blue text-white border-4 text-base font-medium rounded-full transition duration-75  lg:block">Login / Signup</a>
+            </li>
+          {% endif %}
+      </ul>
+    </div>
+
 
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="md:hidden fixed inset-0 hidden mobile-menu-bg z-40">
@@ -56,13 +56,18 @@
   </div>
 </nav>
 
-<!-- Styles and Script for Blurred Navbar -->
 <style>
-  /* Custom Navbar Base Style */
+  /* Navbar Base Style */
   .custom-navbar {
       background-color: rgba(255, 255, 255, 0);
       transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
       backdrop-filter: none;
+  }
+
+  @media (max-width: 640px) {
+      .navbar-default {
+        display: none;
+      }
   }
 
   /* Navbar when scrolled */
@@ -73,36 +78,27 @@
       transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
   }
 
-  /* Adding padding to the body to prevent content from going under the fixed navbar */
-  body {
-      padding-top: 80px; /* Adjust based on your navbar's height */
-  }
-
-  /* Additional styles for the mobile menu background and close button */
+  /* Mobile Menu Full-Screen Style */
   .mobile-menu-bg {
-      background-color: rgba(44, 50, 75, 0.8);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      background-color: rgba(44, 50, 75, 0.95);  /* Darker, more opaque background */
+      backdrop-filter: blur(20px);  /* Strong blur for the background */
+      -webkit-backdrop-filter: blur(20px);
+      position: fixed;              /* Fixed to viewport */
+      top: 0;
+      left: 0;
+      width: 100vw;                 /* Full viewport width */
+      height: 100vh;                /* Full viewport height */
+      z-index: 9999;                /* Ensures it's on top of everything */
+      overflow-y: auto;             /* Allow scrolling within the menu */
   }
 
-  .close-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      color: white;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.5rem;
-  }
-
+  /* Prevent scrolling when the menu is open */
   .no-scroll {
       overflow: hidden;
-      height: 100%;
+      height: 100vh;
   }
 
-
-  /* Close Button */
+  /* Mobile menu close button */
   .close-btn {
       position: absolute;
       top: 1rem;
@@ -112,10 +108,25 @@
       border: none;
       cursor: pointer;
       font-size: 1.5rem;
+      z-index: 10000;
+  }
+
+  /* Style for mobile menu links */
+  .mobile-menu-bg ul li {
+      list-style: none;
+      margin-bottom: 20px;
+  }
+
+  .mobile-menu-bg ul li a {
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+      padding: 10px 20px;
+      display: block;
   }
 </style>
 
-<!-- JavaScript to handle scroll effect and mobile menu -->
+
 <script>
   // Handle scroll effect for fixed navbar
   window.addEventListener('scroll', function() {
@@ -127,20 +138,29 @@
     }
   });
 
-  // Toggle mobile menu visibility and disable scrolling
+  // Mobile Menu Toggle
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileMenu = document.getElementById('mobile-menu');
   const closeMenuBtn = document.getElementById('close-menu-btn');
   const body = document.body;
 
+  // Open mobile menu
   mobileMenuBtn.addEventListener('click', () => {
-    mobileMenu.classList.toggle('hidden');
-    body.classList.add('no-scroll');
+      mobileMenu.classList.remove('hidden');  // Show mobile menu
+      body.classList.add('no-scroll');        // Prevent background scrolling
   });
 
+  // Close mobile menu
   closeMenuBtn.addEventListener('click', () => {
-    mobileMenu.classList.add('hidden');
-    body.classList.remove('no-scroll');
+      mobileMenu.classList.add('hidden');     // Hide mobile menu
+      body.classList.remove('no-scroll');     // Re-enable background scrolling
   });
 
-  </script>
+  // Ensure menu closes on window resize (tablet/desktop view)
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768 && !mobileMenu.classList.contains('hidden')) {
+      mobileMenu.classList.add('hidden');     // Hide mobile menu
+      body.classList.remove('no-scroll');     // Re-enable background scrolling
+    }
+  });
+</script>

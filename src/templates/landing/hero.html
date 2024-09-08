@@ -6,6 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Import Google Font for Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
     <!-- Import Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     
@@ -44,30 +47,48 @@
             z-index: 1;
         }
 
-        /* Update the button to have a higher z-index */
+        /* Gradient animation for the button */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Update the button to have a higher z-index and gradient animation */
         .center-button {
             position: absolute;
             bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #C4A2F5;
-            color: #1E1E2E;
-            padding: 12px 32px;
+            background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
+            background-size: 200% 200%;
+            animation: gradientAnimation 5s ease infinite;
+            padding: 12px 36px;
             font-size: 1.25rem;
             font-weight: bold;
             border-radius: 10px;
-            transition: background-color 0.3s ease;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
             z-index: 2; /* Ensure button appears above everything */
         }
 
         .center-button:hover {
+            transform: translateX(-50%) scale(1.05);
             background-color: #9B8ADB;
         }
 
         @media (max-width: 640px) {
             .center-button {
-                bottom: 20px;
-                font-size: 1rem;
+                font-size: 0.9rem;
                 padding: 10px 20px;
             }
         }
@@ -108,8 +129,11 @@
 
         <!-- Centered Button -->
         <a href="/your-url" class="center-button">
-            Get Started
+            AUTOMATE NOW 
+            <span class="material-symbols-outlined">
+                arrow_forward
+            </span>
         </a>
-        
+
 </body>
 </html>

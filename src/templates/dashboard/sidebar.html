@@ -1,95 +1,80 @@
-<!-- Sidebar -->
-<aside
-  class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-transparent md:translate-x-0 dark:bg-gray-800"
-  aria-label="Sidenav"
-  id="drawer-navigation">
+<aside class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-transparent md:translate-x-0 dark:bg-gray-800" aria-label="Sidenav" id="drawer-navigation">
   <div class="overflow-y-auto pt-10 px-3 h-full bg-transparent dark:bg-gray-800">
     <ul class="dark:border-gray-700">
+      <!-- These are visible to everyone -->
       <li>
-        <a
-          href="{% url 'home' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'home' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Dashboard</span>
         </a>
       </li>
-      {% if subscription_plan_name == "starter plan" or "pro plan" %}
       <li>
-        <a
-          href="{% url 'auto_ad' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'auths' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
+          <span class="ml-3">Auths</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'user_subscription' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
+          <span class="ml-3">Account Settings</span>
+        </a>
+      </li>
+
+      <!-- Starter plan users see Auto Ad -->
+      {% if subscription_plan_name == "starter plan" %}
+      <li>
+        <a href="{% url 'auto_ad' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Auto Ad</span>
         </a>
       </li>
       {% endif %}
+
+      <!-- Pro plan users see all options -->
       {% if subscription_plan_name == "pro plan" %}
       <li>
-        <a
-          href="{% url 'auto_dm' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'auto_ad' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
+          <span class="ml-3">Auto Ad</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'auto_dm' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Auto Dm</span>
         </a>
       </li>
       <li>
-        <a
-          href="{% url 'products' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'products' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Products</span>
         </a>
       </li>
       <li>
-        <a
-          href="{% url 'ticket_bot' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'ticket_bot' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Ticket Bot</span>
         </a>
       </li>
       <li>
-        <a
-          href="{% url 'cold_dm' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'cold_dm' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Cold Dm</span>
         </a>
       </li>
       <li>
-        <a
-          href="{% url 'tickets' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
+        <a href="{% url 'tickets' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Tickets</span>
         </a>
       </li>
       {% endif %}
-      <li>
-        <a
-          href="{% url 'auths' %}"
-          class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
-        >
-          <span class="ml-3">Auths</span>
-        </a>
-      </li>
-      
-
     </ul>
   </div>
 
-<style>
-  #drawer-navigation::before {
-    content: '';
-    position: absolute;
-    top: 50%; /* Position from the top */
-    left: 100%; /* Center the line horizontally */
-    transform: translate(-50%, -50%); /* Adjust position to center */
-    width: 3px; /* Adjust the width of the vertical line here */
-    height: 80%; /* Adjust the height of the vertical line here */
-    background: linear-gradient(to right, #382759, #7784BE);
-    border-radius: 20px;
-  }
-</style>
-
+  <!-- Line separator -->
+  <style>
+    #drawer-navigation::before {
+      content: '';
+      position: absolute;
+      top: 50%; /* Position from the top */
+      left: 100%; /* Center the line horizontally */
+      transform: translate(-50%, -50%); /* Adjust position to center */
+      width: 3px; /* Adjust the width of the vertical line here */
+      height: 80%; /* Adjust the height of the vertical line here */
+      background: linear-gradient(to right, #382759, #7784BE);
+      border-radius: 20px;
+    }
+  </style>
 </aside>

@@ -11,7 +11,9 @@
     </form>
 
     {% if subscription %}
-        <a href="{{ subscription.get_cancel_url }}">Cancel Membership</a>
+        {% if subscription.plan_name != "No Plan" %}
+            <a href="{{ subscription.get_cancel_url }}">Cancel Membership</a>
+        {% endif %}
     {% endif %}
 
     <p>Your Email: {{ user.email }}</p>
@@ -40,27 +42,24 @@
         {% endif %}
     </p>
 
-    <p>Membership Age: 
+    <p>
         {% if subscription and subscription.original_period_start != None %}
-            {{ subscription.original_period_start|timesince }}
+            Membership Age: {{ subscription.original_period_start|timesince }}
         {% else %}
-            -
         {% endif %}
     </p>
 
-    <p>Start date: 
+    <p>
         {% if subscription and subscription.current_period_start != None %}
-            {{ subscription.current_period_start|date:"F j, Y" }}
+        Start date: {{ subscription.current_period_start|date:"F j, Y" }}
         {% else %}
-            You have not started any subscriptions!
         {% endif %}
     </p>
 
-    <p>End date: 
+    <p>
         {% if subscription and subscription.current_period_end != None %}
-            {{ subscription.current_period_end|date:"F j, Y" }}
+            End date: {{ subscription.current_period_end|date:"F j, Y" }}
         {% else %}
-            You have not started any subscriptions!
         {% endif %}
     </p>
 

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -23,54 +24,63 @@
             padding: 0;
             background-attachment: fixed;
             position: relative;
+            height: 100%;
+            overflow-x: hidden;
         }
 
         .faq-section {
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
             padding: 50px 20px;
             color: #FFFFFF;
+            overflow-y: auto;
         }
 
         .faq-left {
-            flex: 0 0 50%;
-            text-align: left;
-        }
-
-        .faq-right {
-            flex: 0 0 50%;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: left;
-        }
-
-        .faq-title {
-            font-size: 3em;
-            font-family: 'MADECoachellaRegular', sans-serif;
-            color: #C1A1FF;
+            align-items: flex-start;
         }
 
         .faq-letter {
-            font-size: 1.5em;
-            display: inline;
-            vertical-align: middle;
+            font-size: 10em;
+            color: #C1A1FF;
+            font-family: 'MADECoachellaRegular', sans-serif;
+            line-height: 1;
+        }
+
+        .faq-subtext {
+            font-size: 1.8em;
+            font-family: 'Red Hat Display', sans-serif;
+            color: #895FDB;
+        }
+
+        .curly-bracket {
+            flex: 0 0 auto;
+            width: 400px; /* Adjust the width as per your design */
+            margin: 0 100px; /* Space between the text and questions */
+        }
+
+        .faq-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
         .faq-item {
-            margin-bottom: 20px;
             width: 100%;
-            max-width: 800px;
         }
 
         .faq-question {
             background: transparent;
             border: none;
-            font-size: 1.5em;
+            font-size: 2em;
             font-family: 'Red Hat Display', sans-serif;
             color: #895FDB;
             text-align: left;
@@ -81,10 +91,15 @@
         }
 
         .faq-question::after {
-            content: '▼';
+            content: '▼'; /* Default arrow */
             position: absolute;
-            left: -1.5em;
+            right: 10px;
             font-size: 1em;
+            transition: transform 0.3s ease; /* Smooth transition for the rotation */
+        }
+
+        .faq-question.active::after {
+            transform: rotate(180deg); /* Rotate the arrow 180 degrees when active */
         }
 
         .faq-answer {
@@ -95,39 +110,94 @@
             margin-top: 10px;
             padding-left: 10px;
             border-left: 2px solid #895FDB;
+            align-items: left;
+            opacity: 0;
+            height: 0;
+            transition: opacity 0.3s ease, height 0.3s ease; /* Add transition for height and opacity */
         }
 
         .faq-answer.show {
             display: block;
+            opacity: 1;
+            height: auto;
+        }
+
+        /* Ensure the FAQ section fills the entire screen */
+        @media (max-width: 768px) {
+            .faq-section {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .faq-left,
+            .faq-right {
+                width: 100%;
+            }
+
+            .curly-bracket {
+                display: none; /* Hide the bracket on smaller screens */
+            }
+
+            .faq-right {
+                margin-top: 20px;
+                font-size: 0.8rem;
+            }
+
+            .faq-left {
+                font-size: 0.6rem;
+                text-align: center;
+                align-items: center;
+            }
+
+            .curly-bracket {
+                display: none;
+            }
+        }
+
+        /* Ensure no overflow on smaller screens */
+        html, body {
+            height: 100%;
         }
     </style>
 </head>
 
 <body>
-    <section class="faq-section flex flex-col lg:flex-row w-full max-w-4xl mx-auto text-white mt-16">
-        <div class="faq-left flex-1 lg:pr-8 text-left">
-            <h1 class="faq-title text-4xl font-madecoachella text-purple-400">
-                <span class="faq-letter">F</span><span class="font-helvetica">requently</span>
-                <span class="faq-letter">A</span><span class="font-helvetica">sked</span><br>
-                <span class="faq-letter">Q</span><span class="font-helvetica">uestions</span>
-            </h1>
+    <section class="faq-section">
+        <div class="faq-left">
+            <div>
+                <span class="faq-letter">F</span><br>
+                <span class="faq-subtext">requently</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <span class="faq-letter">A</span><br>
+                <span class="faq-subtext">sked</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <span class="faq-letter">Q</span><br>
+                <span class="faq-subtext">uestions</span>
+            </div>
         </div>
-        <div class="faq-right flex-1 flex flex-col items-center text-left mt-8 lg:mt-0">
-            <div class="faq-item w-full max-w-lg">
-                <button class="faq-question text-2xl text-purple-400 py-2 px-4 w-full text-left">Question 1</button>
-                <div class="faq-answer text-lg text-gray-300 ml-4 border-l-2 border-purple-400 pl-4 hidden">
+
+        <!-- Image of the curly bracket -->
+        <img src="{% static 'images/paranthesis.png' %}" alt="Curly Bracket" class="curly-bracket">
+
+        <div class="faq-right">
+            <div class="faq-item">
+                <button class="faq-question">Question 1</button>
+                <div class="faq-answer">
                     <p>This is the answer to question #1.</p>
                 </div>
             </div>
-            <div class="faq-item w-full max-w-lg mt-4">
-                <button class="faq-question text-2xl text-purple-400 py-2 px-4 w-full text-left">Question 2</button>
-                <div class="faq-answer text-lg text-gray-300 ml-4 border-l-2 border-purple-400 pl-4 hidden">
+            <div class="faq-item">
+                <button class="faq-question">Question 2</button>
+                <div class="faq-answer">
                     <p>This is the answer to question #2.</p>
                 </div>
             </div>
-            <div class="faq-item w-full max-w-lg mt-4">
-                <button class="faq-question text-2xl text-purple-400 py-2 px-4 w-full text-left">Question 3</button>
-                <div class="faq-answer text-lg text-gray-300 ml-4 border-l-2 border-purple-400 pl-4 hidden">
+            <div class="faq-item">
+                <button class="faq-question">Question 3</button>
+                <div class="faq-answer">
                     <p>This is the answer to question #3.</p>
                 </div>
             </div>
@@ -139,7 +209,8 @@
             faqQuestions.forEach(question => {
                 question.addEventListener('click', function () {
                     const answer = this.nextElementSibling;
-                    answer.classList.toggle('hidden');
+                    answer.classList.toggle('show');
+                    this.classList.toggle('active');  // Toggle the active class for arrow rotation
                 });
             });
         });
