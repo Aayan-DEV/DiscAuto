@@ -5,144 +5,185 @@
 {% block content %}
 
 <style>
-    .bg-radial-gradient {
+    .contact-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 100vh;
+        padding: 2rem;
         background: radial-gradient(circle at center, #2A2D5D, black);
         background-size: cover;
         background-attachment: fixed;
-        min-height: 90vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
     }
 
-    .contact-card {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 2rem;
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        max-width: 100%; /* Ensures the card fits well on smaller screens */
-    }
-
-    .contact-heading {
-        font-size: 2.5rem;
-        font-weight: 700;
+    .contact-info {
+        flex: 1;
         color: #ffffff;
-        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+        text-align: center;
+        padding: 2rem;
+        font-size: 3rem;
+        align-items: center;
     }
 
-    .contact-text {
-        color: #d1d5db;
+    .contact-info p {
         font-size: 1.125rem;
         margin-bottom: 1.5rem;
-        text-align: center;
+    }
+
+    .contact-form {
+        flex: 1;
+        padding: 2rem;
     }
 
     .form-label {
-        color: #ffffff;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
+        color: #7952c4;
+        font-size: 1.5rem;
     }
 
-    .form-input {
-        background-color: rgba(255, 255, 255, 0.2);
+    .form-input, .form-input-main {
+        background-color: #2f283e;
         color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 0.5rem;
         padding: 0.75rem;
         margin-bottom: 1rem;
         width: 100%;
-    }
-
-    .form-input::placeholder {
-        color: #9ca3af;
-    }
-
-    .form-input:focus {
-        border-color: #6366f1;
-        outline: none;
-        box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+        border: none;
+        border-radius: 1rem;
     }
 
     .submit-button {
-        background: linear-gradient(90deg, #6366f1, #3b82f6);
-        padding: 0.75rem 2rem;
-        color: #ffffff;
-        font-size: 1rem;
-        font-weight: 600;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
+        background-size: 200% 200%;
+        animation: gradientAnimation 5s ease infinite;
+        padding: 12px 36px;
+        font-size: 1.25rem;
+        font-weight: bold;
+        border-radius: 10px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: transform 0.3s ease;
     }
 
     .submit-button:hover {
-        background: linear-gradient(90deg, #3b82f6, #6366f1);
-        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        background-color: #9B8ADB;
+        box-shadow: 0 5px 15px rgba(56, 39, 89, 2);
+    }
+
+    .contact-subtext {
+        font-size: 1em;
+        font-family: 'Red Hat Display', sans-serif;
+        color: #895FDB;
+    }
+
+    .contact-letter {
+        font-size: 5em;
+        color: #C1A1FF;
+        font-family: 'MADECoachellaRegular', sans-serif;
+        line-height: 1;
+    }
+
+    @media (max-width: 1024px) {
+        .contact-info {
+            font-size: 2.5rem;
+        }
+
+        .form-label {
+            font-size: 1.25rem;
+        }
+
+        .contact-letter {
+            font-size: 4em;
+        }
     }
 
     @media (max-width: 768px) {
-        .contact-card {
-            padding: 1.5rem; /* Reduce padding for smaller screens */
+        .contact-container {
+            flex-direction: column;
+            padding: 1rem;
+            height: auto;
         }
 
-        .contact-heading {
-            font-size: 2rem; /* Reduce font size for smaller screens */
+        .contact-info,
+        .contact-form {
+            width: 100%;
+            padding: 1rem;
         }
 
-        .contact-text {
-            font-size: 1rem; /* Adjust text size for readability on mobile */
+        .contact-info {
+            font-size: 2rem;
+        }
+
+        .contact-letter {
+            font-size: 3em;
+        }
+
+        .form-label {
+            font-size: 1.125rem;
         }
 
         .submit-button {
-            padding: 0.75rem 1.5rem; /* Adjust button size */
+            font-size: 1rem;
+            padding: 10px 24px;
         }
     }
 
     @media (max-width: 480px) {
-        .bg-radial-gradient {
-            padding: 1rem; /* Ensure there's padding around the content */
+        .contact-info {
+            padding-top: 4rem;
+            font-size: 1.75rem;
         }
 
-        .contact-heading {
-            font-size: 1.75rem; /* Further reduce heading size */
+        .contact-letter {
+            font-size: 2.5em;
         }
 
-        .contact-text {
-            font-size: 0.875rem; /* Smaller text for very small screens */
+        .form-label {
+            font-size: 1rem;
         }
 
         .submit-button {
-            padding: 0.75rem 1rem; /* Adjust button for smaller screens */
-            font-size: 0.875rem; /* Smaller button text for smaller screens */
+            font-size: 0.875rem;
+            padding: 8px 20px;
         }
     }
 </style>
 
-<section class="contact-background bg-radial-gradient">
-    <div class="contact-card max-w-lg mx-auto mt-14">
-        <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-center contact-heading">Contact Us</h2>
-        <p class="contact-text">Got a technical issue? Want to send feedback about a beta feature? Need details about our Business plan? Let us know.</p>
+
+<section class="contact-container">
+    <!-- Contact Information Section -->
+    <div class="contact-info">
+        <div>
+            <span class="contact-letter">C</span>
+            <span class="contact-subtext">ontact</span>
+        </div>
+        <div style="margin-top: 20px;">
+            <span class="contact-letter">U</span>
+            <span class="contact-subtext">S</span>
+        </div>
+    </div>
+
+    <!-- Contact Form Section -->
+    <div class="contact-form">
         <form method="post" action="{% url 'contact' %}" class="space-y-6">
             {% csrf_token %}
-            <div>
-                <label for="id_email" class="form-label">Your email</label>
-                <input type="email" id="id_email" name="email" class="form-input block w-full" placeholder="name@gmail.com" required>
+            <div class="space-y-2">
+                <label for="id_email" class="form-label">Your Email</label>
+                <input type="email" id="id_email" name="email" class="form-input" required>
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="id_name" class="form-label">Your Name</label>
-                <input type="text" id="id_name" name="name" class="form-input block w-full" placeholder="Your name" required>
+                <input type="text" id="id_name" name="name" class="form-input" required>
             </div>
-            <div>
+            <div class="space-y-2">
                 <label for="id_subject" class="form-label">Subject</label>
-                <input type="text" id="id_subject" name="subject" class="form-input block w-full" placeholder="Let us know how we can help you" required>
+                <input type="text" id="id_subject" name="subject" class="form-input" required>
+            </div>
+            <div class="space-y-2">
+                <label for="id_message" class="form-label">Your Message</label>
+                <textarea id="id_message" name="message" rows="7" class="form-input-main border-r-2" required></textarea>
             </div>
             <div>
-                <label for="id_message" class="form-label">Your message</label>
-                <textarea id="id_message" name="message" rows="4" class="form-input block w-full" placeholder="Leave a comment..." required></textarea>
-            </div>
-            <div class="text-center">
                 <button type="submit" class="submit-button">Send Message</button>
             </div>
         </form>

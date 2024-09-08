@@ -1,37 +1,180 @@
 <!-- Pricing Card -->
-<div class="flex flex-col p-6 w-full max-w-md mx-auto text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
-    <h3 class="mb-4 text-2xl font-semibold">{{ object.display_sub_name }}</h3>
-    {% if object.display_sub_subtitle %}
-    <p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">{{ object.display_sub_subtitle }}</p>
-    {% endif %}
-    <div class="flex justify-center items-baseline my-8">
-        <span class="mr-2 text-5xl font-extrabold">$ {{ object.price }}</span>
-        <span class="text-gray-500 dark:text-gray-400">/{{ object.interval }}</span>
-    </div>
+{%load static%}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    .pricing-card {
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      width: 100vh;
+      max-width: 28rem;
+      margin: 0 auto;
+      text-align: center;
+      color: #1f2937; /* text-gray-900 */
+      background-color: #ffffff;
+      border-radius: 2rem; /* rounded-lg */
+      border: 4px solid #f3f4f6; /* border-gray-100 */
+      box-shadow: 16px -20px 0px rgba(119, 132, 190, 1)
+    }
+  
+    .pricing-card.dark {
+      background-color: #2f283e; /* dark:bg-gray-800 */
+      color: #d7c2ff; /* dark:text-white */
+      border-color: #d7c2ff; /* dark:border-gray-600 */
+    }
+
+    .features-list {
+        color: #7952c4;
+        margin-bottom: 1rem;
+    }
+  
+    .pricing-card h3 {
+      font-size: 2rem; /* text-2xl */
+      font-weight: 600; /* font-semibold */
+    }
+  
+    .pricing-card p {
+      font-weight: 300; /* font-light */
+      color: #6b7280; /* text-gray-500 */
+      font-size: 1.125rem; /* sm:text-lg */
+    }
+  
+    .pricing-card p.dark {
+      color: #9ca3af; /* dark:text-gray-400 */
+    }
+  
+    .price-container {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      color: #d7c2ff;
+      background-color: #382759;
+      border-radius: 10rem;
+      border: 5px solid #d7c2ff;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* Static gradient for the price */
+    .price-container span:first-child {
+      background: linear-gradient(to right, #7952c4, #d7c2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 3rem; /* text-5xl */
+      font-weight: 800; /* font-extrabold */
+    }
+  
+    .price-container span:last-child.dark {
+      color: #d7c2ff;
+    }
+  
+    .features-list {
+      margin-bottom: 2rem; /* mb-8 */
+      list-style: none;
+      padding: 0;
+    }
+  
+    .features-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem; /* space-x-3 */
+    }
+  
+    .chosen-plan {
+      color: #9ca3af; /* text-gray-400 */
+      background-color: #e5e7eb; /* bg-gray-200 */
+      font-weight: 500; /* font-medium */
+      border-radius: 0.5rem; /* rounded-lg */
+      font-size: 0.875rem; /* text-sm */
+      padding: 0.625rem 1.25rem; /* px-5 py-2.5 */
+      cursor: not-allowed;
+    }
+  
+    .chosen-plan.dark {
+      background-color: #374151; /* dark:bg-gray-700 */
+      color: #9ca3af; /* dark:text-gray-400 */
+    }
+  
+    /* Smooth flowing gradient animation for the upgrade button */
+    .btn-upgrade {
+      color: #ffffff;
+      font-weight: 500; /* font-medium */
+      border-radius: 4rem; /* rounded-lg */
+      border: 5px solid #d7c2ff;
+      font-size: 1.5rem; /* text-sm */
+      padding: 0.625rem 1.25rem; /* px-5 py-2.5 */
+      text-align: center;
+      background: linear-gradient(270deg, #7952c4, #7784be, #7952c4, #7784be);
+      background-size: 400% 400%;
+      animation: smoothGradient 8s ease infinite;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Smooth gradient animation */
+    @keyframes smoothGradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    
+    /* Glow effect on hover */
+    .btn-upgrade:hover {
+      box-shadow: 0 0 15px 5px rgba(215, 194, 255, 0.7);
+      transform: scale(1.05);
+    }
+  
+    .btn-upgrade:focus {
+      outline: none;
+      box-shadow: 0 0 0 0.25rem rgba(191, 219, 254, 0.5); /* focus:ring-4 focus:ring-blue-200 */
+    }
+  
+    .btn-upgrade.dark:focus {
+      box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.9); /* dark:focus:ring-blue-900 */
+    }
+
+    .feature-text {
+        padding-bottom: 0.5rem;
+        font-family: "Poppins";
+    }
+</style>
+  
+<div class="pricing-card dark">
+    <h3 class="mb-2">{{ object.display_sub_name }}</h3>
+    <div class="price-container">
+      <span class="">$ {{ object.price }}</span>
+      <span class="dark">/{{ object.interval }}</span>
+  </div>
     <!-- List -->
-    <ul role="list" class="mb-8 space-y-4 text-left">
+    <ul role="list" class="features-list">
         {% for feature in object.display_features_list %}
-        <li class="flex items-center space-x-3">
+        <li class="flex items-center -space-x-2 space-y-2 text-2xl">
             <!-- Icon -->
-            <svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
-            <span>{{ feature }}</span>
+            <img src="{%static "images/tick.png"%}" class="w-7 h-7"> </img>
+            <h1 class="feature-text">{{ feature }}</h1>
         </li>
         {% endfor %}
+      
     </ul>
     {% if subscription_plan_name == object.display_sub_name.lower and subscription_interval == object.interval %}
-        <span class="text-gray-400 bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-gray-400 dark:bg-gray-700 cursor-not-allowed">
+        <span class="chosen-plan dark">
             Your Chosen Plan
         </span>
     {% elif subscription_plan_name == object.display_sub_name.lower %}
-        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+        <a href="{{ object.get_checkout_url }}" class="btn-upgrade dark">
             Change Plan Type
         </a>
     {% elif subscription_plan_name == "pro plan" %}
-        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+        <a href="{{ object.get_checkout_url }}" class="btn-upgrade dark">
             Downgrade Plan
         </a>
     {% else %}
-        <a href="{{ object.get_checkout_url }}" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-blue-900">
+        <a href="{{ object.get_checkout_url }}" class="btn-upgrade dark">
             Upgrade Plan
         </a>
     {% endif %}

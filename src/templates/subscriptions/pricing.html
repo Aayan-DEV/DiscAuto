@@ -17,17 +17,30 @@
     .hover-card {
         transition: transform 0.3s ease-in-out;
     }
+    .hr-line {
+        border: 0;
+        height: 10px;
+        background: #7784be;
+        flex-grow: 1;
+        margin: 0 1rem;
+    }
+    .pricing-heading {
+        color: #c5a7ff;
+    }
 </style>
 
 <section class="bg-transparent bg-radial-gradient">
     <div class="py-12 px-6 mx-auto max-w-screen-xl lg:py-20 lg:px-8">
         <div class="mx-auto max-w-screen-md text-center mb-12 lg:mb-16">
-            <h2 class="mb-6 mt-10 text-5xl font-extrabold tracking-tight text-white">Designed for Business Teams Like Yours</h2>
-            <p class="mb-8 font-light text-lg text-gray-300 sm:text-xl">At DiscAuto, we focus on markets where technology, innovation, and capital drive long-term value and economic growth.</p>
+            <div class="flex items-center justify-center mb-7 mt-10">
+                <hr class="hr-line rounded">
+                <h2 class="text-5xl font-extrabold tracking-tight pricing-heading">Pricing</h2>
+                <hr class="hr-line rounded">
+            </div>
             <div class="flex justify-center space-x-4">
                 <ul class="flex flex-wrap text-sm font-medium text-center">
                     <li class="me-2">
-                        <a href="{{ wk_url }}" class="{% if active == 'week' %}inline-block px-5 py-3 text-white bg-blue-600 rounded-full shadow-md active{% else %}inline-block px-5 py-3 text-gray-300 bg-transparent border border-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white{% endif %}">
+                        <a href="{{ wk_url }}" class="{% if active == 'week' %} inline-block px-5 py-3 text-white bg-blue-600 rounded-full shadow-md active{% else %}inline-block px-5 py-3 text-gray-300 bg-transparent border border-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white{% endif %}">
                             Weekly
                         </a>
                     </li>
@@ -40,10 +53,10 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap justify-center space-y-8 md:space-y-0 lg:space-x-6">
+        <div class="flex flex-wrap justify-center md:space-y-0 lg:space-x-8">
             <!-- Pricing Card -->
             {% for price_obj in object_list %}
-                <div class="hover-card rounded-lg shadow-lg overflow-hidden max-w-sm transition-transform duration-300">
+                <div class="">
                     {% include 'subscriptions/snippets/pricing-card.html' with object=price_obj %}
                 </div>
             {% endfor %}
