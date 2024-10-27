@@ -17,7 +17,8 @@ from .models import UserIncome
 from decimal import Decimal
 
 # Load .env file
-load_dotenv(override=True)
+if not os.getenv('RAILWAY_ENVIRONMENT'):
+    load_dotenv(override=True)
 
 # Get Stripe keys directly from the .env file
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')

@@ -159,7 +159,8 @@ def send_timer_expiry_email(request):
         user_email = request.user.email  
 
         # This is a part to get the email sender, from the .env file.
-        load_dotenv(override=True)
+        if not os.getenv('RAILWAY_ENVIRONMENT'):
+            load_dotenv(override=True)
         EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 
         """
