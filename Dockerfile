@@ -1,61 +1,74 @@
-# Use Python 3.12 slim image as the base image
+# Set the python version as a build-time argument
+# with Python 3.12 as the default
 ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
 # Create a virtual environment
 RUN python -m venv /opt/venv
+
+# Set the virtual environment as the current location
 ENV PATH=/opt/venv/bin:$PATH
 
-# Upgrade pip to the latest version
+# Upgrade pip
 RUN pip install --upgrade pip
 
 # Set Python-related environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install system dependencies required by various Python packages
+# Install OS dependencies for our mini VM
 RUN apt-get update && apt-get install -y \
-    libpq-dev \     
-    libjpeg-dev \   
-    libcairo2 \      
-    gcc \           
-    curl \           
+    # for postgres
+    libpq-dev \
+    # for Pillow
+    libjpeg-dev \
+    # for CairoSVG
+    libcairo2 \
+    # other
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a directory for the application code
+# Create the mini VM's code directory
 RUN mkdir -p /code
+
+# Set the working directory to that same code directory
 WORKDIR /code
 
 # Copy the requirements file into the container
 COPY requirements.txt /tmp/requirements.txt
 
+# Copy the project code into the container's working directory
+COPY ./src /code
+
 # Install the Python project requirements
 RUN pip install -r /tmp/requirements.txt
 
-# Copy the environment variables file into the container
-COPY .env /code/.env
-
-# Copy the rest of the application code into the container
-COPY ./src /code
-
-# Set environment variables for Django configuration
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
-# Prepare runtime script to execute on container start
+# Database isn't available during build
+# Run any other commands that do not need the database
+# such as:
+RUN python manage.py vendor_pull
+RUN python manage.py collectstatic --noinput
+
+# Set the Django default project name
+ARG PROJ_NAME="discbot"
+
+# Create a bash script to run the Django project
+# This script will execute at runtime when
+# the container starts and the database is available
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
     printf "sync\n" >> ./paracord_runner.sh && \
     printf "sleep 2\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
-    printf "python manage.py vendor_pull\n" >> ./paracord_runner.sh && \
-    printf "python manage.py collectstatic --noinput\n" >> ./paracord_runner.sh && \
-    printf "gunicorn discbot.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
+    printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
 
-# Make the runtime script executable
+# Make the bash script executable
 RUN chmod +x paracord_runner.sh
 
 # Clean up apt cache to reduce image size
@@ -64,9 +77,10 @@ RUN apt-get remove --purge -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Add a health check to ensure the app is running correctly
+# Add a health check to ensure the app is ready
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:${PORT:-8000}/ || exit 1
+    CMD curl --fail http://localhost:$RUN_PORT/ || exit 1
 
-# Run the Django project using the runtime script when the container starts
+# Run the Django project via the runtime script
+# when the container starts
 CMD ./paracord_runner.sh
