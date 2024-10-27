@@ -8,17 +8,12 @@
         </a>
       </li>
 
-      <!-- Starter plan users see Auto Ad -->
-      {% if subscription_plan_name == "starter plan" %}
       <li>
         <a href="{% url 'auto_ad' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Auto Ad</span>
         </a>
       </li>
-      {% endif %}
 
-      <!-- Pro plan users see all options -->
-      {% if subscription_plan_name == "pro plan" %}
       <li>
         <a href="{% url 'auto_ad' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Auto Ad</span>
@@ -39,7 +34,6 @@
           <span class="ml-3">Cold Dm</span>
         </a>
       </li>
-      {% endif %}
       <li>
         <a href="{% url 'auths' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
           <span class="ml-3">Auths</span>
