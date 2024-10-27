@@ -1,21 +1,403 @@
 {% extends "dashboard/base.html" %}
-
 {% block head_title %} Dashboard - {{ block.super }} {% endblock head_title %}
-
 {% block content %}
 
-<div class="text-custom-pink-color pt-5">
-    {% if subscription_plan_name == "starter plan" %}
-    <h1 class="text-lg font-medium">You have the Starter Plan!</h1>
-    {% elif subscription_plan_name == "pro plan" %}
-    <h1 class="text-lg font-medium">You have the Pro Plan!</h1>
-    {% else %}
-    <h1 class="text-lg font-medium">You have No plan currently!</h1>
-    <a href="{% url 'pricing' %}">Upgrade Now!</a>
-    {% endif %}
+<div class="pt-5 text-pink-400">
+    
+    <h1 class="text-xl font-semibold text-center">Weekly Activity Summary</h1>
 
+</div>
+
+<div class="pt-10">
+
+    <!-- This is a Ccontainer for the 4 data Charts -->
+    <div class="grid grid-cols-2 gap-6 justify-center items-center responsive-grid">
+        
+        <!-- Sales Chart --> 
+        <div class="chart-container">
+            <h3 class="text-sm font-medium text-white text-center">Sales (in USD)</h3>
+            <canvas id="salesChart"></canvas>
+        </div>
+
+        <!-- Views Chart -->
+        <div class="chart-container">
+            <h3 class="text-sm font-medium text-white text-center">Views</h3>
+            <canvas id="viewsChart"></canvas>
+        </div>
+
+        <!-- Ads Posted Chart -->
+        <div class="chart-container">
+            <h3 class="text-sm font-medium text-white text-center">Ads Posted</h3>
+            <canvas id="adsChart"></canvas>
+        </div>
+
+        <!-- DMs Sent Chart -->
+        <div class="chart-container">
+            <h3 class="text-sm font-medium text-white text-center">DMs Sent</h3>
+            <canvas id="dmsChart"></canvas>
+        </div>
+    
+    </div>
+</div>
+
+<div class="pt-5 text-pink-400">
+    
+    <h1 class="text-xl font-semibold mb-2">Recent Sales</h1> 
+
+</div>
+
+<!-- This is a nice scrollable container so that people can use a great UI to see all their recent sales. -->
+<div class="overflow-y-scroll max-h-96 px-4 py-2 border rounded-lg bg-gray-800">
+    
+    <ul>
+        
+        {% for sale in recent_sales %}
+        <li class="border-b border-gray-600 py-2">
+            
+            <p class="text-sm text-white"><strong>Customer:</strong> {{ sale.customer_name }} ({{ sale.customer_email }})</p>
+            <p class="text-sm text-white">
+                <strong>Bought:</strong> 
+                {% if sale.product %}
+                    {{ sale.product.title }}
+                {% else %}
+                    {{ sale.unlimited_product.title }} (Unlimited)
+                {% endif %}
+            </p>
+            
+            <p class="text-sm text-white">
+                <strong>Amount Spent:</strong> 
+                {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% else %}{% endif %}
+                {{ sale.amount }} ({{ sale.currency }})
+            </p>            
+
+        </li>
+        {% endfor %}
+
+    </ul>
 
     
 </div>
+
+<div class="pt-5 text-pink-400">
+    <h1 class="text-2xl font-bold mb-4">Your Account Balances</h1>
+</div>
+
+<ul class="space-y-2 px-4">
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USD</span>
+        <span class="text-lg font-bold">${{ user_income.usd_total }}</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">GBP</span>
+        <span class="text-lg font-bold">£{{ user_income.gbp_total }}</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">EUR</span>
+        <span class="text-lg font-bold">€{{ user_income.eur_total }}</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">LTC</span>
+        <span class="text-lg font-bold">{{ user_income.ltc_total }} LTC</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">SOL</span>
+        <span class="text-lg font-bold">{{ user_income.sol_total }} SOL</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">ETH</span>
+        <span class="text-lg font-bold">{{ user_income.eth_total }} ETH</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USDT (BEP20)</span>
+        <span class="text-lg font-bold">{{ user_income.usdt_bep20_total }} USDT</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USDT (ERC20)</span>
+        <span class="text-lg font-bold">{{ user_income.usdt_erc20_total }} USDT</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USDT (PRC20)</span>
+        <span class="text-lg font-bold">{{ user_income.usdt_prc20_total }} USDT</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USDT (TRC20)</span>
+        <span class="text-lg font-bold">{{ user_income.usdt_trc20_total }} USDT</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">USDT (SOL)</span>
+        <span class="text-lg font-bold">{{ user_income.usdt_sol_total }} USDT</span>
+    </li>
+    <li class="flex justify-between items-center border-b pb-2">
+        <span class="text-sm font-semibold">LTCT</span>
+        <span class="text-lg font-bold">{{ user_income.ltct_total }} LTCT</span>
+    </li>
+</ul>
+
+<div class="pt-5 text-pink-400">
+    <h1 class="text-xl font-semibold text-center mb-2">Request Deposit</h1>
+</div>
+
+<div class="pt-5 bg-gray-800 p-6 rounded-lg">
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4 text-black">
+            {{ payout_form.amount.label_tag }} {{ payout_form.amount }}
+        </div>
+        <div class="mb-4 text-black">
+            {{ payout_form.currency.label_tag }} {{ payout_form.currency }}
+        </div>
+        <div class="mb-4 text-black">
+            {{ payout_form.payment_method.label_tag }} {{ payout_form.payment_method }}
+        </div> 
+        <div class="mb-4 text-black">
+            {{ payout_form.contact_method.label_tag }} {{ payout_form.contact_method }}
+        </div>
+        <div class="mb-4 text-black">
+            {{ payout_form.contact_info.label_tag }} {{ payout_form.contact_info }}
+        </div>
+        <button type="submit" name="payout_form" class="bg-green-500 text-white px-4 py-2 rounded">Request Payout</button>
+    </form>
+</div>
+
+
+<!-- Script to Render Each Chart -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    // 'days', 'total_sales', 'total_clicks', 'total_ads', and 'total_dms' are passed from the Django view.
+    // {{ days|safe }} makes sure that the data is rendered safely into JavaScript. 
+    const days = {{ days|safe }};
+    const totalSales = {{ total_sales|safe }};
+    const totalClicks = {{ total_clicks|safe }};
+    const totalAds = {{ total_ads|safe }};
+    const totalDms = {{ total_dms|safe }};
+
+    // This variable (chartOptions) holds the default options for the charts.
+    // These options will be reused again and again, for all the charts.
+    const chartOptions = {
+        // All charts will be line charts.
+        type: 'line', 
+        options: {
+            scales: {
+                y: { 
+                    // Makes sure that the Y-axis starts at zero.
+                    beginAtZero: true, 
+                    // This sets the tick color to white because the background is dark purple.
+                    ticks: { color: 'white' }, 
+                    // Here we label the Y-axis and style it. 
+                    title: { display: true, text: 'Amount', color: 'white' } 
+                },
+                x: { 
+                    // It sets the X-axis tick color to white for visibility.
+                    ticks: { color: 'white' }, 
+                    // Here we label the X-axis and style it.
+                    title: { display: true, text: 'Days of the Week', color: 'white' } 
+                }
+            },
+            // This makes sure that the chart is responsive to different screen sizes. Very helpful than to manualy do it. 
+            responsive: true, 
+            // This allows the chart to stretch or shrink without maintaining aspect ratio. This is so that on smaller screens,
+            // if there is low amount of data, or no data, the graph take less space. 
+            maintainAspectRatio: false, 
+            plugins: {
+                // Makes sure that the legend labels are white.
+                legend: { labels: { color: 'white' } }, 
+                // Tooltips will have white text for visibility.
+                tooltip: { titleColor: 'white', bodyColor: 'white' } 
+            }
+        }
+    };
+
+    // Sales Chart: This chart displays the weekly sales data (in USD).
+    new Chart(document.getElementById('salesChart').getContext('2d'), {
+        // Spread operator to inherit the default chart options.
+        ...chartOptions, 
+        options: {
+            ...chartOptions.options, 
+            plugins: {
+                ...chartOptions.options.plugins,
+                title: { 
+                    display: true, 
+                    // Custom title for the sales chart.
+                    text: 'Weekly Sales (in USD)',  
+                    // Title color is white, as background is very dark.
+                    color: 'white' 
+                }
+            }
+        },
+        data: {
+            // X-axis labels, it's passed from the backend (days of the week).
+            labels: days, 
+            datasets: [{
+                // The aataset label for the legend.
+                label: 'Sales (in USD)', 
+                // Y-axis data for sales, it is passed from the backend.
+                data: totalSales, 
+                // Line color (blue - looks good).
+                borderColor: 'rgba(54, 162, 235, 1)', 
+                // Light blue fill under the line.
+                backgroundColor: 'rgba(54, 162, 235, 0.2)', 
+                // Enables the filling of the area under the line.
+                fill: true 
+            }]
+        }
+    });
+
+    // ALL OTHER ARE SAME! 
+
+    new Chart(document.getElementById('viewsChart').getContext('2d'), {
+        ...chartOptions, 
+        options: {
+            ...chartOptions.options,
+            plugins: {
+                ...chartOptions.options.plugins,
+                title: { 
+                    display: true, 
+                    text: 'Weekly Views', 
+                    color: 'white'
+                }
+            }
+        },
+        data: {
+            labels: days, 
+            datasets: [{
+                label: 'Views', 
+                data: totalClicks, 
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)', 
+                fill: true 
+            }]
+        }
+    });
+
+   
+    new Chart(document.getElementById('adsChart').getContext('2d'), {
+        ...chartOptions, 
+        options: {
+            ...chartOptions.options,
+            plugins: {
+                ...chartOptions.options.plugins,
+                title: { 
+                    display: true, 
+                    text: 'Weekly Ads Posted',  
+                    color: 'white'
+                }
+            }
+        },
+        data: {
+            labels: days, 
+            datasets: [{
+                label: 'Ads Posted', 
+                data: totalAds, 
+                borderColor: 'rgba(255, 206, 86, 1)',
+                backgroundColor: 'rgba(255, 206, 86, 0.2)', 
+                fill: true 
+            }]
+        }
+    });
+
+    
+    new Chart(document.getElementById('dmsChart').getContext('2d'), {
+        ...chartOptions, 
+        options: {
+            ...chartOptions.options,
+            plugins: {
+                ...chartOptions.options.plugins,
+                title: { 
+                    display: true, 
+                    text: 'Weekly DMs Sent',  
+                    color: 'white'
+                }
+            }
+        },
+        data: {
+            labels: days, 
+            datasets: [{
+                label: 'DMs Sent', 
+                data: totalDms, 
+                borderColor: 'rgba(153, 102, 255, 1)', 
+                backgroundColor: 'rgba(153, 102, 255, 0.2)', 
+                fill: true 
+            }]
+        }
+    });
+
+</script>
+
+
+
+<style>
+    /* Global Styles */
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #1A202C;
+        color: white;
+    }
+
+    .chart-container { 
+        width: 100%; 
+        max-width: 650px; 
+        height: 300px; 
+        margin: auto; 
+    }
+
+    /* Responsive grid system */
+    .grid { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 80px; 
+        justify-content: center; 
+        align-items: center; 
+    }
+
+    /* Mobile responsive adjustments */
+    @media (max-width: 1024px) {
+        .grid {
+            grid-template-columns: 1fr; /* Single column layout */
+        }
+        .chart-container { 
+            max-width: 500px; 
+            height: 250px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .chart-container {
+            max-width: 300px; 
+            height: 200px;
+        }
+    }
+
+    .max-h-96 {
+        max-height: 20.375rem; /* 96 in Tailwind's scale */
+    }
+    .border {
+        border: 1px solid;
+    }
+    .rounded-lg {
+        border-radius: 0.5rem;
+    }
+    .bg-gray-800 {
+        background-color: #2d3748;
+    }
+    .text-white {
+        color: white;
+    }
+    /* Additional responsive styles for the total sales by currency */
+@media (max-width: 1024px) {
+    .grid-cols-8 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-cols-8 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+</style>
 
 {% endblock content %}

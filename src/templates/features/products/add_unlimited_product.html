@@ -4,46 +4,134 @@
 <div class="pt-10 px-4 md:px-0 text-center relative">
     <h1 class="text-4xl font-extrabold text-white">Add Unlimited Product</h1>
     <div class="mt-10 max-w-lg mx-auto">
-        <form method="post" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+        <form method="post" enctype="multipart/form-data" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
             {% csrf_token %}
             <div class="text-left space-y-6">
                 {{ form.non_field_errors }}
+                
+                <!-- Title -->
                 <div>
-                    {{ form.title.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label> 
+                    {{ form.title.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label>
                     {{ form.title }}
                 </div>
+
+                <!-- Price -->
                 <div>
-                    {{ form.price.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label> 
+                    {{ form.price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label>
                     {{ form.price }}
                 </div>
+
+                <!-- Sale Price -->
                 <div>
-                    {{ form.currency.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label> 
+                    {{ form.sale_price.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sale_price.label_tag }}</label> 
+                    {{ form.sale_price }}
+                </div>
+                
+                <!-- Discount -->
+                <div>
+                    {{ form.discount_percentage.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
+                    {{ form.discount_percentage }}
+                </div>
+
+                <!-- Currency -->
+                <div>
+                    {{ form.currency.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label>
                     {{ form.currency }}
                 </div>
+
+                <!-- Ltc price -->
                 <div>
-                    {{ form.sku.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sku.label_tag }}</label> 
+                    {{ form.ltc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.ltc_price.label_tag }}</label>
+                    {{ form.ltc_price }}
+                </div>
+
+                <!-- Btc price -->
+                <div>
+                    {{ form.btc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.btc_price.label_tag }}</label>
+                    {{ form.btc_price }}
+                </div>
+
+                <!-- Eth price -->
+                <div>
+                    {{ form.eth_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.eth_price.label_tag }}</label>
+                    {{ form.eth_price }}
+                </div>
+
+                <!-- Usdt price -->
+                <div>
+                    {{ form.usdt_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.usdt_price.label_tag }}</label>
+                    {{ form.usdt_price }}
+                </div>
+
+                <!-- Sol price -->
+                <div>
+                    {{ form.sol_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sol_price.label_tag }}</label>
+                    {{ form.sol_price }}
+                </div>
+
+                <!-- Test price -->
+                <div>
+                    {{ form.test_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.test_price.label_tag }}</label>
+                    {{ form.test_price }}
+                </div>
+
+                <!-- SKU -->
+                <div>
+                    {{ form.sku.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sku.label_tag }}</label>
                     {{ form.sku }}
                 </div>
+
+                <!-- Quantity -->
                 <div>
-                    {{ form.quantity.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.quantity.label_tag }}</label> 
-                    {{ form.quantity }}
+                    {{ form.quantity.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.quantity.label_tag }}</label>
+                    {{ form.quantity }} (-1 is Unlimited)
                 </div>
+
+                <!-- Product Link -->
                 <div>
-                    {{ form.link.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.link.label_tag }}</label> 
+                    {{ form.link.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.link.label_tag }}</label>
                     {{ form.link }} (Product Link)
                 </div>
+
+                <!-- Description -->
                 <div>
-                    {{ form.description.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label> 
+                    {{ form.description.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label>
                     {{ form.description }}
                 </div>
+
+                <!-- Product Image -->
+                <div>
+                    {{ form.product_image.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.product_image.label_tag }}</label>
+                    {{ form.product_image }} (Product Image)
+                </div>
+
+                <!-- Show on Custom Landing Page -->
+                <div class="flex items-center">
+                    {{ form.show_on_custom_lander.errors }}
+                    <input id="show_on_custom_lander" type="checkbox" name="show_on_custom_lander" class="form-checkbox h-5 w-5 text-indigo-600 transition duration-150 ease-in-out" {% if form.show_on_custom_lander.value %}checked{% endif %}>
+                    <label for="show_on_custom_lander" class="ml-2 block text-sm font-medium text-gray-700">
+                        Show this product on the custom landing page?
+                    </label>
+                </div>
             </div>
+
+            <!-- Submit Button -->
             <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
                 Save Product
             </button>

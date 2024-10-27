@@ -1,12 +1,237 @@
 {% extends "dashboard/base.html" %}
 
-{% block head_title %} Homepage - {{ block.super }} {% endblock head_title%}
+{% block head_title %} Cold DM - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
 
 <div class="pt-5">
 
-<p class="text-blue-500">Cold dm</p>
+    <!-- Cold DM creation form -->
+    <div id="cold-dm-creation-form-container">
+        <div class="bg-gray-100 p-5 rounded">
+            <form id="cold-dm-form">
+                
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" class="border rounded p-2 mb-2 block" placeholder="Enter username" required>
 
+                <label for="user_id">User ID:</label>
+                <input type="text" id="user_id" name="user_id" class="border rounded p-2 mb-2 block" placeholder="Enter user ID" required>
+
+                <label for="note">Note:</label>
+                <textarea id="note" name="note" class="border rounded p-2 mb-2 block" placeholder="Enter note"></textarea>
+
+                <button type="submit" class="btn btn-primary mt-2 p-2 bg-blue-500 rounded-lg text-white">Add</button>
+            
+            </form>
+        </div>
+    </div>
+
+    <!-- Search bar for Cold DMs -->
+    <div class="pt-3">
+        <input type="text" id="search-bar" class="border rounded p-2 w-full" placeholder="Search Cold DMs by username or ID">
+    </div>
+
+    <!-- List of Cold DMs -->
+    <div id="cold-dm-container" class="mt-5">
+        <h2 class="text-white">Current Cold DMs</h2>
+        <ul id="cold-dm-list">
+            {% for dm in cold_dm_list %}
+            <li class="p-3 bg-white border rounded mt-2 cold-dm-box" data-username="{{ dm.username }}" data-user-id="{{ dm.user_id }}">
+                <strong>{{ dm.username }}</strong> ({{ dm.user_id }})<br>
+                <span class="note-text">Note: {{ dm.note }}</span>
+                <textarea class="edit-note hidden border rounded p-2 mt-2">{{ dm.note }}</textarea>
+                <br>
+                <button class="edit-btn bg-blue-500 text-white p-2 rounded mt-2" data-user-id="{{ dm.user_id }}">Edit</button>
+                <button class="save-btn bg-green-500 text-white p-2 rounded mt-2 hidden" data-user-id="{{ dm.user_id }}">Save</button>
+                <button class="delete-btn bg-red-500 text-white p-2 rounded mt-2" data-user-id="{{ dm.user_id }}">Delete</button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
+
+<script>
+    // Here we control the delete button. Its listening for a click on the delete button. 
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Data- tags have been explained before in autoad 
+            // It gets the user associated with that cold dm entry.
+            const userId = this.getAttribute('data-user-id');
+
+            // Send a POST request to delete the Cold DM entry by user ID
+            fetch(`/cold-dm/delete/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // If successful, it removes the list item.
+                    this.closest('li').remove();  
+                } else {
+                    // Shows an error message if the delete request fails.
+                    console.log('Error: ' + data.message);  
+                }
+            });
+        });
+    });
+    
+    // Here we control the edit button functionality
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // When clicked, it gets the list item of that entry, and it saves the note text area,
+            // the note text, and the save button into variables. 
+            const listItem = this.closest('li');
+            const editNoteTextarea = listItem.querySelector('.edit-note');
+            const noteText = listItem.querySelector('.note-text');
+            const saveBtn = listItem.querySelector('.save-btn');
+    
+            // First it hides the previous text. 
+            noteText.classList.add('hidden');
+            // Then it shows the text area, where we write notes. 
+            editNoteTextarea.classList.remove('hidden');
+            // Then it shows the save button
+            saveBtn.classList.remove('hidden');  
+            // And hides the edit button
+            this.classList.add('hidden');  
+        });
+    });
+    
+    // Here we control the save button functionality to save the edited note.
+    document.querySelectorAll('.save-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // When clicked, it first gets and saves the user id, the list item, 
+            // the text area and the text in the text area to variables.
+            const userId = this.getAttribute('data-user-id');
+            const listItem = this.closest('li');
+            const editNoteTextarea = listItem.querySelector('.edit-note');
+            const noteText = listItem.querySelector('.note-text');
+            // It get the updated note text.
+            const updatedNote = editNoteTextarea.value;  
+    
+            // It then sends the updated note to the server for saving it to the database. 
+            fetch(`/cold-dm/update/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'note': updatedNote
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // If it saved successfully, then change the text content of the 
+                    // note text to the updated note. 
+                    noteText.textContent = `Note: ${updatedNote}`;
+                    // Then show the note text. 
+                    noteText.classList.remove('hidden');
+                    // Hide the text area. 
+                    editNoteTextarea.classList.add('hidden');
+                    // Hide the save button
+                    this.classList.add('hidden');  
+                    // And finally, show the edit button again
+                    listItem.querySelector('.edit-btn').classList.remove('hidden');  
+                } else {
+                    // If the saving failes, it shows an error message if saving fails
+                    console.log('Error: ' + data.message);  
+                }
+            });
+        });
+    });
+    
+    // Here we control the Cold DM form submission
+    // It listens for the form submission
+    document.getElementById('cold-dm-form').addEventListener('submit', function(event) {
+        // event.preventDefault, prevents the default form submission, as it reloads the page, which we do not want, 
+        // instead we want to send a POST request. 
+        event.preventDefault();  
+
+        // We create a new FormData object to hold the form data
+        // this refers to the form element and FormData holds all the 
+        // form data. 
+        const formData = new FormData(this);
+    
+        // Send the form data to the server to create a new Cold DM
+        fetch('/cold-dm/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to show the new Cold DM entry
+                location.reload();  
+            } else {
+                // Show an error message if creation fails.
+                console.log('Error: ' + data.message);  
+            }
+        });
+    });
+    
+    // Search functionality to filter Cold DMs by username or user ID
+    // Explained a lot in other files, basically it converts the value in the 
+    // search bar to lowercase. Then it gets all the cold dm boxes, and convert;s their 
+    // username and user ID to lowercase, and if they contain the search text, 
+    // it shows the list item, otherwise it hides it.
+    document.getElementById('search-bar').addEventListener('input', function() {
+        const searchText = this.value.toLowerCase();
+        document.querySelectorAll('.cold-dm-box').forEach(function(dmBox) {
+            const username = dmBox.getAttribute('data-username').toLowerCase();
+            const userId = dmBox.getAttribute('data-user-id').toLowerCase();
+            if (username.includes(searchText) || userId.includes(searchText)) {
+                dmBox.style.display = '';
+            } else {
+                dmBox.style.display = 'none';
+            }
+        });
+    });
+    </script>
+
+<style>
+/* Sometimes its easier to style with normal CSS rather than tailwind. */
+
+.cold-dm-box {
+    transition: all 0.3s ease;
+}
+
+.cold-dm-box:hover {
+    background-color: #f1f5f9; /* Light hover background */
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+}
+
+input:focus, textarea:focus {
+    border-color: #3182ce; /* Focus color */
+}
+
+button {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #2b6cb0; /* Hover effect for buttons */
+}
+
+.hidden {
+    display: none;
+}
+
+</style>
+
 {% endblock content %}

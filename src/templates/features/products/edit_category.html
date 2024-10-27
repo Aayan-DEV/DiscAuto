@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+{% block head_title %}Edit Category{% endblock head_title %}
+{% block content %}
+<div class="pt-10 px-4 md:px-0 relative">
+    <div class="flex items-center justify-center mb-6 relative">
+        <a href="{% url 'products' %}" class="absolute left-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
+            ← Back
+        </a>
+        <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white">Edit Product Category</h1>
+    </div>
+    <div class="mt-10 max-w-lg mx-auto">
+        <form method="post" enctype="multipart/form-data" class="bg-white p-8 rounded-xl shadow-xl space-y-6">
+            {% csrf_token %}
+            <div class="space-y-6">
+
+                <!-- Conditionally show non-field errors only if they exist -->
+                {% if form.non_field_errors %}
+                    <div class="text-red-600">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Category Name -->
+                <div>
+                    {{ form.name.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.name.label_tag }}</label>
+                    <div class="mt-1">
+                        {{ form.name }}
+                    </div>
+                </div>
+
+                <!-- Category Image -->
+                <div>
+                    {{ form.category_image.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.category_image.label_tag }}</label>
+                    <div class="mt-1">
+                        {{ form.category_image }}
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">(Category Image)</p>
+                </div>
+
+                <!-- Show on Landing Page Checkbox -->
+                <div class="flex items-start">
+                    <input type="checkbox" id="show_on_custom_lander" name="show_on_custom_lander" class="form-checkbox h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-blue-500" {% if form.show_on_custom_lander.value %}checked{% endif %}>
+                    <label for="show_on_custom_lander" class="ml-3 block text-sm font-medium text-gray-700">
+                        Show this category on the custom landing page?
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock content %}

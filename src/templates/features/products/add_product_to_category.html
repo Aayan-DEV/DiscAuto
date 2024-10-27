@@ -13,21 +13,79 @@
                     <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label>
                     {{ form.title }}
                 </div>
+                
                 <div>
                     {{ form.price.errors }}
                     <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label>
                     {{ form.price }}
                 </div>
+
+                <div>
+                    {{ form.sale_price.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sale_price.label_tag }}</label> 
+                    {{ form.sale_price }}
+                </div>
+
+                <div>
+                    {{ form.discount_percentage.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
+                    {{ form.discount_percentage }}
+                </div>
+
                 <div>
                     {{ form.currency.errors }}
                     <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label>
                     {{ form.currency }}
                 </div>
+
+                <!-- Ltc price -->
+                <div>
+                    {{ form.ltc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.ltc_price.label_tag }}</label>
+                    {{ form.ltc_price }}
+                </div>
+
+                <!-- Btc price -->
+                <div>
+                    {{ form.btc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.btc_price.label_tag }}</label>
+                    {{ form.btc_price }}
+                </div>
+
+                <!-- Eth price -->
+                <div>
+                    {{ form.eth_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.eth_price.label_tag }}</label>
+                    {{ form.eth_price }}
+                </div>
+
+                <!-- Usdt price -->
+                <div>
+                    {{ form.usdt_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.usdt_price.label_tag }}</label>
+                    {{ form.usdt_price }}
+                </div>
+
+                <!-- Sol price -->
+                <div>
+                    {{ form.sol_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sol_price.label_tag }}</label>
+                    {{ form.sol_price }}
+                </div>
+
+                <!-- Test price -->
+                <div>
+                    {{ form.test_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.test_price.label_tag }}</label>
+                    {{ form.test_price }}
+                </div>
+
                 <div>
                     {{ form.description.errors }}
                     <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label>
                     {{ form.description }}
                 </div>
+
                 <div>
                     {{ form.product_content.errors }}
                     <label class="block text-sm font-medium text-gray-700">{{ form.product_content.label_tag }}</label>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <title>{% if user_data %}{{ user_data.name }} - Landing Page{% else %}Landing Page{% endif %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        /* Custom styling for search bar */
+        .search-bar input {
+            width: 100%; /* Default full width */
+        }
+
+        @media (min-width: 768px) {
+            .search-bar input {
+                width: 50%; /* Smaller width for larger screens */
+                margin: 0 auto; /* Centering */
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black">
+    <!-- Banner -->
+    <div class="banner mb-6">
+        <img src="{{ user_data.banner.url }}" alt="Banner" class="w-full h-40 lg:h-[320px] object-contain rounded">
+    </div>
+
+    <div class="landing-page pr-6 pl-6">
+        {% if user_data %}
+            <!-- Profile Section -->
+            <div class="profile-section text-center mb-8">
+                <div class="w-32 h-32 mx-auto rounded-full bg-black flex items-center justify-center">
+                    <img src="{{ user_data.profile_picture.url }}" alt="{{ user_data.name }}" class="w-28 h-28 rounded-full object-cover">
+                </div>
+                <h1 class="text-xl font-bold mt-4">@{{ user_data.name }}</h1>
+                <h2 class="text-sm font-medium">{{ user_data.title }}</h2>
+                <div class="flex items-center space-x-4 justify-center pt-2">
+                    <div class="flex items-center space-x-4">
+                        <!-- Email Icon and Link -->
+                        {% if user_data.email != None or ""%}
+                        <a href="mailto:{{ user_data.email }}" class="flex items-center space-x-2">
+                            <span class="material-icons">email</span>
+                            <h2 class="text-sm font-medium">{{ user_data.email }}</h2>
+                        </a>
+                        {% endif %}
+                        {% if user_data.instagram_link != None or ""%}
+                        <!-- Instagram Icon and Link -->
+                        <a href="{{ user_data.instagram_link }}" target="_blank" class="flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5a4.25 4.25 0 0 0 4.25-4.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zM12 6a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm0 1.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM18 6.7a1.05 1.05 0 1 1 0 2.1 1.05 1.05 0 0 1 0-2.1z"/>
+                            </svg>
+                            <h2 class="text-sm font-medium">Instagram</h2>
+                        </a>
+                        {% endif %}
+                        {% if user_data.tiktok_link != None or ""%}
+                        <!-- TikTok Icon and Link -->
+                        <a href="{{ user_data.tiktok_link }}" target="_blank" class="flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" stroke="none">
+                                <path d="M12 2c.905 3.918 2.959 6.57 7 6.962v3.264c-2.663.154-4.49-.573-5.859-2.025v5.2c-.002.617-.014 1.23-.055 1.844-.183 2.616-1.971 4.373-4.573 4.75a5.07 5.07 0 0 1-5.519-4.1c-.222-1.125-.217-2.287-.144-3.43.24-3.65 2.914-5.693 6.11-5.432v2.895c-.555-.005-1.12-.036-1.646.034-1.018.136-1.713.81-1.822 1.846-.17 1.553-.278 3.122.503 4.576.451.873 1.426 1.177 2.36 1.043 1.081-.153 1.875-.913 2.08-1.998.148-.755.19-1.527.205-2.29.048-2.39.028-4.78.033-7.171V2h2z"/>
+                            </svg>
+                            <h2 class="text-sm font-medium">TikTok</h2>
+                        </a>
+                        {% endif %}
+                    </div>                    
+                </div>                     
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-bar mb-6 text-center">
+                <input id="searchInput" type="text" onkeyup="filterProducts()" placeholder="Search for Products" class="bg-white py-3 pl-5 pr-4 rounded-full text-sm placeholder-black text-black border-2 border-black">
+            </div>
+
+            <div class="gap-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:pr-16 lg:pl-16 pr-4 pl-4">
+                <!-- One-Time Product Categories -->
+                <div class="products mb-8">
+                    <div class="">
+                        {% for category in categories %}
+                            {% if category.products.first %}
+                                <a href="{% url 'one_time_product_detail' category.products.first.id %}">
+                                    <div class="category-item bg-white rounded-md p-4 text-center border-2 border-black rounded-lg">
+                                        <img src="{{ category.category_image.url }}" alt="{{ category.name }}" class="h-50 w-50 object-cover rounded-md mb-2">
+                                        <h4 class="text-md font-bold category-name text-black">{{ category.name }}</h4>
+                                    </div>
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Unlimited Products -->
+                <div class="products mb-8 border-2 border-black rounded-lg">
+                    <div class="">
+                        {% for product in unlimited_products %}
+                            <a href="{% url 'unlimited_product_detail' product.id %}">
+                                <div class="product-item bg-white rounded-md p-4 text-center">
+                                    <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="h-50 w-50 object-cover rounded-md mb-2">
+                                    <p class="text-xl product-title text-black line-clamp-2">{{ product.title }}</p>
+                                    <div class="flex gap-x-2 justify-center items-baseline"> 
+                                        <p class="text-2xl font-semibold pb-1 pt-1 text-black">{% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}</p> 
+                                        {% if product.sale_price != None %}
+                                            <p class="text-1xl font-semibold pb-1 text-gray-600 line-through">{% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.sale_price }}</p>
+                                            {% if product.discount_percentage != None %}
+                                                <p class="text-xs font-semibold text-black bg-green-400 p-2 rounded-full">{{ product.discount_percentage|floatformat:0 }}% off</p>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div> 
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <p class="text-center text-red-400">Landing page data is unavailable. Please try again later.</p>
+        {% endif %}
+    </div>
+
+    <script>
+
+        function incrementViewCount() {
+            setTimeout(function() {
+                // Make an AJAX request to the backend view that increments the view count
+                fetch("{% url 'increment_view_count' user_data.custom_link %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for POST request
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ custom_link: "{{ user_data.custom_link }}" })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("View count incremented.");
+                    } else {
+                        console.log("Failed to increment view count:", data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+            }, 500); // Delay of 500 milliseconds
+        }
+    
+        // Call the function to increment the view count when the page loads
+        window.onload = incrementViewCount;
+
+        function filterProducts() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let productItems = document.getElementsByClassName('product-item');
+            let categoryItems = document.getElementsByClassName('category-item');
+
+            Array.from(productItems).forEach((item) => {
+                let title = item.getElementsByClassName('product-title')[0].innerText.toLowerCase();
+                if (title.includes(input)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            Array.from(categoryItems).forEach((item) => {
+                let name = item.getElementsByClassName('category-name')[0].innerText.toLowerCase();
+                if (name.includes(input)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

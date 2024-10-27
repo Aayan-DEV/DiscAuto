@@ -2,10 +2,10 @@
 {% block head_title %}Edit One-Time Product{% endblock head_title %}
 {% block content %}
 <div class="pt-10 px-4 md:px-0 text-center relative">
-    <a href="{% url 'home' %}" class="absolute top-0 left-0 mt-6 ml-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
+    <a href="{% url 'products' %}" class="absolute top-0 left-0 mt-6 ml-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
         ← Back
     </a>
-    <h1 class="text-4xl font-extrabold text-gray-800">Edit One-Time Use Product</h1>
+    <h1 class="text-4xl font-extrabold text-white">Edit One-Time Use Product</h1>
     <div class="mt-10 max-w-lg mx-auto">
         <form method="post" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
             {% csrf_token %}
@@ -22,9 +22,68 @@
                     {{ form.price }}
                 </div>
                 <div>
+                    {{ form.sale_price.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sale_price.label_tag }}</label> 
+                    {{ form.sale_price }}
+                </div>
+                <div>
+                    {{ form.discount_percentage.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
+                    {{ form.discount_percentage }}
+                </div>
+                <div>
                     {{ form.currency.errors }} 
                     <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label> 
                     {{ form.currency }}
+                </div>
+
+                <!-- Discount -->
+                <div>
+                    {{ form.discount_percentage.errors }} 
+                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
+                    {{ form.discount_percentage }}
+                </div>
+
+                <!-- Ltc price -->
+                <div>
+                    {{ form.ltc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.ltc_price.label_tag }}</label>
+                    {{ form.ltc_price }}
+                </div>
+
+                <!-- Btc price -->
+                <div>
+                    {{ form.btc_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.btc_price.label_tag }}</label>
+                    {{ form.btc_price }}
+                </div>
+
+                <!-- Eth price -->
+                <div>
+                    {{ form.eth_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.eth_price.label_tag }}</label>
+                    {{ form.eth_price }}
+                </div>
+
+                <!-- Usdt price -->
+                <div>
+                    {{ form.usdt_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.usdt_price.label_tag }}</label>
+                    {{ form.usdt_price }}
+                </div>
+
+                <!-- Sol price -->
+                <div>
+                    {{ form.sol_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.sol_price.label_tag }}</label>
+                    {{ form.sol_price }}
+                </div>
+
+                <!-- Test price -->
+                <div>
+                    {{ form.test_price.errors }}
+                    <label class="block text-sm font-medium text-gray-700">{{ form.test_price.label_tag }}</label>
+                    {{ form.test_price }}
                 </div>
                 <div>
                     {{ form.description.errors }} 

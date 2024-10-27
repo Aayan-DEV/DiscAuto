@@ -1,0 +1,41 @@
+{% extends "dashboard/base.html" %}
+
+{% block head_title %}Products{% endblock head_title %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - Product Description</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-purple-900 to-indigo-900 text-white">
+    <div class="max-w-lg mx-auto p-6">
+        <!-- Product Image -->
+        <div class="product-image mb-6">
+            {% if product.product_image %}
+                <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="w-full h-60 object-cover rounded-md">
+            {% else %}
+                <div class="bg-purple-500 h-60 w-full rounded-md"></div>
+            {% endif %}
+        </div>
+
+        <!-- Product Details -->
+        <div class="product-details text-center">
+            <h1 class="text-2xl font-bold mb-4">{{ product.title }}</h1>
+            <p class="text-lg font-semibold mb-2">{{ product.price }} {{ product.currency }}</p>
+            <p class="text-sm mb-4">{{ product.description }}</p>
+        </div>
+        
+        <!-- Back to Landing Page -->
+        <div class="text-center mt-6">
+            <a href="{% url 'custom_landing_page' product.user.autosell.custom_link %}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md">
+                Back to Landing Page
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock content %}

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ product.title }} - Product Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+
+        #crypto-select {
+            display: none;
+            transition: max-height 0.5s ease-out;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        /* Apply styles for larger screens */
+        @media (min-width: 1024px) {
+            /* Container for the entire product page */
+            .product-page {
+                display: flex;
+                justify-content: center; /* Center content horizontally */
+                align-items: center; /* Center content vertically */
+                min-height: 100vh; /* Full height of the viewport */
+            }
+
+            /* Reduce the size of the product container */
+            .product-container {
+                display: flex;
+                flex-direction: row; /* Side by side */
+                max-width: full; /* Adjust to control width */
+                width: 100%;
+                margin: auto;
+                gap: 10rem;
+            }
+
+            .product-image {
+                flex: 1;
+            }
+
+            .product-info-section {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center; /* Center content vertically */
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-black p-4 lg:p-0">
+    <div class="product-page">
+        <div class="product-container bg-white p-6 lg:p-20 rounded-md">
+            <!-- Product Image (Sticky on larger screens) -->
+            <div class="product-image relative">
+                <!-- Back Button -->
+                <div class="absolute w-full lg:ml-0 flex justify-center lg:justify-start z-10">
+                    <button id="back-button" class="bg-white text-black text-3xl">
+                        <img src="https://www.svgrepo.com/show/18507/back-button.svg" class="w-8 h-8">
+                    </button>
+                </div>
+                <img src="{{ first_product.category.category_image.url }}" alt="{{ first_product.category.name }}" class="w-full h-full object-contain rounded pt-10 lg:pt-0">
+
+            </div>
+
+            <div class="product-info-section">
+                <div class="w-full pr-4 pl-4 text-center">
+                    <h1 class="text-black text-lg bg-white py-1 rounded-md">{{ first_product.title }}</h1>
+                </div>
+                {% if first_product.price == None or first_product.price == 0.00 %}
+                    {% else %}
+                    <div class="flex gap-x-2 justify-center items-baseline"> 
+                        <p class="text-4xl font-semibold pb-2 text-green-700">{% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}</p> 
+                        {% if first_product.sale_price == None or first_product.sale_price == 0.00 %}
+                        {% else %}
+                        <p class="text-1xl font-semibold pb-2 text-gray-600 line-through">{% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}</p>
+                            {% if first_product.discount_percentage == None or first_product.discount_percentage == 0.00 %}
+                            {% else %}
+                                <p class="text-xs font-semibold text-black bg-green-400 p-2 rounded-full">{{ first_product.discount_percentage|floatformat:0 }}% off</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>         
+                    <h1 class="text-black text-xs bg-white rounded-md text-center">VAT Included</h1>   
+                {% endif %}
+
+                <button id="checkout-button-down" class="bg-black border-gray-400 border hover:bg-green-700 text-white py-3 px-6 rounded-full w-full mt-2">
+                    {% if first_product.price != 0.00 %}
+                    Buy Now
+                    {% else %}
+                    Free Download
+                    {% endif %}
+                </button>               
+
+                <!-- Product Description -->
+                <div class="mt-4 text-black p-4 border-2 border-black rounded-md mb-12 lg:mb-4">
+                    {{ first_product.description|linebreaksbr }}
+                </div>
+                <div class="lg:hidden"> 
+                    <hr class="w-full border-gray-300 mb-2 mt-6 pt-4">
+
+                    <div class="flex justify-between items-center mb-4">
+                        <h1 class="font-bold text-black text-lg">Order summary</h1>
+                        <span class="text-black text-lg">
+                            {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                        </span>
+                    </div>
+                    
+                    <div class="flex gap-4 items-start">
+                        <img src="{{ first_product.category.category_image.url }}" alt="{{ first_product.title }}" class="w-[82px] h-[82px] rounded-md">
+                        <div>
+                            <h2 class="font-bold text-sm text-black mb-2"> {{ first_product.title }}</h2>
+                            <div class="flex gap-x-2 items-baseline">
+                                <p class="text-lg font-semibold text-black">
+                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                </p>
+                                {% if product.sale_price %}
+                                    <p class="text-sm font-semibold text-gray-500 line-through">
+                                        {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}
+                                    </p>
+                                    {% if first_product.discount_percentage %}
+                                        <p class="text-xs font-bold text-green-800 bg-green-300 px-2 py-1 rounded-lg">
+                                            -{{ first_product.discount_percentage|floatformat:0 }}% OFF
+                                        </p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>                   
+
+                               
+                </div>
+                <hr class="w-full border-gray-300 mb-8 mt-4 lg:mb-2 lg:mt-2">
+                <h1 class="text-black text-1xl mb-5 mt-5 font-bold"> Who should get the product? *</h1>    
+                <!-- Checkout Form for Stripe -->
+                <div class="text-center mt-2 mb-2">    
+                    <form id="checkout-form">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <input type="text" id="name" class="w-full p-4 rounded text-black border border-black bg-white" placeholder="Enter your Name" required>
+                    </div>
+                    <div class="mb-4">
+                        <input type="email" id="email" class="w-full p-4 rounded text-black border border-black bg-white" placeholder="Enter your Email" required>
+                    </div>
+
+                    <div class="border border-gray-300 rounded-lg p-4 w-full mb-2">
+
+                        
+                        <!-- Subtotal (Original Price) and Discount -->
+                        <div class="flex justify-between mb-4">
+                            <div class="flex flex-col">
+                                <span class="text-gray-700 text-sm">Subtotal</span>
+                            </div>
+                            <!-- Final discounted price -->
+                            <span class="text-gray-700 text-sm">
+                                <!-- Original price with line-through -->
+                                {% if first_product.price == 0.00 %}
+                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                {% else %}
+                                    {% if product.sale_price %}
+                                        <span class="text-gray-700 text-sm line-through">
+                                            {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}
+                                        </span> <br><Br>
+                                    {% else %}
+                                    <span class="text-gray-700 text-sm">
+                                        {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                    </span> <br><Br>
+                                    {% endif %}
+                                {% endif %}
+                                <!-- Discount percentage badge -->
+                                {% if first_product.discount_percentage %}
+                                <span class="text-1xs font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
+                                    - {{ first_product.discount_percentage }}%
+                                </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    
+                        <hr class="border-t border-gray-300 mb-4">
+                    
+                        <!-- Total (Final Price After Discount) -->
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-black text-base">Total</span>
+                            {% if first_product.price == 0.00 %}
+                                <span class="font-bold text-black text-base">Free ({% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}0.00)</span>
+                            {% else %}
+                                <span class="font-bold text-black text-base">
+                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>                    
+                    <div class="flex gap-1 items-center pb-2">
+                        <hr class="flex-grow mx-2 border-t border-gray-300">
+                        {% if first_product.price == 0.00 %}
+                            <h1 class="text-black text-lg bg-white rounded-md text-center italic">Download for Free</h1>   
+                        {% else %}
+                            <h1 class="text-black text-lg bg-white rounded-md text-center italic">Pay With</h1>   
+                        {% endif %}
+                        <hr class="flex-grow mx-2 border-t border-gray-300">    
+                    </div>
+                    <!-- Single Buy Button for Stripe (non-crypto) -->
+                    {% if first_product.price == 0.00 %}
+                        <button type="submit" id="checkout-button" class="bg-green-300 border-gray-400 border hover:bg-green-400 text-white py-2 px-2 pt-2 rounded-full w-full mb-2 flex justify-center gap-4">
+                    {% else %}
+                        <button type="submit" id="checkout-button" class="bg-yellow-400 border-gray-400 border hover:bg-yellow-500 text-white py-2 px-2 pt-4 rounded-full w-full mb-2 flex justify-center gap-4">
+                    {% endif %}
+
+                        {% if first_product.price == 0.00 %}
+                            <h1 class="text-green-900 text-2xl pb-1">FREE</h1>   
+                        {% else %}
+                        <img src="https://mythslegendscollection.com/wp-content/uploads/2020/04/visa-mastercard-american-express-png-6.png" alt="Credit Card" class="w-15 h-6 lg:w-15 lg:h-10">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/2560px-PayPal.svg.png" alt="Paypal" class="w-15 h-5 lg:w-15 lg:h-8">
+                        <img src="https://i.ibb.co/8zMHvZg/Payment-Logos-removebg-preview.png" alt="Apple Pay" class="w-15 h-6 lg:hidden">
+                        {% endif %}
+                    </button>
+                    </form>
+                    
+                    {% if first_product.price == 0.00 %}
+                    {% else %}
+                    <!-- Buy with Crypto Button -->
+                        {% if first_product.btc_price or first_product.eth_price or first_product.ltc_price or first_product.sol_price or first_product.usdt_price %}
+                        <div class="text-center mt-4">
+                            <button id="crypto-button" class="bg-yellow-400 border-gray-400 border hover:bg-yellow-500 text-white py-3 lg:py-5 rounded-full w-full mb-2 flex gap-5 justify-center">
+                                {% if first_product.ltc_price is not None and first_product.ltc_price != "" %}
+                                <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
+                                {% endif %}
+
+                                {% if first_product.btc_price is not None and first_product.btc_price != "" %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
+                                {% endif %}
+
+                                {% if first_product.eth_price is not None and first_product.eth_price != "" %}
+                                <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
+                                {% endif %}
+
+                                {% if first_product.sol_price is not None and first_product.sol_price != "" %}
+                                <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                {% endif %}
+
+                                {% if first_product.usdt_price is not None and first_product.usdt_price != "" %}
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Tether" class="w-6 h-6 mr-2">
+                                {% endif %}
+                            </button>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    <!-- Crypto Selection (Hidden initially) -->
+                    <div class="crypto-select hidden mt-4" id="crypto-select">
+                        <div class="crypto-list grid grid-cols-2 gap-4">
+
+                            {% if first_product.ltc_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="LTC" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">LTC</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+                            
+                            {% if first_product.btc_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="BTC" id="pay-now">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">BTC</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.eth_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="ETH" id="pay-now">
+                                <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">ETH</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.sol_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="SOL" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">SOL</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.usdt_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.BEP20" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">Tether USD (BSC Chain)</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.usdt_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.ERC20" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">Tether USD (ERC20)</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.usdt_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.PRC20" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">Tether USD (Polygon/MATIC)</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.usdt_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.SOL" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">Tether USD (Solana)</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.usdt_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.TRC20" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">Tether USD (Tron/TRC20)</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+
+                            {% if first_product.test_price != None or "" %}
+                            <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="LTCT" id="pay-now">
+                                <img src="https://cryptologos.cc/logos/moonbeam-glmr-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                <span class="text-xs lg:text-lg">TEST</span>
+                                <span class="ml-auto hidden checkmark">✔</span>
+                            </div>
+                            {% else %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h1 class="text-gray-400 text-sm mt-4 italic"> By buying this product you agree to the Refund Policy!</h1>   
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript">
+    var stripe = Stripe('{{ STRIPE_PUBLISHABLE_KEY }}');
+
+    const checkoutButtonDown = document.getElementById('checkout-button-down');
+    if (checkoutButtonDown) {
+        checkoutButtonDown.addEventListener('click', function () {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // Handle Stripe Checkout form submission
+    const checkoutForm = document.getElementById("checkout-form");
+    if (checkoutForm) {
+        checkoutForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+
+            fetch("{% url 'create_one_time_checkout_session' first_product.id %}", {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email
+                })
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("Failed to create session");
+                }
+                return response.json();
+            })
+            .then(function (session) {
+                return stripe.redirectToCheckout({ sessionId: session.id });
+            })
+            .then(function (result) {
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            })
+            .catch(function (error) {
+                console.error("Error:", error);
+            });
+        });
+    }
+
+    let selectedCrypto = null;
+
+    // Toggle visibility of crypto options when "Buy with Crypto" is clicked
+    const cryptoButton = document.getElementById("crypto-button");
+    const cryptoSelect = document.getElementById("crypto-select");
+    if (cryptoButton) {
+        cryptoButton.addEventListener("click", function () {
+            if (cryptoSelect.style.maxHeight === "0px" || cryptoSelect.style.maxHeight === "") {
+                cryptoSelect.style.maxHeight = cryptoSelect.scrollHeight + "px";
+                cryptoSelect.style.display = "block";
+
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: cryptoSelect.offsetTop,
+                        behavior: "smooth"
+                    });
+                }, 200);
+            } else {
+                cryptoSelect.style.maxHeight = "0";
+                setTimeout(() => {
+                    cryptoSelect.style.display = "none";
+                }, 500);
+            }
+        });
+    }
+
+    // Handle cryptocurrency selection and show checkmark on selected option
+    document.querySelectorAll('.crypto-item').forEach(item => {
+        item.addEventListener('click', function () {
+        // Remove checkmark from all options
+        document.querySelectorAll('.checkmark').forEach(checkmark => {
+            checkmark.classList.add('hidden');
+        });
+
+        // Add checkmark to the selected item
+        this.querySelector('.checkmark').classList.remove('hidden');
+
+        // Store the selected crypto
+        selectedCrypto = this.getAttribute('data-crypto');
+        });
+    });
+
+   // Handle cryptocurrency selection and payment
+    document.querySelectorAll('.crypto-item').forEach(item => {
+        item.addEventListener('click', function () {
+            // Deselect all checkmarks
+            document.querySelectorAll('.checkmark').forEach(checkmark => {
+                checkmark.classList.add('hidden');
+            });
+
+            // Select the clicked crypto option
+            this.querySelector('.checkmark').classList.remove('hidden');
+            selectedCrypto = this.getAttribute('data-crypto');
+
+            // Proceed with crypto payment logic
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+
+            if (!name || !email) {
+                alert("Please provide both name and email.");
+                return;
+            }
+
+            if (!selectedCrypto) {
+                alert("Please select a cryptocurrency.");
+                return;
+            }
+
+            // Create a crypto transaction
+            fetch("{% url 'create_crypto_transaction' first_product.id 'one_time' %}", {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    crypto_choice: selectedCrypto
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to create crypto transaction");
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert("Error: Could not retrieve checkout URL.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        });
+    });
+
+
+    // Back button logic
+    const backButton = document.getElementById('back-button');
+    if (backButton) {
+        backButton.addEventListener('click', function () {
+            window.location.href = "{% url 'get_seller_page' first_product.id %}";
+        });
+    }
+</script>
+</body>
+</html>

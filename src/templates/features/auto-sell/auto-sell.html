@@ -1,0 +1,132 @@
+{% extends "dashboard/base.html" %}
+{% block head_title %} {% if auto_sell %} Edit {% else %} Create {% endif %}Landing Page - {{ block.super }} {% endblock head_title %}
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    
+    <div class="max-w-4xl w-full mx-auto bg-white shadow-md rounded-lg p-8">
+        
+        <div class="text-left">
+            
+            <h2 class="text-2xl font-semibold text-gray-700">
+                Landing Page Generator
+            </h2>
+
+            <p class="mt-2 text-sm text-gray-500">
+                Fill in the details to create or edit your customized landing page.
+            </p>
+        
+        </div>
+        <!-- If auto_sell exists, display the generated link -->
+        {% if auto_sell %}
+        {% if custom_link_url %}
+        <div class="mt-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-md">
+            <p><strong>Your Link:</strong></p>
+            <a href="{{ custom_link_url }}" target="_blank" class="text-blue-600 underline">
+                {{ custom_link_url }}
+            </a>
+        </div>
+        {% endif %}
+
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" class="mt-8">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <!-- Banner Upload -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Upload Banner</label>
+                    {{ form.banner }}
+                </div>
+                <!-- Profile Picture Upload -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Upload Profile Picture</label>
+                    {{ form.profile_picture }}
+                </div>
+                <!-- Name -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Name</label>
+                    {{ form.name }}
+                </div>
+                <!-- Title -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Title</label>
+                    {{ form.title }}
+                </div>
+                <!-- Email -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Email</label>
+                    {{ form.email }}
+                </div>
+                <!-- Instagram Link -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Instagram Link</label>
+                    {{ form.instagram_link }}
+                </div>
+                <!-- TikTok Link -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">TikTok Link</label>
+                    {{ form.tiktok_link }}
+                </div>
+                <!-- Custom Link -->
+                <div class="flex flex-col">
+                    <label class="text-gray-600 font-medium">Custom Link</label>
+                    {{ form.custom_link }}
+                </div>
+            </div>
+
+            <!-- Generate/Save Button -->
+            <div class="mt-6 flex justify-end">
+                <button type="submit" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md">
+                    {% if auto_sell %} Save Changes {% else %} Generate {% endif %}
+                </button>
+            </div>
+        </form>
+
+        <!-- Delete Button (Only if Auto-Sell Exists) -->
+        {% if auto_sell %}
+        <div class="mt-4">
+            <button type="button" id="deleteButton" class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-md">
+                Delete Auto-Sell Page
+            </button>
+        </div>
+
+        <!-- Confirmation Button -->
+        <div id="confirmButton" class="hidden fixed inset-0 z-50 overflow-auto bg-gray-900 bg-opacity-75 flex justify-center items-center">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <h3 class="text-xl font-semibold mb-4">Are you sure you want to delete this page?</h3>
+                <p class="text-gray-700 mb-6">This action cannot be undone.</p>
+                <div class="flex justify-end">
+                    <button id="cancelDelete" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-black rounded-md mr-2">Cancel</button>
+                    <form method="POST" action="{% url 'delete_lander' auto_sell.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md">Confirm</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // First it gets and stores the delete, confirm and cancel delete buttons!
+        var deleteButton = document.getElementById('deleteButton');
+        var confirmButton = document.getElementById('confirmButton');
+        var cancelDelete = document.getElementById('cancelDelete');
+        // If the delete buttom is clicked, then the confirm button is unhidden. 
+        if (deleteButton) {
+            deleteButton.addEventListener('click', function() {
+                confirmButton.classList.remove('hidden');
+            });
+        }
+        // If the cancel button is clicked, the confirm deletion button is hidden. 
+        if (cancelDelete) {
+            cancelDelete.addEventListener('click', function() {
+                confirmButton.classList.add('hidden');
+            });
+        }
+        
+    });
+</script>
+{% endblock content %}

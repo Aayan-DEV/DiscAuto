@@ -1,194 +1,675 @@
 {% extends "dashboard/base.html" %}
+{% block head_title %} Auto ad - {{ block.super }} {% endblock head_title %}
+{% block content %} 
 
-{% block head_title %} Auto Ad - {{ block.super }} {% endblock head_title %}
+<div class="pt-5">
+    <!-- Top padding placed because of the nav bar. -->
 
-{% block content %}
+    <!-- Section for 'Add a channel' -->
+    <section class="inline-flex items-center bg-white p-4 rounded">
+        <h1 class="text-blue-500"> Add a channel </h1> 
+        <button id="add-timer-btn" type="button" class="rounded-full bg-blue-400 text-white p-4 w-8 h-8 flex items-center justify-center ml-2"> + </button>
+    </section>
 
-{% if no_users %}
-    <div class="mt-5 text-center">
-        <p class="text-blue-600 font-semibold">Add a user in the "Auths" Tabs on the sidebar to begin using the bot</p>
+    <!-- Hidden form container that will display the form for creating a new timer -->
+    <div id="timer-creation-form-container" class="mt-5 hidden"></div>
+
+    <!-- Search bar for filtering timers by channel name or ID -->
+    <div class="pt-3">
+        <input type="text" id="search-bar" class="border rounded p-2 w-full" placeholder="Search timers by channel name or ID">
     </div>
-{% else %}
-    <div class="flex flex-wrap pt-5">
-        <div class="w-full lg:w-2/3 pr-0 lg:pr-6 mb-4 lg:mb-0">
-            <div class="p-5 bg-white shadow-md rounded-lg">
-                <p class="text-blue-600 text-lg font-semibold mb-4">Auto Ad</p>
-                
-                <form method="post" novalidate class="space-y-4">
-                    {% csrf_token %}
-                    <div class="flex flex-col">
-                        {{ data_form.channel_id.label_tag }}
-                        {{ data_form.channel_id }}
-                    </div>
-                    <div class="flex flex-col">
-                        {{ data_form.token.label_tag }}
-                        {{ data_form.token }}
-                    </div>
-                    <button type="submit" name="start_autoad" class="btn btn-primary p-2 bg-blue-500 rounded-lg">Start Auto Ad</button>
-                </form>
 
-                {% if data_form.errors %}
-                    <div class="mt-4 text-red-600">
-                        <ul class="list-disc pl-5">
-                        {% for field in data_form %}
-                            {% if field.errors %}
-                                <li>{{ field.label }}: {{ field.errors|striptags }}</li>
-                            {% endif %}
-                        {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
+    <!-- Container to display all the timers -->
+    <div id="timer-container" class="mt-5">
+
+        <!-- Loops through all the channels and displays their details -->
+        <!-- data-* attributes are custom data attributes in HTML that store extra info on HTML elements, so that they can be used by javascript to get the stored data -->
+        {% for channel in channels %}
+        <div class="p-3 bg-white border rounded mt-2 timer-box relative" data-channel-id="{{ channel.channel_id }}" data-channel-name="{{ channel.channel_name }}">
+            <div class="timer-content">
+                <!-- Displaying channel information like name, ID, and time left -->
+                <p><strong>Channel Name:</strong> {{ channel.channel_name }}</p>
+                <p><strong>Channel ID:</strong> {{ channel.channel_id }}</p>
+
+                <!-- Data-* attributes used here too -->
+                <p><strong>Time Left:</strong> <span class="timer" data-hours="{{ channel.hours }}" data-minutes="{{ channel.minutes }}" data-seconds="{{ channel.seconds }}">
+
+                    <!-- Here the channel hours, minutes and seconds are retrieved. The "|default_if_none:00" means that if the value is NONE then instead of that just put "00" -->
+                    {{ channel.hours|default_if_none:"00" }}:{{ channel.minutes|default_if_none:"00" }}:{{ channel.seconds|default_if_none:"00" }}
+                </span></p>
+                
+                <!-- Delete button to remove a timer -->
+                <button type="button" class="delete-btn bg-red-500 text-white p-2 rounded mt-2">Delete</button>
             </div>
 
-            {% if slowmode_info %}
-                {% if slowmode_info|length > 0 %}
-                    <div class="mt-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for info in slowmode_info %}
-                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg shadow-md relative" data-channel-id="{{ info.channel_id }}">
-                                <p class="font-semibold text-blue-600">Bot Number: {{ info.box_number }}</p> 
-                                <p class="font-semibold text-blue-600">Channel ID: {{ info.channel_id }}</p>
-                                <p class="text-blue-600">Channel Name: {{ info.channel_name }}</p>
-                                <p class="text-blue-600">Server Name: {{ info.server_name }}</p>
-                                <p class="text-blue-600">Usernames: {{ info.usernames }}</p>
-                                <p class="text-blue-600">Slow Mode: {{ info.slowmode_duration }} seconds</p>
-                                
-                                <p class="text-blue-600">Universal Message: <span class="message" id="universal_message_{{ info.channel_id }}">{{ info.universal_message|truncatechars:100 }}</span></p>
-                                {% if info.universal_message|length > 100 %}
-                                    <button class="read-more" data-target="universal_message_{{ info.channel_id }}" onclick="toggleReadMore(this)">Read More</button>
-                                {% endif %}
-
-                                <p class="text-blue-600">Custom Message: <span class="message" id="custom_message_{{ info.channel_id }}">{{ info.custom_message|truncatechars:100 }}</span></p>
-                                {% if info.custom_message|length > 100 %}
-                                    <button class="read-more" data-target="custom_message_{{ info.channel_id }}" onclick="toggleReadMore(this)">Read More</button>
-                                {% endif %}
-
-                                <form method="post" class="mt-4 space-y-2">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
-                                    {% if info.bot_running %}
-                                        <button type="submit" name="stop_bot" class="btn btn-warning p-2 bg-yellow-500 rounded-lg">Stop Bot</button>
-                                    {% else %}
-                                        <button type="submit" name="start_bot" class="btn btn-success p-2 bg-green-500 rounded-lg">Start Bot</button>
-                                    {% endif %}
-                                    <button type="button" onclick="removeBox(this)" class="btn btn-danger p-2 bg-red-500 rounded-lg">Delete Bot</button>
-                                </form>
-
-                                <form method="post" class="mt-4">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
-                                    <textarea name="custom_message" placeholder="Enter custom message..." class="w-full p-2 border border-gray-300 rounded-md" rows="3">{{ info.custom_message }}</textarea>
-                                    <button type="submit" name="set_custom_message" class="btn btn-primary mt-2 p-2 bg-blue-500 rounded-lg">Set Custom Message</button>
-                                </form>
-
-                                <form method="post" class="mt-4">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="channel_id" value="{{ info.channel_id }}">
-                                    <button type="submit" name="remove_custom_message" class="btn btn-secondary p-2 bg-gray-500 rounded-lg">Remove Custom Message</button>
-                                </form>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endif %}
-
-            {% if error_messages %}
-                <div class="mt-5 space-y-4">
-                    {% for message in error_messages %}
-                        <div class="p-4 bg-red-50 border border-red-200 rounded-lg shadow-md relative">
-                            <button class="absolute top-2 right-2 text-red-600" onclick="this.parentElement.remove();">x</button>
-                            <p class="text-red-600">{{ message }}</p>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        
-        <div class="w-full lg:w-1/3 pl-0 lg:pl-6">
-            <div class="p-5 bg-white shadow-md rounded-lg">
-                <p class="text-blue-600 text-lg font-semibold mb-4">Universal Message</p>
-                
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    <div class="flex flex-col mb-4">
-                        {{ universal_form.universal_message.label_tag }}
-                        {{ universal_form.universal_message }}
-                    </div>
-                    <button type="submit" name="confirm_universal" class="btn btn-primary p-2 bg-blue-500 rounded-lg">Confirm Universal Message</button>
-                    <button type="submit" name="clear_universal" class="btn btn-secondary p-2 bg-gray-500 rounded-lg">Clear Universal Message</button>
-                    <button type="submit" name="remove_universal" class="btn btn-danger p-2 bg-red-500 rounded-lg">Remove Universal Message</button>
-                </form>
-
-                {% if universal_form.errors %}
-                    <div class="mt-4 text-red-600">
-                        <ul class="list-disc pl-5">
-                        {% for field in universal_form %}
-                            {% if field.errors %}
-                                <li>{{ field.label }}: {{ field.errors|striptags }}</li>
-                            {% endif %}
-                        {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
+            <!-- Confirm button -->
+            <div class="confirm-overlay absolute inset-0 flex items-center justify-center bg-white z-10" onclick=>
+                <button class="confirm-btn bg-blue-500 text-white p-2 rounded-lg">Click this button once you have posted the ad! (Confirm) ({{ channel.channel_name }} | {{ channel.channel_id }})</button>
             </div>
+
         </div>
+        {% endfor %}
+
     </div>
-{% endif %}
+
+</div>
+
+
+
+
+
+
+
+
+
+
 
 <script>
-function removeBox(button) {
-    const box = button.closest('div[data-channel-id]');
-    const channelId = box.getAttribute('data-channel-id');
-    
-    fetch('{% url "remove_box" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({ channel_id: channelId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            box.remove();
-        } else {
-            alert('Failed to remove the Bot: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while removing the box.');
-    });
-}
 
-function toggleReadMore(button) {
-    const targetId = button.getAttribute('data-target');
-    const messageSpan = document.getElementById(targetId);
-    
-    if (button.textContent === "Read More") {
-        messageSpan.textContent = messageSpan.getAttribute('data-full-text');
-        button.textContent = "Read Less";
-    } else {
-        messageSpan.textContent = messageSpan.getAttribute('data-short-text');
-        button.textContent = "Read More";
+// CamelCase was used to name everything!
+
+// Event Listener for the search bar. 
+
+// formatTime() --> A helper function used to format the time into HH:MM:SS format. 
+ 
+// deleteTimer() --> A function used to delete the timer on the UI, and on the backend (database).
+
+// startCountdown() --> A function used to start the countdown timer (refresh every second) and does tasks after the countdown finishes. 
+
+// displayTimer() --> A function used to display the timer box, with all info and ticking UI on the frontend. 
+
+// createTimer() --> It creates the form UI to get all the information, sends info to the backend too. 
+
+// Event Listener for add timer button.
+// Event Listener for confirm ad button. 
+// Event Listener for delete timer button.
+// Event Listener for confirm ad button (when user refreshes the page / leaves and comes back). 
+
+
+
+    // Search bar logic to filter through all the displayed timers by channel name or ID
+    // First it gets the search bar element and adds a listner for any input.
+    document.getElementById('search-bar').addEventListener('input', function() {
+        // It convert input to lowercase first so that the search is case-insensitive for the user
+        const searchText = this.value.toLowerCase();  
+
+        // '.timer-box' means all elements with the class timer-box
+        // Now it will loop over each of the timer boxes to check if any match the search query
+        document.querySelectorAll('.timer-box').forEach(function(timerBox) {
+
+            // We will first get the channel name and ID from each of the box, then convert 
+            // them to lowercase for consistent case-insensitive comparision.  
+            const channelName = timerBox.getAttribute('data-channel-name').toLowerCase();
+            const channelId = timerBox.getAttribute('data-channel-id').toLowerCase();
+
+            // Here first we check if the search text is found in either the channel name 
+            // or the channel ID using the 'includes()' method. If it matches then the 
+            // timer box is displayed using "timerBox.style.display = '"
+            if (channelName.includes(searchText) || channelId.includes(searchText)) {
+                timerBox.style.display = '';  
+            } else {
+                // If there wasn't a match, then the box is hidden!
+                timerBox.style.display = 'none';  
+            }
+        });
+    });
+
+
+
+    // Helper function to format time into HH:MM:SS format
+    function formatTime(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
-}
 
-document.addEventListener('DOMContentLoaded', () => {
-    const messages = document.querySelectorAll('.message');
 
-    messages.forEach(message => {
-        const fullText = message.textContent;
-        const shortText = fullText.slice(0, 100) + (fullText.length > 100 ? '...' : '');
 
-        message.setAttribute('data-full-text', fullText);
-        message.setAttribute('data-short-text', shortText);
+    // Function to handle deletion of timers
+    function deleteTimer(timerId, timerDisplay) {
+        // First it makes a POST request to the server to delete the timer using the timerId
+        // Deleting it from the database will be handled by views.py 
+        // This just deletes the timer on the frontend. 
+        fetch('/auto-ad/delete-channel/', {
+            // Out of many HTTP request methods, here we use POST, meaning to send data 
+            method: 'POST',
+            // The header is the object which contains metadata about the request, it is required as the server
+            // expects it. 
+            headers: {
+                // The Content-Type is required as the server expects the data in that format. 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                // The X-CSRFToken is used to make sure that the request is coming from an authenticated user, 
+                // and it protects against malicious actions from unauthorized sources.
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            // The body is the data that we will send to the server. 
+            // The server needs to know which exact timer to delete. 
+            body: new URLSearchParams({
+                'channel_id': timerId
+            })
+        })
+        // Using .then() again as explained before it only runs when the previous function runs succesfully. 
+        // It converts the response to json first. 
+        .then(response => response.json())
+        // After that is successful it then checks if the data from the response was successful
+        // (Just a reminder that .then will run if the previous run was successful, not that the response was successful or fail, it will 
+        // run even if the response was not successful).
+        // if it was it removes, and if it wasnt then it gives an error. 
+        .then(data => {
+            if (data.success) {
+                timerDisplay.remove();  // Remove the timer from the UI
+            } else {
+                // Console.error sends an error to the terminal 
+                // Alert makes a dialogue box and gives the error and the message in data. 
+                console.error('Error deleting timer:', data.message);
+                alert('Failed to delete timer: ' + data.message);
+            }
+        })
+        // The .catch() function is used to handle any network or request related errors. 
+        // This makes sure that if there was any issue of the request itself, we can catch it. 
+        // Without using it, any network-related erros would go unhandled. 
+        .catch(error => console.error('Request failed:', error));
+    }
 
-        if (fullText.length > 100) {
-            message.textContent = shortText;
+    // This is a function used to start the countdown timer for a given timer element. 
+    // It takes 3 parameters, the timer element which is the element that displays the countdown, 
+    // the total seconds which is the number of seconds the timer will count down from, 
+    // and the timer display which is the entire timer box element, this is asked so that it can
+    // later change parts of the timer. 
+    function startCountdown(timerElement, totalSeconds, timerDisplay) {
+
+        // This starts a new interval which executes a function every 1000 milliseconds. 
+        // setInterval is used to repeatedly execute a function at set time interval (1 second for this)
+        // We need to update the countdown every second. 
+        const interval = setInterval(function() {
+
+            // First we check if the timer isnt already at 0. 
+            // This is because if the timer has finished, it should do other actions such as sending the email
+            // and showing the confirmation overlay. 
+            if (totalSeconds <= 0) {
+
+                // If it is already at 0, it first stops the interval so that the coundown 
+                // doesnt go to negative. 
+                clearInterval(interval);
+
+                // The timerElement should be now set to 00:00:00 to show the time has finished 
+                timerElement.innerText = '00:00:00';
+                
+                // Here it first gets the confirmation overlay, puts it into a variable, 
+                // then it removes "hidden" from class, to show it now that the timer has finished. 
+                const confirmOverlay = timerDisplay.querySelector('.confirm-overlay');
+                confirmOverlay.classList.remove('hidden');
+
+                // Here it saves the channel name and the id, to then use it for the email 
+                const channelName = timerDisplay.getAttribute('data-channel-name');
+                const channelId = timerDisplay.getAttribute('data-channel-id');
+
+                // Here it sends a "POST" request to the server saying the timer has expired 
+                // In the body it places the channel name and the channel id, so that views.py 
+                // can get the data then process and send the email. 
+                fetch('/send-timer-expiry-email/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}', 
+                    },
+                    body: new URLSearchParams({
+                        'channel_name': channelName,
+                        'channel_id': channelId
+                    })
+                })
+
+                // After the email has been send it gets the reponse given back by the server 
+                // It converts the response to json. 
+                .then(response => response.json())
+                // After convertion there is a if statement which first checks if the data says that the response
+                // was successful or not. 
+                .then(data => {
+                    if (data.success) {
+                        // If it was successful it says the email was successfully sent in the console. 
+                        console.log('Timer expiry email sent successfully!');
+                    } else {
+                        // If not it says there was an error and shows the message. 
+                        console.error('Failed to send email:', data.message);
+                    }
+                })
+                // Any errors that occur during the request are caught here and logged to the console.
+                .catch(error => console.error('Request failed:', error));
+                return;
+            }
+
+            // But if the timer has not reached 0 yet, it decrements the totalSeconds by 1 to reduce the time remaining. 
+            totalSeconds--;
+
+            // Important: Math.floor rounds down. | The calculations happen every second 
+            // First it calculates the time remaining in hours by dividing it by 3600 (seconds in a hour)
+            const hours = Math.floor(totalSeconds / 3600);
+
+            // Then it calculates the time remaining in minutes by first getting the remainder of totalSeconds / 3600, 
+            // then using that remainder to divide it by 60, getting the final minues remaining. 
+            // Getting the remainder first by dividing by 3600 gives out all the hours minused,
+            // then we can use that value to divide it by 60 to give us all the minutes minues. 
+            // An example: if the total seconds is 4500
+            // 4500 % 3600 = 900 (remainder)
+            // 900 / 60 = 15 
+            // Total minues = 15 minutes
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            // Same here, it gets the remaining seconds by dividing totalSeconds by 60, and then getting the final
+            // remainder, which would be the seconds. 
+            // Example: 
+            // 4500 % 60 = 0
+            // 0 seconds
+            const seconds = totalSeconds % 60;
+            // So in the end, if the total seconds is 4500, the time would be: 01:15:00 (Hours, minutes, seconds)
+
+            // Here it now changes the time and updates the text every second 
+            // ${} is a way to put variables in strings 
+            // String() changes the variable (hours, minutes, seconds) from integer to string 
+            // padStart() is used to add zeros to the left of the string if needed, so it always displays two digits. 
+            // padStart(2 , 0) --> There are 2 digits and put the 0 to the left 
+            // String(hours).padStart(2 , 0) --> 03 hours  (assuming hours is = 3)
+            // If String(hours).padStart(3 , 0) --> 003 hours (assuming hours is = 3)
+            // So if the hour, minutes, or seconds are single digits, padStart will put a 0 to the left of the string. 
+            timerElement.innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        }, 
+        // 1000 milliseconds == 1 second 
+        // Interval should run every second 
+        1000);
+    }
+
+
+
+    // This is a function made to display a new created timer on the page. 
+    // The function requires timer name, id and the total seconds to display all info.
+    function displayTimer(timerName, timerId, totalSeconds) {
+
+        // First it creates a new 'div' element to hold the timers information. 
+        const timerDisplay = document.createElement('div');
+
+        // Here it then adds the class name to the div, it uses tailwind and a name too ('timer-box')
+        timerDisplay.className = 'p-3 bg-white border rounded mt-2 timer-box relative';
+
+        // Here we give an attribute to the Timer id and the Timer Name
+        // It has 2 arguments, the attribute name and the attribute value
+        // The data-* attribute is a a data attribute, which is used in HTML to store additional data, 
+        // so that it can be accesed later using Javascript. Unlike class and id, data-* attribute are 
+        // only informational, and don't affect the CSS or web page behaviour. They just add extra data
+        // that can be accessed later. 
+        // The reason they are being used is to identify the unique timer boxes and then delete and add that
+        // specific box. 
+        timerDisplay.setAttribute('data-channel-id', timerId);
+        timerDisplay.setAttribute('data-channel-name', timerName);
+
+        // timerDisplay.innerHTML means putting html code inside of the element. Here it puts HTMl to 
+        // display the timer name, ID, and remaining time. 
+        // The formatTime finally converts the seconds to a human readable code: HH:MM:SS (Hours, minutes, seconds). It calls 
+        // the formatTime function defined.
+        // ${} is the way to insert variables inside the elements!
+        timerDisplay.innerHTML = `
+            <div class="timer-content">
+                <p><strong>Channel Name:</strong> ${timerName}</p>
+                <p><strong>Channel ID:</strong> ${timerId}</p>
+                <p><strong>Time Left:</strong> <span class="timer">${formatTime(totalSeconds)}</span></p>
+                <button type="button" class="delete-btn bg-red-500 text-white p-2 rounded mt-2">Delete</button>
+            </div>
+
+            <!-- Confirm button -->
+            <div class="confirm-overlay absolute inset-0 flex items-center justify-center bg-white z-10">
+                <button class="confirm-btn bg-blue-500 text-white p-2 rounded-lg">Click this button once you have posted the ad! (Confirm) (${timerName} | ${timerId})</button>
+            </div>
+        `;
+
+        // After the element for the timer box has been created, now is the time to show it 
+        // by adding the timer to the timer container. It gets the timer container element,
+        // and then appends the timerDisplay. 
+        document.getElementById('timer-container').appendChild(timerDisplay);
+
+        // Here querySelector() is used to get the "FIRST" Newly created div. 
+        // We cannot use anything else such as get element by id, or class because 
+        // we want the first, newly created timer box, and using get element by id
+        // is not appropriate when having multiple timers. 
+        // Which is why, to put a confirmation message on the newly created timer box
+        // we need to use querySelector(). 
+        const confirmOverlay = timerDisplay.querySelector('.confirm-overlay');
+        const confirmBtn = timerDisplay.querySelector('.confirm-btn');
+        const timerContent = timerDisplay.querySelector('.timer-content');
+
+        // After getting the first, newly created timer box, we remove "hidden" in its class
+        // to show the confirmation message first. This is done so that the user can confirm
+        // that they have posted the ad, and they can now start the timer. 
+        confirmOverlay.classList.remove('hidden');
+
+        // Here we add a EventListener which will remove the confirmation message and start
+        // the timer countdown once the confirmation button has been clicked. 
+        // startCountdown is a function will will be called. timerDisplay.querySelector() is used
+        // again to get the timer of the "FIRST" "NEW" timer box.
+        // Adds an event listener for the confirm button.
+        confirmBtn.addEventListener('click', function () {
+            // Hide the confirmation overlay after the user confirms.
+            confirmOverlay.classList.add('hidden');
+
+            // Send a POST request to confirm the ad has been posted.
+            fetch(`/confirm-timer/${timerId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams({
+                    'channel_id': timerId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Ad confirmation for channel ${timerId} was successful!`);
+                } else {
+                    console.error(`Failed to confirm ad: ${data.message}`);
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error confirming ad:', error);
+            });
+
+            // Start the countdown after confirming the ad.
+            startCountdown(timerDisplay.querySelector('.timer'), totalSeconds, timerDisplay);
+        });
+
+        // Adding delete functionality to the delete button
+        // It calls the deleteTimer function. 
+        timerDisplay.querySelector('.delete-btn').addEventListener('click', function() {
+            deleteTimer(timerId, timerDisplay);
+        });
+    }
+
+
+
+    // This is a function which creates a new timer and send the data to the server
+    // It is responsible for validating the data, handling it, sending it to the server, and then displaying the timer 
+    // if the server-side creation is successful. 
+    function createTimer(timerForm, timerFormContainer) {
+
+        // First we extract and access the data from the form fields, using querySelector()
+        const timerName = timerForm.querySelector('#timer-name').value;
+        const timerId = timerForm.querySelector('#timer-id').value;
+
+        // We convert the time into Integers using parseInt and the 10 is the second argument of 
+        // parseInt (the radix), it tells it that the string being passed in a base-10, or else
+        // parseInt would have to guess it. 
+        const hours = parseInt(timerForm.querySelector('#hours').value, 10);
+        const minutes = parseInt(timerForm.querySelector('#minutes').value, 10);
+        const seconds = parseInt(timerForm.querySelector('#seconds').value, 10);
+
+        // Here it is searching the DOM (Basically the entire web page) for existing timer with the same ID
+        // and its putting that into existingTimer
+        const existingTimer = document.querySelector(`[data-channel-id="${timerId}"]`);
+
+        // To easily put errors, here it accesses the error message element. 
+        const errorMessage = document.getElementById('error-message');
+
+        // Not it checks that if a timer with the same ID already exists, it shows an
+        // error message saying that the Channel Id already exists. It removes the hidden
+        // property to make the error message visable. 
+        if (existingTimer) {
+            errorMessage.textContent = 'Channel ID already exists! Please use a unique ID.';
+            errorMessage.classList.remove('hidden');
+            return;
         }
+
+        // Here if there was an error before, this makes sure that the error has been hidden, 
+        // as now there is no duplicate ID issue. 
+        errorMessage.classList.add('hidden'); 
+
+        // This if statememnt is made to make sure that the necessary form fields are filled out. 
+        if (timerName && (hours || minutes || seconds)) {
+
+            // Here it does a HTTP 'POST' request using the "fetch()" method to the URL endpoint using the form data. 
+            fetch('/auto-ad/save-channel/', {
+                method: 'POST',
+                // The content type is the data encoding type for security purposes. 
+                // The X-CSRFToken is set to the Django CSRF token for security purposes.
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}', 
+                },
+                // This converts the form data into URL-encoded string, passing the channle name, id, hours, minutes and seconds. 
+                body: new URLSearchParams({
+                    'channel_name': timerName,
+                    'channel_id': timerId,
+                    'hours': hours,
+                    'minutes': minutes,
+                    'seconds': seconds
+                })
+            })
+
+            // .then in javascript means that if the previous POST response was successfully recieved, it will "then" run the next piece of code.
+            // .then will still run if the response was successful or faliure. 
+            // So first it converts the response into JSON so that we can easily access all the data. 
+            .then(response => response.json())
+            // Now if the previous action was succcessful, it continues: 
+            // Here it gets the data retuned by 'response.json()'
+            // The => is an arrow function, using it means that it takes the data gotten and then makes allows us to work with 
+            // it inside the curley brackets. 
+            .then(data => {
+                // We first make sure that the server responded with a success message. 
+                if (data.success) {
+                    // First it calculates the total seconds using the hours, minutes and seconds 
+                    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                    // Then it runs a function defined below to display the timer. 
+                    displayTimer(timerName, timerId, totalSeconds);
+
+                    // After the timer is creater, the box, the fiels to write all the info to make a new timer
+                    // gets reseted, so that its blank now. 
+                    timerForm.querySelector('#timer-name').value = '';
+                    timerForm.querySelector('#timer-id').value = '';
+                    timerForm.querySelector('#hours').value = '0';
+                    timerForm.querySelector('#minutes').value = '0';
+                    timerForm.querySelector('#seconds').value = '0';
+
+                    // The container where we write the fields also gets hidden. 
+                    timerFormContainer.classList.add('hidden');
+                }
+            });
+        }
+    }
+
+
+
+    // First an Event listener is created for the 'Add Timer' button to show the form for creating a new timer
+    // First the add-timer-btn is accessed and a event listener is attached. 
+    // A click event listener is attached to know when the user clicks the button. 
+    document.getElementById('add-timer-btn').addEventListener('click', function() {
+
+        // First we start off by accessing the container that holds the timer creation form
+        // using its ID. The container is hidden at the moment.
+        const timerFormContainer = document.getElementById('timer-creation-form-container');
+
+        // If the form container does not contain hidden, then add it, if it does then continue.
+        if (!timerFormContainer.classList.contains('hidden')) {
+            timerFormContainer.classList.add('hidden');
+            return;
+        }
+
+        // Here we display the form's HTML code into the container if its hidden. The form
+        // contains fields for channel name, ID, error messages, dropdowns. 
+        // We can't put the HTML code and then just switch off hidden, as some Javascript is needed. 
+        // The for attribute in the labels tag links the label to a form element, it is used to allow users
+        // to click on the label and have it focus on the corresponding input/select element. 
+        // To check it, you can click on a label, and it highlights the input/select element. 
+        // Its good to let people know what each label corresponds to and vice versa. (assessability)
+        // Array.from({length:24}) creates an array from a iterable object, and in this case it generates an
+        // array with a specific number of elements. Then the "length: N" creates an array with that many elements. 
+        // so length: 24 will be for 24 hours and 24 elements.
+        // After that (_, i) is a callback function (a callback function is a function which is passed as an argument to the 
+        // Array.from() function, and it is executed when an event or condition occurs. )
+        // It takes 2 arguments, (element, index). We don't care about the element, meaning we don't need the value, we
+        // only need to index (position) of the number. "_" is placed in the element argument as it a common 
+        // way convention used for unused parameters (a placeholder). We need to index, so a i is placed. It gives the 
+        // current index in the array, for hours it would be from 0 to 23. 
+        // After that an arrow function is used. This makes the function small, and in a line. So in summary, the 
+        // a 24 long array is first created, then each of the array's index is defined as "i" an then, each "i" creates 
+        // an <option> from 0 to 23 (Not 24 because then you can do 24 hours + 59 minutes + 59 seconds, which is not proper time
+        // in the real world, the limit is 23 hours 59 minutes and 59 seconds, in total 24 hours, not 25 ) and then each option
+        // is added to the dropdown. (<option value="0">0</option>, <option value="1">1</option>, etc...). 
+        // And then the final .join('') function combines the array of genererated option tags into a single HTML string. 
+        // And that string can be inserted into the <select> dropdown. 
+        // An alrernative option would be to just manually write "<option value="0">0</option>, <option value="1">1</option>, etc..."
+        // But that would just make the code very long, complicated and not good for readability. And if another programmer were to 
+        // edit the file, it would be easy to read and change. 
+        timerFormContainer.innerHTML = 
+        `   <div class="bg-gray-100 p-5 rounded mt-3">
+
+                <form id="timer-form">
+
+                    <!-- Input fields for channel name and ID -->
+                    <label for="timer-name">Channel Name:</label>
+                    <input type="text" id="timer-name" class="border rounded p-2 mb-2 block" placeholder="Enter channel name" required>
+                    
+                    <label for="timer-id">Channel ID:</label>
+                    <input type="text" id="timer-id" class="border rounded p-2 mb-2 block" placeholder="Enter channel ID" required>
+
+                    <!-- Error message placeholder (hidden initially) -->
+                    <div id="error-message" class="text-red-500 mt-2 mb-2 hidden"></div>
+
+                    <!-- Dropdowns for selecting hours, minutes, and seconds -->
+                    <div class="flex gap-2">
+                        <div>
+                            <label for="hours">Hours</label>
+                            <select id="hours" class="border rounded p-2">
+                                ${Array.from({length: 24}, (_, i) => `<option value="${i}">${i}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="minutes">Minutes</label>
+                            <select id="minutes" class="border rounded p-2">
+                                ${Array.from({length: 60}, (_, i) => `<option value="${i}">${i}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="seconds">Seconds</label>
+                            <select id="seconds" class="border rounded p-2">
+                                ${Array.from({length: 60}, (_, i) => `<option value="${i}">${i}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Button to submit the form and create a timer -->
+                    <button type="button" id="create-timer-btn" class="btn btn-primary mt-2 p-2 bg-blue-500 rounded-lg text-white">Add</button>
+            
+                </form>
+            
+            </div>
+        `;
+
+        // Now that the form has been put into the container, we need to remove the 'hiddden' to
+        // make the form visible to the user, so that can they fill it out.
+        timerFormContainer.classList.remove('hidden');
+
+        // For the create button, we add a event lister to it. So that when the user clicks 
+        // it, it will call the createTimer function, which will pass the form and form 
+        // container as arguments to process the form and create the timer boxes. 
+        // And some error handling has been added. 
+        document.getElementById('create-timer-btn').addEventListener('click', function () {
+            const timerName = document.getElementById('timer-name').value;
+            const timerId = document.getElementById('timer-id').value;
+            const errorMessage = document.getElementById('error-message');
+        
+            if (timerName === "") {
+                errorMessage.textContent = "Channel Name cannot be empty.";
+                errorMessage.classList.remove('hidden');
+            } 
+            else if (timerId === "") {
+                errorMessage.textContent = "Channel ID cannot be empty.";
+                errorMessage.classList.remove('hidden');
+            } else {
+                errorMessage.classList.add('hidden');
+                createTimer(document.getElementById('timer-form'), timerFormContainer);
+            }
+        });        
+    }); 
+
+
+
+    // Add an event listener for all confirm buttons
+    document.querySelectorAll('.confirm-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            // Get the parent overlay of the button and hide it
+            const overlay = this.closest('.confirm-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+
+            // Get the channel ID from the parent timer-box using data attribute
+            const timerBox = this.closest('.timer-box');
+            const channelId = timerBox.getAttribute('data-channel-id');
+
+            // Send a POST request to the server to confirm the ad has been posted
+            fetch(`/confirm-timer/${channelId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams({
+                    'channel_id': channelId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`Ad confirmation for channel ${channelId} was successful!`);
+                } else {
+                    console.error(`Failed to confirm ad: ${data.message}`);
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error confirming ad:', error);
+            });
+        });
     });
-});
+
+
+    // This function adds the delete functionality to all delete buttons for pre-rendered timers
+    // The document.querySelectorAll returns all the elements with the same class ('.delete-btn')
+    // Then forEach() loops through each item (element) and adds a event listener (click) each delete button. 
+    document.querySelectorAll('.delete-btn').forEach(function(deleteBtn) {
+        deleteBtn.addEventListener('click', function() {
+
+            // Here this refers to the current delete button after clicked 
+            // this.closest means, getting the parent of the delete button with the class ('timer-box')
+            const timerBox = this.closest('.timer-box');
+            // And in that box, get the channel id of the timer box. 
+            const channelId = timerBox.getAttribute('data-channel-id');
+            // Call the delete function and delete the channel. 
+            deleteTimer(channelId, timerBox);
+        });
+    });
+
+
+    
+    // Here we start countdowns for all the pre-rendered timers
+    // It selects all the elements with the class 'timer'
+    document.querySelectorAll('.timer').forEach(function(timerElement) {
+
+        // The parseInt() function is used to convert the string into an integer 
+        // The 10 is the radix (base) of the number, here it is 10 it tells that the string
+        // should be interpreted as a decimal number (base-10)
+        // The timerBox.getAttribute gets the value of the element. 
+        const hours = parseInt(timerElement.getAttribute('data-hours'), 10);
+        const minutes = parseInt(timerElement.getAttribute('data-minutes'), 10);
+        const seconds = parseInt(timerElement.getAttribute('data-seconds'), 10);
+
+        // Now it calculates the totalSeconds and calls the startCountdown function. 
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        startCountdown(timerElement, totalSeconds);
+    });
+
 </script>
 
 {% endblock content %}
+<!-- End of the content block -->

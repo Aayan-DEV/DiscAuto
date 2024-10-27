@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "tailwindcss": "^3.4.7"
   },
   "dependencies": {
@@ -8,6 +9,7 @@
     "postcss-cli": "^11.0.0"
   },
   "scripts": {
-    "build:css": "postcss static/css/input.css -o static/css/output.css"
+    "build:css": "postcss static/css/input.css -o static/css/output.css",
+    "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
   }
 }

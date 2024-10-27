@@ -8,7 +8,7 @@ import os
 
 # Load environment variables from .env file if it exists
 if not os.getenv('RAILWAY_ENVIRONMENT'):
-    load_dotenv()
+    load_dotenv(override=True)
 
 # Define the base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,6 +51,8 @@ if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DJANGO_DEBUG", cast=bool)
 BASE_URL = config("BASE_URL", default=None)
@@ -83,12 +85,11 @@ INSTALLED_APPS = [
     'subscriptions',
     'customers',
     'autoad',
-    'autodm',
     'products',
-    "ticketbot",
     'colddm',
-    'tickets',
     'auths',
+    'autosell',
+    'dashboard',
     # third-party-apps
     "allauth_ui",
     'allauth',
@@ -223,13 +224,21 @@ STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
 # Define where collected static files will be stored
 STATIC_ROOT = BASE_DIR / 'local-cdn'
 
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Storage configuration using WhiteNoise and Compressor
+
 STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'LOCATION': MEDIA_ROOT,  # The location where media files will be stored
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
-
 # Compressor settings
 COMPRESS_ROOT = STATIC_ROOT
 COMPRESS_OUTPUT_DIR = 'CACHE'
@@ -281,5 +290,3 @@ LOGGING = {
         },
     },
 }
-
-

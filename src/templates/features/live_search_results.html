@@ -1,0 +1,29 @@
+<!-- live_search_results.html -->
+<ul class="space-y-2">
+    {% for category in categories %}
+        <li class="category-item bg-purple-500 rounded-md p-4 text-center">
+            {% if category.category_image %}
+                <img src="{{ category.category_image.url }}" alt="{{ category.name }}" class="h-24 w-full object-cover rounded-md mb-2">
+            {% else %}
+                <div class="category-image h-24 w-full rounded-md mb-2 bg-purple-400"></div>
+            {% endif %}
+            <p class="text-sm font-bold">{{ category.name }}</p>
+        </li>
+    {% endfor %}
+
+    {% for product in unlimited_products %}
+        <li class="product-item bg-purple-500 rounded-md p-4 text-center">
+            {% if product.product_image %}
+                <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="h-24 w-full object-cover rounded-md mb-2">
+            {% else %}
+                <div class="product-image h-24 w-full rounded-md mb-2 bg-purple-400"></div>
+            {% endif %}
+            <p class="text-sm">{{ product.title }}</p>
+            <p class="text-sm font-semibold">{{ product.price }} {{ product.currency }}</p>
+        </li>
+    {% endfor %}
+
+    {% if not categories and not unlimited_products %}
+        <li class="text-sm text-gray-400">No results found.</li>
+    {% endif %}
+</ul>
