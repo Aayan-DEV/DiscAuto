@@ -44,6 +44,21 @@ EMAIL_USE_SSL = env("EMAIL_USE_SSL", cast=bool, default=False)
 ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
 
+# Stripe configuration
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+
+# CoinPayments configuration
+COINPAYMENTS_PUBLIC_KEY = os.getenv("COINPAYMENTS_PUBLIC_KEY")
+COINPAYMENTS_PRIVATE_KEY = os.getenv("COINPAYMENTS_PRIVATE_KEY")
+COINPAYMENTS_MERCHANT_ID = os.getenv("COINPAYMENTS_MERCHANT_ID")
+
+# Pushover notification configuration
+PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN")
+
+# Exchange Rate API key
+EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
+
 MANAGERS = []
 ADMINS = []
 if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
