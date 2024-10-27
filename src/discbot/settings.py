@@ -51,7 +51,7 @@ if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
-STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+# STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DJANGO_DEBUG", cast=bool)
