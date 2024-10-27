@@ -2,9 +2,13 @@
 import supabase
 from django.conf import settings
 import uuid
+import os
+
+SUPABASE_URL = os.getenv("SUPABASE_URL") 
+SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY") 
 
 # Initialize the Supabase client
-supabase_client = supabase.create_client(settings.SUPABASE_URL, settings.SUPABASE_API_KEY)
+supabase_client = supabase.create_client(SUPABASE_URL, SUPABASE_API_KEY)
 
 def upload_to_supabase(file, folder='images'):
     """
