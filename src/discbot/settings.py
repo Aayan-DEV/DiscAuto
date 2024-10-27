@@ -1,68 +1,53 @@
 from pathlib import Path
 from decouple import config, Csv
-from dotenv import load_dotenv
 import dj_database_url
 import environ
 from cryptography.fernet import Fernet
 import os
-from dotenv import load_dotenv
 
-# Define the path to the root directory (where .env is located)
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-# Load the .env file explicitly
-load_dotenv(dotenv_path=BASE_DIR / '.env')
-
-# Load environment variables from .env file if it exists
-if not os.getenv('RAILWAY_ENVIRONMENT'):
-    load_dotenv(override=True)
-
-# Define the base directory
+# Define the base and root directories
 BASE_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BASE_DIR.parent
+
+# Initialize environment variables
+env = environ.Env()
+
+# Load environment variables from `.env` if not on Railway
+if not os.getenv('RAILWAY_ENVIRONMENT'):
+    env.read_env(os.path.join(ROOT_DIR, '.env'))
+
+# Define paths and ensure directories are in the system path
 SRC_DIR = BASE_DIR / 'src'
 if str(SRC_DIR) not in os.sys.path:
     os.sys.path.insert(0, str(SRC_DIR))
 
-# Initialise environment variables
-env = environ.Env()
-
-# Define the root directory
-ROOT_DIR = BASE_DIR.parent
-
-# Read .env file if not in Railway environment
-if not os.getenv('RAILWAY_ENVIRONMENT'):
-    env.read_env(os.path.join(ROOT_DIR, '.env'))
-
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = env("EMAIL_HOST", cast=str, default="smtp.gmail.com")
-EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587) 
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", cast=str, default=None)
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", cast=str, default=None)
-EMAIL_USE_TLS = env("EMAIL_USE_TLS", cast=bool, default=True)  
-EMAIL_USE_SSL = env("EMAIL_USE_SSL", cast=bool, default=False)  
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587) 
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
 
 # Stripe configuration
-STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY")
 
 # CoinPayments configuration
-COINPAYMENTS_PUBLIC_KEY = os.getenv("COINPAYMENTS_PUBLIC_KEY")
-COINPAYMENTS_PRIVATE_KEY = os.getenv("COINPAYMENTS_PRIVATE_KEY")
-COINPAYMENTS_MERCHANT_ID = os.getenv("COINPAYMENTS_MERCHANT_ID")
+COINPAYMENTS_PUBLIC_KEY = env("COINPAYMENTS_PUBLIC_KEY")
+COINPAYMENTS_PRIVATE_KEY = env("COINPAYMENTS_PRIVATE_KEY")
+COINPAYMENTS_MERCHANT_ID = env("COINPAYMENTS_MERCHANT_ID")
 
 # Pushover notification configuration
-PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN")
-
-# Exchange Rate API key
-EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
+PUSHOVER_API_TOKEN = env("PUSHOVER_API_TOKEN")
 
 # Supabase Keys
-SUPABASE_URL = os.getenv("SUPABASE_URL") 
-SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY") 
-SUPABASE_BUCKET = "autosellbucket"  
+SUPABASE_URL = env("SUPABASE_URL")
+SUPABASE_API_KEY = env("SUPABASE_API_KEY")
+SUPABASE_BUCKET = "autosellbucket"
 
 MANAGERS = []
 ADMINS = []
