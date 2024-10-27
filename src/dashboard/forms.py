@@ -29,24 +29,28 @@ class PayoutRequestForm(forms.ModelForm):
         super(PayoutRequestForm, self).__init__(*args, **kwargs)
 
         if user:
-            user_profile = user.userprofile
-            available_methods = [
-                ('paypal_email', 'PayPal') if user_profile.paypal_email else None,
-                ('revolut_tag', 'Revolut') if user_profile.revolut_tag else None,
-                ('btc_wallet', 'Bitcoin') if user_profile.btc_wallet else None,
-                ('ltc_wallet', 'Litecoin') if user_profile.ltc_wallet else None,
-                ('sol_wallet', 'Solana') if user_profile.sol_wallet else None,
-                ('eth_wallet', 'Ethereum') if user_profile.eth_wallet else None,
-                ('usdt_bep20_wallet', 'USDT BEP20') if user_profile.usdt_bep20_wallet else None,
-                ('usdt_erc20_wallet', 'USDT ERC20') if user_profile.usdt_erc20_wallet else None,
-                ('usdt_prc20_wallet', 'USDT PRC20') if user_profile.usdt_prc20_wallet else None,
-                ('usdt_sol_wallet', 'USDT SOL') if user_profile.usdt_sol_wallet else None,
-                ('usdt_trc20_wallet', 'USDT TRC20') if user_profile.usdt_trc20_wallet else None,
-            ]
-            self.fields['payment_method'].choices = [method for method in available_methods if method]
+            # Safely get user profile, or set it to None if it doesn't exist
+            user_profile = getattr(user, 'userprofile', None)
+            if user_profile:
+                available_methods = [
+                    ('paypal_email', 'PayPal') if user_profile.paypal_email else None,
+                    ('revolut_tag', 'Revolut') if user_profile.revolut_tag else None,
+                    ('btc_wallet', 'Bitcoin') if user_profile.btc_wallet else None,
+                    ('ltc_wallet', 'Litecoin') if user_profile.ltc_wallet else None,
+                    ('sol_wallet', 'Solana') if user_profile.sol_wallet else None,
+                    ('eth_wallet', 'Ethereum') if user_profile.eth_wallet else None,
+                    ('usdt_bep20_wallet', 'USDT BEP20') if user_profile.usdt_bep20_wallet else None,
+                    ('usdt_erc20_wallet', 'USDT ERC20') if user_profile.usdt_erc20_wallet else None,
+                    ('usdt_prc20_wallet', 'USDT PRC20') if user_profile.usdt_prc20_wallet else None,
+                    ('usdt_sol_wallet', 'USDT SOL') if user_profile.usdt_sol_wallet else None,
+                    ('usdt_trc20_wallet', 'USDT TRC20') if user_profile.usdt_trc20_wallet else None,
+                ]
+                # Filter out None values
+                self.fields['payment_method'].choices = [method for method in available_methods if method]
 
-        # Remove the hardcoded minimum on the widget level
+        # Set minimum value on the amount field widget
         self.fields['amount'].widget.attrs.update({'min': '0'})
+
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')

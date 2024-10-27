@@ -9,6 +9,7 @@ from colddm.models import ColdDM, UserColdDMStats
 from autosell.models import AutoSellView  # Import AutoSellView for tracking views
 from django.db.models.functions import TruncDay
 import os
+from django.core.exceptions import ObjectDoesNotExist
 import requests
 from decimal import Decimal
 from .forms import PayoutRequestForm
@@ -141,6 +142,8 @@ def get_total_sales_by_currency(user):
 
 def format_decimal(value):
     """Remove trailing zeros from a Decimal and convert to string."""
+    # Ensure the value is a Decimal, even if an int or float is passed
+    value = Decimal(value)
     return value.quantize(Decimal(1)) if value == value.to_integral() else value.normalize()
 
 @login_required 
@@ -154,24 +157,46 @@ def dashboard_view(request):
     exchange_rates = get_exchange_rates()
 
     # Fetch `UserIncome` for the current user
-    user_income = UserIncome.objects.get(user=request.user)
+    try:
+        user_income = UserIncome.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        user_income = None 
 
-    # Prepare formatted income values
-    formatted_income = {
-        'usd_total': format_decimal(user_income.usd_total),
-        'gbp_total': format_decimal(user_income.gbp_total),
-        'eur_total': format_decimal(user_income.eur_total),
-        'btc_total': format_decimal(user_income.btc_total),
-        'ltc_total': format_decimal(user_income.ltc_total),
-        'sol_total': format_decimal(user_income.sol_total),
-        'eth_total': format_decimal(user_income.eth_total),
-        'usdt_bep20_total': format_decimal(user_income.usdt_bep20_total),
-        'usdt_erc20_total': format_decimal(user_income.usdt_erc20_total),
-        'usdt_prc20_total': format_decimal(user_income.usdt_prc20_total),
-        'usdt_trc20_total': format_decimal(user_income.usdt_trc20_total),
-        'usdt_sol_total': format_decimal(user_income.usdt_sol_total),
-        'ltct_total': format_decimal(user_income.ltct_total)
-    }
+    # Ensure user_income is not None, otherwise set defaults
+    if user_income:
+        formatted_income = {
+            'usd_total': format_decimal(user_income.usd_total),
+            'gbp_total': format_decimal(user_income.gbp_total),
+            'eur_total': format_decimal(user_income.eur_total),
+            'btc_total': format_decimal(user_income.btc_total),
+            'ltc_total': format_decimal(user_income.ltc_total),
+            'sol_total': format_decimal(user_income.sol_total),
+            'eth_total': format_decimal(user_income.eth_total),
+            'usdt_bep20_total': format_decimal(user_income.usdt_bep20_total),
+            'usdt_erc20_total': format_decimal(user_income.usdt_erc20_total),
+            'usdt_prc20_total': format_decimal(user_income.usdt_prc20_total),
+            'usdt_trc20_total': format_decimal(user_income.usdt_trc20_total),
+            'usdt_sol_total': format_decimal(user_income.usdt_sol_total),
+            'ltct_total': format_decimal(user_income.ltct_total)
+        }
+    else:
+        # Set default values if `user_income` is not found
+        formatted_income = {
+            'usd_total': format_decimal(0),
+            'gbp_total': format_decimal(0),
+            'eur_total': format_decimal(0),
+            'btc_total': format_decimal(0),
+            'ltc_total': format_decimal(0),
+            'sol_total': format_decimal(0),
+            'eth_total': format_decimal(0),
+            'usdt_bep20_total': format_decimal(0),
+            'usdt_erc20_total': format_decimal(0),
+            'usdt_prc20_total': format_decimal(0),
+            'usdt_trc20_total': format_decimal(0),
+            'usdt_sol_total': format_decimal(0),
+            'ltct_total': format_decimal(0)
+        }
+
 
     # Get recent sales for display
     recent_sales = ProductSale.objects.filter(user=request.user).select_related('user', 'product', 'unlimited_product').order_by('-created_at')
