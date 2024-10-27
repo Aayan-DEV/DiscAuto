@@ -31,7 +31,7 @@
 <body class="bg-white text-black">
     <!-- Banner -->
     <div class="banner mb-6">
-        <img src="{{ user_data.banner.url }}" alt="Banner" class="w-full h-40 lg:h-[320px] object-contain rounded">
+        <img src="{{ user_data.banner }}" alt="Banner" class="w-full h-40 lg:h-[320px] object-contain rounded">
     </div>
 
     <div class="landing-page pr-6 pl-6">
@@ -39,7 +39,7 @@
             <!-- Profile Section -->
             <div class="profile-section text-center mb-8">
                 <div class="w-32 h-32 mx-auto rounded-full bg-black flex items-center justify-center">
-                    <img src="{{ user_data.profile_picture.url }}" alt="{{ user_data.name }}" class="w-28 h-28 rounded-full object-cover">
+                    <img src="{{ user_data.profile_picture }}" alt="{{ user_data.name }}" class="w-28 h-28 rounded-full object-cover">
                 </div>
                 <h1 class="text-xl font-bold mt-4">@{{ user_data.name }}</h1>
                 <h2 class="text-sm font-medium">{{ user_data.title }}</h2>
@@ -102,7 +102,7 @@
                         {% for product in unlimited_products %}
                             <a href="{% url 'unlimited_product_detail' product.id %}">
                                 <div class="product-item bg-white rounded-md p-4 text-center">
-                                    <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="h-50 w-50 object-cover rounded-md mb-2">
+                                    <img src="{{ product.product_image_url  }}" alt="{{ product.title }}" class="h-50 w-50 object-cover rounded-md mb-2">
                                     <p class="text-xl product-title text-black line-clamp-2">{{ product.title }}</p>
                                     <div class="flex gap-x-2 justify-center items-baseline"> 
                                         <p class="text-2xl font-semibold pb-1 pt-1 text-black">{% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}</p> 
@@ -128,32 +128,32 @@
     <script>
 
         function incrementViewCount() {
-            setTimeout(function() {
-                // Make an AJAX request to the backend view that increments the view count
-                fetch("{% url 'increment_view_count' user_data.custom_link %}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for POST request
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ custom_link: "{{ user_data.custom_link }}" })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log("View count incremented.");
-                    } else {
-                        console.log("Failed to increment view count:", data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
-            }, 500); // Delay of 500 milliseconds
-        }
-    
-        // Call the function to increment the view count when the page loads
-        window.onload = incrementViewCount;
+        setTimeout(function() {
+            // Make an AJAX request to the backend view that increments the view count
+            fetch("{% url 'increment_view_count' user_data.custom_link %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for POST request
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ custom_link: "{{ user_data.custom_link }}" })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log("View count incremented.");
+                } else {
+                    console.log("Failed to increment view count:", data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }, 500); // Delay of 500 milliseconds
+    }
+
+    // Call the function to increment the view count when the page loads
+    window.onload = incrementViewCount;
 
         function filterProducts() {
             let input = document.getElementById('searchInput').value.toLowerCase();

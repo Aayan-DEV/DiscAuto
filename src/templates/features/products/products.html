@@ -34,7 +34,7 @@
                 <div class="bg-gray-800 p-4 rounded-lg shadow-md product-item flex-grow flex flex-col">
                     <div class="flex-grow">
                         <h3 class="text-lg font-bold text-white truncate">{{ category.name }}</h3>
-                        {% if category.category_image %}
+                        {% if category.category_image.url %}
                             <img src="{{ category.category_image.url }}" alt="{{ category.name }}" class="w-full object-cover rounded-md mt-4" style="aspect-ratio: 1140 / 869;">
                         {% else %}
                             <p class="text-gray-400">No image available</p>
@@ -64,8 +64,8 @@
             {% for product in unlimited_products %}
             <div class="bg-gray-800 p-4 rounded-lg shadow-md product-item flex-grow flex flex-col">
                 <div class="flex-grow">
-                    {% if product.product_image %}
-                        <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="product-image w-full object-cover rounded-md mt-4" style="aspect-ratio: 1140 / 869;">
+                    {% if product.product_image_url %}
+                        <img src="{{ product.product_image_url }}" alt="{{ product.title }}" class="product-image w-full object-cover rounded-md mt-4" style="aspect-ratio: 1140 / 869;">
                     {% else %}
                         <p class="text-gray-400">No image available</p>
                     {% endif %}

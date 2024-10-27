@@ -59,6 +59,11 @@ PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN")
 # Exchange Rate API key
 EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
 
+# Supabase Keys
+SUPABASE_URL = env("SUPABASE_URL") 
+SUPABASE_API_KEY = env("SUPABASE_API_KEY") 
+SUPABASE_BUCKET = "autosellbucket"  
+
 MANAGERS = []
 ADMINS = []
 if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
@@ -240,7 +245,7 @@ STATIC_URL = '/local-cdn/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Custom static files for the app
 ]
-
+ 
 STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
 
 # Define where collected static files will be stored

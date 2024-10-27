@@ -9,64 +9,47 @@ from products.models import ProductSale
 from django.http import JsonResponse, Http404
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from helpers.supabase import upload_to_supabase
 
 # Login required as usual. 
 @login_required
 def auto_sell_view(request):
-    """
-    The filter() gets all the records from the database that match the filter condition,
-    so in this case, its user = request.user, meaning get the autosell instantce for the 
-    logged in user. And the .first() method will return the first record from the database 
-    that matches the conditions.
-    """
     auto_sell = AutoSell.objects.filter(user=request.user).first()
 
     if request.method == 'POST':
-        # Passes the POST data gotten into the form, and binds it to the auto_sell instance. 
         form = AutoSellForm(request.POST, request.FILES, instance=auto_sell)
         if form.is_valid():
-            # If form is valid, we save it with commit == False as this returns 
-            # an instance of the model, but it's not saved to the database yet.
-            # This is used because then we want to add the current user to that
-            # instance before saving it.
             auto_sell = form.save(commit=False)
 
-            # Make sure that the custom link is unique: 
-            if AutoSell.objects.filter(custom_link=auto_sell.custom_link).exclude(id=auto_sell.id).exists():
-                messages.error(request, 'The custom link is already in use. Please choose another one.')
-            else:
-                # If the custom link is unique, we save the form instance to the database.
-                # First we assign the current user as the owner of this AutoSell instance, then save the changes.
-                auto_sell.user = request.user
-                auto_sell.save()
-                messages.success(request, 'Your Landing page has been successfully created!')
-                # To combat with the problem of re-submitting when hitting refresh, using
-                # redirect is helpful, it just stays on the same page after saving changes, 
-                # but it also makes it so that you dont re-submit when you refresh. 
-                return redirect('auto_sell')  
-        # Error handling: 
+            # Upload banner and profile picture if provided
+            if 'banner' in request.FILES:
+                banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
+                auto_sell.banner = banner_url
+                print(f"Banner URL: {banner_url}")  # Debug URL
+
+            if 'profile_picture' in request.FILES:
+                profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
+                auto_sell.profile_picture = profile_url
+                print(f"Profile Picture URL: {profile_url}")  # Debug URL
+
+            # Save changes and redirect
+            auto_sell.user = request.user
+            auto_sell.save()
+            messages.success(request, 'Your Landing page has been successfully created!')
+            return redirect('auto_sell')  
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
-        # If the request method is not POST, we initialize the form with the auto_sell instance.
-        # Used when editing the exiting data! 
         form = AutoSellForm(instance=auto_sell)
 
-    # Generate the full URL for the custom link (if auto_sell exists)
     custom_link_url = None
     if auto_sell:
         custom_link_url = request.build_absolute_uri('/') + auto_sell.custom_link
 
-    success_message = None
-    channels = AutoSell.objects.filter(user=request.user)
-    
-    # As explain before, this is how to render on the templatate, and all the 
-    # necessary data is passed to the template, which can be later used in the template. 
     return render(request, 'features/auto-sell/auto-sell.html', {
         'form': form,
         'auto_sell': auto_sell, 
-        'custom_link_url': custom_link_url, 
-        'channels': channels  # Pass filtered channels to the template
+        'custom_link_url': custom_link_url
     })
 
 def custom_landing_page(request, custom_link):

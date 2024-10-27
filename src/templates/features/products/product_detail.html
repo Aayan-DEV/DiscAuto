@@ -15,8 +15,8 @@
     <div class="max-w-lg mx-auto p-6">
         <!-- Product Image -->
         <div class="product-image mb-6">
-            {% if product.product_image %}
-                <img src="{{ product.product_image.url }}" alt="{{ product.title }}" class="w-full h-60 object-cover rounded-md">
+            {% if product.product_image_url %}
+                <img src="{{ product.product_image_url }}" alt="{{ product.title }}" class="w-full h-60 object-cover rounded-md">
             {% else %}
                 <div class="bg-purple-500 h-60 w-full rounded-md"></div>
             {% endif %}

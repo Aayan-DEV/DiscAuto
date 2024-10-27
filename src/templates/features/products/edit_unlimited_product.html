@@ -119,8 +119,8 @@
                     <label class="block text-sm font-medium text-gray-700">{{ form.product_image.label_tag }}</label>
                     <div class="mt-1 flex items-center">
                         <span class="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
-                            {% if form.product_image.value %}
-                                <img src="{{ form.product_image.value.url }}" alt="{{ form.title.value }}" class="h-full w-full object-cover">
+                            {% if form.instance.product_image %}
+                                <img src="{{ form.instance.product_image }}" alt="{{ form.title.value }}" class="h-full w-full object-cover">
                             {% else %}
                                 <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M24 0H0v24h24V0z" fill="none"/>

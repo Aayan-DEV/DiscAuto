@@ -4,6 +4,7 @@ from .models import OneTimeProductCategory, OneTimeProduct, UnlimitedProduct, Pr
 from .forms import OneTimeProductCategoryForm, OneTimeProductForm, UnlimitedProductForm
 from django.http import JsonResponse
 from django.urls import reverse
+from helpers.supabase import upload_to_supabase
 import stripe
 from django.views.decorators.csrf import csrf_exempt
 from django.core.mail import send_mail
@@ -390,6 +391,12 @@ def add_category(request):
         if form.is_valid():
             category = form.save(commit=False)
             category.user = request.user
+            
+            # Upload category image to Supabase if it exists
+            if 'category_image' in request.FILES:
+                category_image_url = upload_to_supabase(request.FILES['category_image'], folder='categories')
+                category.category_image_url = category_image_url  # Save URL to a URLField or CharField
+            
             category.save()
             return redirect('products')
     else:
@@ -411,7 +418,6 @@ def add_product_to_category(request, category_id):
         if form.is_valid():
             one_time_product = form.save(commit=False)
             one_time_product.category = category
-            one_time_product.save()
 
             # Create the product in Stripe
             try:
@@ -488,7 +494,6 @@ def edit_one_time_product(request, pk):
                     print(f"Stripe error: {e}")
                     return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
 
-            updated_product.save()
             return redirect('category_detail', category_id=one_time_product.category.id)
     else:
         form = OneTimeProductForm(instance=one_time_product)
@@ -503,6 +508,10 @@ def edit_unlimited_product(request, pk):
         form = UnlimitedProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             updated_product = form.save(commit=False)
+
+            if 'product_image' in request.FILES:
+                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
+                updated_product.product_image_url = product_image_url  # Save the Supabase URL to a URLField
 
             if product.stripe_product_id:
                 try:
@@ -615,6 +624,11 @@ def add_unlimited_product(request):
         if form.is_valid():
             unlimited_product = form.save(commit=False)
             unlimited_product.user = request.user
+            if 'product_image' in request.FILES:
+                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
+                unlimited_product.product_image_url = product_image_url  # Assuming `product_image_url` is a URL field
+
+
             unlimited_product.save()
 
             # Create the product in Stripe

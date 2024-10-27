@@ -18,6 +18,8 @@ class OneTimeProductCategory(models.Model):
     name = models.CharField(max_length=255)
     show_on_custom_lander = models.BooleanField(default=True)  
     category_image = models.ImageField(upload_to='category_images/', null=True, blank=True) 
+    category_image_url = models.URLField(max_length=500, null=True, blank=True)
+
 
     def __str__(self):
         return f'{self.name} - {self.user.username}'
@@ -80,6 +82,7 @@ class UnlimitedProduct(models.Model):
     link = models.URLField()
     description = models.TextField(blank=True, default='')
     product_image = models.ImageField(upload_to='products/', null=True, blank=True)
+    product_image_url = models.URLField(max_length=500, blank=True, null=True)
     stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
     show_on_custom_lander = models.BooleanField(default=False)
