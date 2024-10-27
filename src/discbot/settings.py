@@ -5,6 +5,13 @@ import dj_database_url
 import environ
 from cryptography.fernet import Fernet
 import os
+from dotenv import load_dotenv
+
+# Define the path to the root directory (where .env is located)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Load the .env file explicitly
+load_dotenv(dotenv_path=BASE_DIR / '.env')
 
 # Load environment variables from .env file if it exists
 if not os.getenv('RAILWAY_ENVIRONMENT'):
