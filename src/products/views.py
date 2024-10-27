@@ -35,8 +35,8 @@ stripe.api_key = STRIPE_SECRET_KEY
 
 # Initialize CoinPaymentsAPI using keys from environment
 coinpayments_client = CoinPayments(
-    public_key=os.getenv('COINPAYMENTS_PUBLIC_KEY'),
-    private_key=os.getenv('COINPAYMENTS_PRIVATE_KEY')
+    public_key=COINPAYMENTS_PUBLIC_KEY,
+    private_key=COINPAYMENTS_PRIVATE_KEY
 )
 
         
