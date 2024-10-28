@@ -46,18 +46,17 @@ class OneTimeProduct(models.Model):
     def normalize_price(self, value):
         """Normalize Decimal fields to remove trailing zeros."""
         if value is not None:
-            return value.normalize()  # Removes trailing zeros
+            return value.normalize() 
         return value
 
     def save(self, *args, **kwargs):
-        # Normalize the prices to remove extra zeros
         self.ltc_price = self.normalize_price(self.ltc_price)
         self.btc_price = self.normalize_price(self.btc_price)
         self.eth_price = self.normalize_price(self.eth_price)
         self.usdt_price = self.normalize_price(self.usdt_price)
         self.test_price = self.normalize_price(self.test_price)
 
-        super().save(*args, **kwargs)  # Call the real save() method
+        super().save(*args, **kwargs) 
 
     def __str__(self):
         return f'{self.title} - {self.category.name} - {self.category.user.username}'
@@ -91,18 +90,17 @@ class UnlimitedProduct(models.Model):
     def normalize_price(self, value):
         """Normalize Decimal fields to remove trailing zeros."""
         if value is not None:
-            return value.normalize()  # Removes trailing zeros
+            return value.normalize() 
         return value
 
     def save(self, *args, **kwargs):
-        # Normalize the prices to remove extra zeros
         self.ltc_price = self.normalize_price(self.ltc_price)
         self.btc_price = self.normalize_price(self.btc_price)
         self.eth_price = self.normalize_price(self.eth_price)
         self.usdt_price = self.normalize_price(self.usdt_price)
         self.test_price = self.normalize_price(self.test_price)
 
-        super().save(*args, **kwargs)  # Call the real save() method
+        super().save(*args, **kwargs) 
         
     def __str__(self):
         return f'{self.title} - {self.user.username}'

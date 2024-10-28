@@ -346,7 +346,6 @@
         </div>
     </div>
 
-    <!-- Stripe Checkout -->
     <script type="text/javascript">
         var stripe = Stripe('{{ STRIPE_PUBLISHABLE_KEY }}');
 
@@ -390,69 +389,54 @@
 
         let selectedCrypto = null;
 
-        // Get the pay-now section element
         const cryptoSelect = document.getElementById("crypto-select");
 
-        // Show crypto options when "Buy with Crypto" is clicked
         document.getElementById("crypto-button").addEventListener("click", function () {
             const cryptoSelect = document.getElementById("crypto-select");
         
             if (cryptoSelect.style.display === "none" || cryptoSelect.style.maxHeight === "0px") {
-                // Slide down effect
                 cryptoSelect.style.display = "block";
                 cryptoSelect.style.maxHeight = cryptoSelect.scrollHeight + "px"; 
         
-                // Delay the smooth scroll a bit to synchronize with the sliding
                 setTimeout(() => {
                     window.scrollTo({
                         top: cryptoSelect.offsetTop,
                         behavior: "smooth"
                     });
-                }, 200); // Adjust the delay if needed for better synchronization
+                }, 200); 
         
             } else {
-                // Slide up effect
                 cryptoSelect.style.maxHeight = "0";
                 setTimeout(() => {
                     cryptoSelect.style.display = "none"; 
-                }, 500); // Adjust to match the CSS transition duration
+                }, 500);
             }
         });
         
-
-        // Handle cryptocurrency selection and show checkmark on selected option
         document.querySelectorAll('.crypto-item').forEach(item => {
             item.addEventListener('click', function () {
-            // Remove checkmark from all options
             document.querySelectorAll('.checkmark').forEach(checkmark => {
                 checkmark.classList.add('hidden');
             });
 
-            // Add checkmark to the selected item
             this.querySelector('.checkmark').classList.remove('hidden');
 
-            // Store the selected crypto
             selectedCrypto = this.getAttribute('data-crypto');
             });
         });
 
-        // Handle cryptocurrency selection and pay now click for each crypto item
         document.querySelectorAll('.crypto-item').forEach(item => {
             item.addEventListener('click', function () {
-                // Remove checkmark from all options
                 document.querySelectorAll('.checkmark').forEach(checkmark => {
                     checkmark.classList.add('hidden');
                 });
 
-                // Add checkmark to the selected item
                 this.querySelector('.checkmark').classList.remove('hidden');
 
-                // Store the selected crypto
                 selectedCrypto = this.getAttribute('data-crypto');
 
-                // Proceed with crypto payment logic
-                const name = document.getElementById("name").value;  // Get user's name
-                const email = document.getElementById("email").value;  // Get user's email
+                const name = document.getElementById("name").value;
+                const email = document.getElementById("email").value;  
 
                 if (!name || !email) {
                     alert("Please provide both name and email.");
@@ -464,7 +448,6 @@
                     return;
                 }
 
-                // Fetch request to create a crypto transaction
                 fetch("{% url 'create_crypto_transaction' product.id 'unlimited' %}", { 
                     method: "POST",
                     headers: {
@@ -474,13 +457,13 @@
                     body: JSON.stringify({
                         name: name,
                         email: email,
-                        crypto_choice: selectedCrypto  // Send selected crypto
+                        crypto_choice: selectedCrypto  
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.checkout_url) {
-                        window.location.href = data.checkout_url;  // Redirect to CoinPayments checkout
+                        window.location.href = data.checkout_url;  
                     } else {
                         alert("Error: Could not retrieve checkout URL.");
                     }

@@ -29,7 +29,6 @@ class PayoutRequestForm(forms.ModelForm):
         super(PayoutRequestForm, self).__init__(*args, **kwargs)
 
         if user:
-            # Safely get user profile, or set it to None if it doesn't exist
             user_profile = getattr(user, 'userprofile', None)
             if user_profile:
                 available_methods = [
@@ -45,10 +44,8 @@ class PayoutRequestForm(forms.ModelForm):
                     ('usdt_sol_wallet', 'USDT SOL') if user_profile.usdt_sol_wallet else None,
                     ('usdt_trc20_wallet', 'USDT TRC20') if user_profile.usdt_trc20_wallet else None,
                 ]
-                # Filter out None values
                 self.fields['payment_method'].choices = [method for method in available_methods if method]
 
-        # Set minimum value on the amount field widget
         self.fields['amount'].widget.attrs.update({'min': '0'})
 
 
@@ -56,11 +53,9 @@ class PayoutRequestForm(forms.ModelForm):
         amount = self.cleaned_data.get('amount')
         currency = self.cleaned_data.get('currency')
         
-        # If the currency is not set, skip the validation (it will be caught by other field-level checks)
         if not currency:
             return amount
         
-        # Define the different minimums for each currency
         minimums = {
             'USD': 5,
             'GBP': 4,
@@ -76,10 +71,8 @@ class PayoutRequestForm(forms.ModelForm):
             'USDT.TRC20': 1,
         }
 
-        # Get the minimum value for the selected currency, defaulting to 5 if not specified
         min_value = Decimal(minimums.get(currency, 5))
 
-        # Check if the amount meets the minimum for the selected currency
         if amount < min_value:
             raise forms.ValidationError(f"The minimum payout for {currency} is {min_value}.")
 

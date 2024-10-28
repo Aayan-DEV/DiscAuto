@@ -1,4 +1,3 @@
-# context_processors.py
 from subscriptions.models import UserSubscription
 
 def subscription_plan(request):

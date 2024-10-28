@@ -22,18 +22,15 @@ class OneTimeProductCategoryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Override the widget to remove the "Clear" checkbox
         self.fields['category_image'].widget.can_clear = False
 
     def save(self, commit=True):
-        # Override save to handle image upload to Supabase
         category = super().save(commit=False)
         
-        # If there is a category image, upload it to Supabase
         if self.cleaned_data.get('category_image'):
             category_image = self.cleaned_data['category_image']
             category_image_url = upload_to_supabase(category_image, folder='category_images')
-            category.category_image_url = category_image_url  # Use Supabase URL
+            category.category_image_url = category_image_url 
         
         if commit:
             category.save()
@@ -55,14 +52,12 @@ class UnlimitedProductForm(forms.ModelForm):
         }
 
     def save(self, commit=True):
-        # Override save to handle image upload to Supabase
         product = super().save(commit=False)
         
-        # If there is a product image, upload it to Supabase
         if self.cleaned_data.get('product_image'):
             product_image = self.cleaned_data['product_image']
             product_image_url = upload_to_supabase(product_image, folder='product_images')
-            product.product_image_url = product_image_url  # Use Supabase URL
+            product.product_image_url = product_image_url 
         
         if commit:
             product.save()

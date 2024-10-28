@@ -7,33 +7,25 @@ from cryptography.fernet import Fernet
 import os
 from dotenv import load_dotenv
 
-# Define the path to the root directory (where .env is located)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Load the .env file explicitly
 load_dotenv(dotenv_path=BASE_DIR / '.env')
 
-# Load environment variables from .env file if it exists
 if not os.getenv('RAILWAY_ENVIRONMENT'):
     load_dotenv(override=True)
 
-# Define the base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 SRC_DIR = BASE_DIR / 'src'
 if str(SRC_DIR) not in os.sys.path:
     os.sys.path.insert(0, str(SRC_DIR))
 
-# Initialise environment variables
 env = environ.Env()
 
-# Define the root directory
 ROOT_DIR = BASE_DIR.parent
 
-# Read .env file if not in Railway environment
 if not os.getenv('RAILWAY_ENVIRONMENT'):
     env.read_env(os.path.join(ROOT_DIR, '.env'))
 
-# Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env("EMAIL_HOST", cast=str, default="smtp.gmail.com")
 EMAIL_PORT = env("EMAIL_PORT", cast=int, default=587) 
@@ -44,22 +36,17 @@ EMAIL_USE_SSL = env("EMAIL_USE_SSL", cast=bool, default=False)
 ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
 
-# Stripe configuration
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 
-# CoinPayments configuration
 COINPAYMENTS_PUBLIC_KEY = os.getenv("COINPAYMENTS_PUBLIC_KEY")
 COINPAYMENTS_PRIVATE_KEY = os.getenv("COINPAYMENTS_PRIVATE_KEY")
 COINPAYMENTS_MERCHANT_ID = os.getenv("COINPAYMENTS_MERCHANT_ID")
 
-# Pushover notification configuration
 PUSHOVER_API_TOKEN = os.getenv("PUSHOVER_API_TOKEN")
 
-# Exchange Rate API key
 EXCHANGE_RATE_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
 
-# Supabase Keys
 SUPABASE_URL = os.getenv("SUPABASE_URL") 
 SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY") 
 SUPABASE_BUCKET = "autosellbucket"  
@@ -72,21 +59,13 @@ if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
     ]
     MANAGERS = ADMINS
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY")
-
-# STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DJANGO_DEBUG", cast=bool)
 BASE_URL = config("BASE_URL", default=None)
 ALLOWED_HOSTS = [
     'localhost', 
     '127.0.0.1', 
-    ".railway.app",  # https://discbot.railway.app
+    ".railway.app", 
     ".ngrok-free.app"
 ]
 
@@ -94,8 +73,6 @@ if DEBUG:
     ALLOWED_HOSTS += [
         'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app",
     ]
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -167,10 +144,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'discbot.wsgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
 DATABASE_URL = config("DATABASE_URL", default=None)
 
@@ -182,9 +155,6 @@ if DATABASE_URL is not None:
             conn_max_age=CONN_MAX_AGE,
         )
     }
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -201,7 +171,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Django Allauth Config
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
@@ -209,10 +178,8 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = "[DiscBot]"
 ACCOUNT_EMAIL_REQUIRED = True
 
 AUTHENTICATION_BACKENDS = [
-    # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
 
-    # `allauth` specific authentication methods, such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
@@ -225,9 +192,6 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -236,37 +200,29 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = '/local-cdn/'
 
-# Define the directories that contain static files to be collected
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Custom static files for the app
+    BASE_DIR / "static",  
 ]
  
 STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
 
-# Define where collected static files will be stored
 STATIC_ROOT = BASE_DIR / 'local-cdn'
 
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Storage configuration using WhiteNoise and Compressor
-
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
-        'LOCATION': MEDIA_ROOT,  # The location where media files will be stored
+        'LOCATION': MEDIA_ROOT,  
     },
     'staticfiles': {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
-# Compressor settings
 COMPRESS_ROOT = STATIC_ROOT
 COMPRESS_OUTPUT_DIR = 'CACHE'
 COMPRESS_ENABLED = True
@@ -283,7 +239,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://pet-genuinely-raccoon.ngrok-free.app',
 ]
 
-# Logging configuration
 log_directory = BASE_DIR / 'logs'
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)

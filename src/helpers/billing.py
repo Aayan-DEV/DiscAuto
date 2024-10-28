@@ -44,7 +44,7 @@ def create_product(name="", metadata={}, raw=False):
     return stripe_id
 
 def create_price(currency="usd",
-                 unit_amount=9999,  # Ensure this is an integer
+                 unit_amount=9999,  
                  interval="month",
                  product=None,
                  metadata={}, 
@@ -76,10 +76,8 @@ def update_price(stripe_id, currency="usd", unit_amount=9999, interval="month", 
     if product is None:
         raise ValueError("Product ID is required.")
     try:
-        # Delete the existing price
         delete_price(stripe_id)
 
-        # Create a new price with updated values
         new_price = stripe.Price.create(
             currency=currency,
             unit_amount=unit_amount,
@@ -96,7 +94,7 @@ def update_price(stripe_id, currency="usd", unit_amount=9999, interval="month", 
 
 def start_checkout_session(customer_id, 
         success_url="https://example.com/success", 
-        cancel_url="https://example.com/cancel",  # Set a default cancel_url
+        cancel_url="https://example.com/cancel", 
         price_stripe_id="", 
         raw=True):
     if not success_url.endswith("?session_id={CHECKOUT_SESSION_ID}"):
@@ -178,8 +176,6 @@ def get_checkout_customer_plan(session_id):
     sub_r = get_subscription(sub_stripe_id, raw=True)
     if not sub_r:
         return None
-    # current_period_start
-    # current_period_end
     sub_plan = sub_r.plan
     subscription_data = serialize_subscription_data(sub_r)
     data = {

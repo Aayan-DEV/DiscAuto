@@ -359,7 +359,6 @@
         });
     }
 
-    // Handle Stripe Checkout form submission
     const checkoutForm = document.getElementById("checkout-form");
     if (checkoutForm) {
         checkoutForm.addEventListener("submit", function (event) {
@@ -400,7 +399,6 @@
 
     let selectedCrypto = null;
 
-    // Toggle visibility of crypto options when "Buy with Crypto" is clicked
     const cryptoButton = document.getElementById("crypto-button");
     const cryptoSelect = document.getElementById("crypto-select");
     if (cryptoButton) {
@@ -424,35 +422,27 @@
         });
     }
 
-    // Handle cryptocurrency selection and show checkmark on selected option
     document.querySelectorAll('.crypto-item').forEach(item => {
         item.addEventListener('click', function () {
-        // Remove checkmark from all options
         document.querySelectorAll('.checkmark').forEach(checkmark => {
             checkmark.classList.add('hidden');
         });
 
-        // Add checkmark to the selected item
         this.querySelector('.checkmark').classList.remove('hidden');
 
-        // Store the selected crypto
         selectedCrypto = this.getAttribute('data-crypto');
         });
     });
 
-   // Handle cryptocurrency selection and payment
     document.querySelectorAll('.crypto-item').forEach(item => {
         item.addEventListener('click', function () {
-            // Deselect all checkmarks
             document.querySelectorAll('.checkmark').forEach(checkmark => {
                 checkmark.classList.add('hidden');
             });
 
-            // Select the clicked crypto option
             this.querySelector('.checkmark').classList.remove('hidden');
             selectedCrypto = this.getAttribute('data-crypto');
 
-            // Proceed with crypto payment logic
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
 
@@ -466,7 +456,6 @@
                 return;
             }
 
-            // Create a crypto transaction
             fetch("{% url 'create_crypto_transaction' first_product.id 'one_time' %}", {
                 method: "POST",
                 headers: {
@@ -498,8 +487,6 @@
         });
     });
 
-
-    // Back button logic
     const backButton = document.getElementById('back-button');
     if (backButton) {
         backButton.addEventListener('click', function () {

@@ -5,8 +5,8 @@ from django.utils import timezone
 # First we define a model named "AutoSell" that recieves data from Django's Model Class. 
 class AutoSell(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    banner = models.ImageField(upload_to='banners/', max_length=500)  # Increase max_length
-    profile_picture = models.ImageField(upload_to='profiles/', max_length=500)  # Increase max_length
+    banner = models.ImageField(upload_to='banners/', max_length=500)  
+    profile_picture = models.ImageField(upload_to='profiles/', max_length=500) 
     name = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     email = models.EmailField()

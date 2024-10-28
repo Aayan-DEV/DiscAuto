@@ -21,18 +21,16 @@ def auto_sell_view(request):
         if form.is_valid():
             auto_sell = form.save(commit=False)
 
-            # Upload banner and profile picture if provided
             if 'banner' in request.FILES:
                 banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
                 auto_sell.banner = banner_url
-                print(f"Banner URL: {banner_url}")  # Debug URL
+                print(f"Banner URL: {banner_url}") 
 
             if 'profile_picture' in request.FILES:
                 profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
                 auto_sell.profile_picture = profile_url
-                print(f"Profile Picture URL: {profile_url}")  # Debug URL
+                print(f"Profile Picture URL: {profile_url}") 
 
-            # Save changes and redirect
             auto_sell.user = request.user
             auto_sell.save()
             messages.success(request, 'Your Landing page has been successfully created!')

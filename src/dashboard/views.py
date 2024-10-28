@@ -74,7 +74,6 @@ def handle_unsupported_currency(sale, rates):
     sale.amount_in_usd = convert_to_usd(product_price, product_currency, rates)
 
 def get_sales_data_by_day(start_date, end_date, user, exchange_rates):
-    # Fetch sales within the date range, grouped by day
     sales = ProductSale.objects.filter(
         user=user,
         created_at__range=[start_date, end_date]
@@ -82,20 +81,15 @@ def get_sales_data_by_day(start_date, end_date, user, exchange_rates):
 
     daily_sales = {}
 
-    # Loop through each sale and process it
     for sale in sales:
         day_name = sale.day.strftime('%A')
 
-        # Initialize the sales amount for the day if not already set
         if day_name not in daily_sales:
             daily_sales[day_name] = 0
 
-        # Handle supported currencies
         if sale.currency in SUPPORTED_CURRENCIES:
-            # Add the sale amount directly (converted to USD)
             daily_sales[day_name] += convert_to_usd(float(sale.amount), sale.currency, exchange_rates)
         else:
-            # Handle unsupported currencies by using product price
             if sale.product:
                 product_price = sale.product.price
                 product_currency = sale.product.currency
@@ -106,19 +100,15 @@ def get_sales_data_by_day(start_date, end_date, user, exchange_rates):
                 print(f"Error: No product or unlimited product found for sale ID {sale.id}")
                 continue
 
-            # Convert the product price to USD and add it to the total sales for the day
             daily_sales[day_name] += convert_to_usd(float(product_price), product_currency, exchange_rates)
 
-    # Convert the dictionary to a sorted list to return it
     daily_sales_list = [{'day': day, 'total_sales': total_sales} for day, total_sales in daily_sales.items()]
-    daily_sales_list.sort(key=lambda x: x['day'])  # Sort by day for proper graphing
+    daily_sales_list.sort(key=lambda x: x['day']) 
     return daily_sales_list
 
 def get_total_sales_by_currency(user):
-    # Fetch total sales amounts grouped by currency directly from the ProductSale model
     sales_by_currency = ProductSale.objects.filter(user=user).values('currency').annotate(total_amount=Sum('amount'))
 
-    # Initialize a dictionary to store totals
     total_sales_by_currency = {
         "USD": 0,
         "GBP": 0,
@@ -131,7 +121,6 @@ def get_total_sales_by_currency(user):
 
     print(f"Total sales by currency: {total_sales_by_currency}")
 
-    # Populate the dictionary with actual values from the database
     for entry in sales_by_currency:
         currency = entry['currency']
         amount = entry['total_amount']
@@ -148,21 +137,17 @@ def format_decimal(value):
 
 @login_required 
 def dashboard_view(request):
-    # Get the current time in the user's timezone
     today = timezone.now()  
     start_of_week = today - timedelta(days=today.weekday())  
     end_of_week = today 
 
-    # Get live exchange rates
     exchange_rates = get_exchange_rates()
 
-    # Fetch `UserIncome` for the current user
     try:
         user_income = UserIncome.objects.get(user=request.user)
     except ObjectDoesNotExist:
         user_income = None 
 
-    # Ensure user_income is not None, otherwise set defaults
     if user_income:
         formatted_income = {
             'usd_total': format_decimal(user_income.usd_total),
@@ -180,7 +165,6 @@ def dashboard_view(request):
             'ltct_total': format_decimal(user_income.ltct_total)
         }
     else:
-        # Set default values if `user_income` is not found
         formatted_income = {
             'usd_total': format_decimal(0),
             'gbp_total': format_decimal(0),
@@ -220,21 +204,17 @@ def dashboard_view(request):
         view_date__range=[start_of_week, end_of_week]
     ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
 
-    # Prepare the labels (days of the week)
     days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
 
-    # Initialize data structures with 0 values for sales, ads, DMs, and views
     total_sales_per_day = {day: 0 for day in days}
     total_ads_per_day = {day: 0 for day in days}
     total_dms_per_day = {day: 0 for day in days}
     total_views_per_day = {day: 0 for day in days}
 
-    # Process sales data
     for data in sales_data_by_day:
         day_name = data['day']
         total_sales_per_day[day_name] += data['total_sales']
 
-    # Process ads, DMs, and views data
     for data in ads_data:
         day_name = data['day'].strftime('%A')
         total_ads_per_day[day_name] = data['total_ads']
@@ -247,25 +227,20 @@ def dashboard_view(request):
         day_name = data['day'].strftime('%A')
         total_views_per_day[day_name] = data['total_views']
 
-    # Handle payout request form
     if request.method == 'POST' and 'payout_form' in request.POST:
         payout_form = PayoutRequestForm(request.POST, user=request.user)
         if payout_form.is_valid():
             payout_request = payout_form.save(commit=False)
             payout_request.user = request.user
 
-            # Check if user has enough balance for the requested payout
             currency = payout_request.currency
             amount = Decimal(payout_request.amount)
 
-            # Convert currency format: replace periods with underscores
             currency_attribute = f"{currency.lower().replace('.', '_')}_total"
 
-            # Get the balance from UserIncome
             user_income_balance = getattr(user_income, currency_attribute, None)
 
             if user_income_balance is not None and amount <= user_income_balance:
-                # Deduct the requested amount from user's income
                 setattr(user_income, currency_attribute, user_income_balance - amount)
                 user_income.save()
 
@@ -279,7 +254,6 @@ def dashboard_view(request):
     else:
         payout_form = PayoutRequestForm(user=request.user)
 
-    # Pass data to template
     return render(request, 'dashboard/main.html', {
         'days': days,
         'total_sales': [float(total_sales_per_day[day]) for day in days],

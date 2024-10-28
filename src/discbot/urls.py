@@ -81,8 +81,6 @@ urlpatterns = [
     # path('get_timers/', autoad_views.get_timers, name='get_timers'),
     # path('get_timer/<str:channel_id>/', autoad_views.get_timer, name='get_timer'),  # For individual timer
     
-    
-
 
 ]
 

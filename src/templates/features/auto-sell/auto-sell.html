@@ -16,7 +16,6 @@
             </p>
         
         </div>
-        <!-- If auto_sell exists, display the generated link -->
         {% if auto_sell %}
         {% if custom_link_url %}
         <div class="mt-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-md">
@@ -116,17 +115,14 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // First it gets and stores the delete, confirm and cancel delete buttons!
         var deleteButton = document.getElementById('deleteButton');
         var confirmButton = document.getElementById('confirmButton');
         var cancelDelete = document.getElementById('cancelDelete');
-        // If the delete buttom is clicked, then the confirm button is unhidden. 
         if (deleteButton) {
             deleteButton.addEventListener('click', function() {
                 confirmButton.classList.remove('hidden');
             });
         }
-        // If the cancel button is clicked, the confirm deletion button is hidden. 
         if (cancelDelete) {
             cancelDelete.addEventListener('click', function() {
                 confirmButton.classList.add('hidden');
