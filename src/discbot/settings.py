@@ -67,12 +67,12 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     ".railway.app", 
     ".ngrok-free.app", 
-    "mystorel.ink"
+    ".mystorel.ink"
 ]
 
 if DEBUG:
     ALLOWED_HOSTS += [
-        'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app", "mystorel.ink"
+        'localhost', '127.0.0.1', ".ngrok-free.app", ".railway.app", ".mystorel.ink"
     ]
 
 INSTALLED_APPS = [
