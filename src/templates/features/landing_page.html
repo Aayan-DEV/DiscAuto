@@ -31,7 +31,7 @@
 <body class="bg-white text-black">
     <!-- Banner -->
     <div class="banner mb-6">
-        <img src="{{ user_data.banner }}" alt="Banner" class="w-full h-40 lg:h-[320px] object-contain rounded">
+        <img src="{{ user_data.banner }}" alt="Banner" class="w-full h-40 lg:h-[320px] object-cover rounded">
     </div>
 
     <div class="landing-page pr-6 pl-6">
@@ -43,15 +43,11 @@
                 </div>
                 <h1 class="text-xl font-bold mt-4">@{{ user_data.name }}</h1>
                 <h2 class="text-sm font-medium">{{ user_data.title }}</h2>
+                {% if user_data.email != None or ""%}
+                <h2 class="text-sm font-medium p-1">Emai: {{ user_data.email }}</h2>
+                {% endif %}
                 <div class="flex items-center space-x-4 justify-center pt-2">
                     <div class="flex items-center space-x-4">
-                        <!-- Email Icon and Link -->
-                        {% if user_data.email != None or ""%}
-                        <a href="mailto:{{ user_data.email }}" class="flex items-center space-x-2">
-                            <span class="material-icons">email</span>
-                            <h2 class="text-sm font-medium">{{ user_data.email }}</h2>
-                        </a>
-                        {% endif %}
                         {% if user_data.instagram_link != None or ""%}
                         <!-- Instagram Icon and Link -->
                         <a href="{{ user_data.instagram_link }}" target="_blank" class="flex items-center space-x-2">
