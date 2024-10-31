@@ -80,7 +80,7 @@
         .faq-question {
             background: transparent;
             border: none;
-            font-size: 2em;
+            font-size: 1.7em;
             font-family: 'Red Hat Display', sans-serif;
             color: #895FDB;
             text-align: left;
@@ -88,13 +88,15 @@
             cursor: pointer;
             padding: 10px 0;
             position: relative;
+            
+            padding-right: 10px;
         }
 
         .faq-question::after {
             content: '▼'; /* Default arrow */
             position: absolute;
-            right: 10px;
-            font-size: 1em;
+            right: -20px;
+            font-size: 0.8em;
             transition: transform 0.3s ease; /* Smooth transition for the rotation */
         }
 
@@ -153,6 +155,13 @@
             .curly-bracket {
                 display: none;
             }
+            .faq-question::after {
+                content: '▼'; /* Default arrow */
+                position: absolute;
+                right: -15px;
+                font-size: 0.8em;
+                transition: transform 0.3s ease; /* Smooth transition for the rotation */
+            }
         }
 
         /* Ensure no overflow on smaller screens */
@@ -184,21 +193,21 @@
 
         <div class="faq-right">
             <div class="faq-item">
-                <button class="faq-question">Question 1</button>
+                <button class="faq-question">What are the fees?</button>
                 <div class="faq-answer">
-                    <p>This is the answer to question #1.</p>
+                    <p>5% fee per sale for Free plan. 1% on Pro plan. 2.5% fee when requesting payout.</p>
                 </div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">Question 2</button>
+                <button class="faq-question">How many stores can i open for Free?</button>
                 <div class="faq-answer">
-                    <p>This is the answer to question #2.</p>
+                    <p>You can open upto 20 free stores, and unlimited stores on pro plan!</p>
                 </div>
             </div>
             <div class="faq-item">
-                <button class="faq-question">Question 3</button>
+                <button class="faq-question">How much can i customise my store?</button>
                 <div class="faq-answer">
-                    <p>This is the answer to question #3.</p>
+                    <p>Customization features have not been implemented! For now check an example at: <a href="mystorel.ink/premium-crafts" class="text-white underline font-bold"> here </a></p>
                 </div>
             </div>
         </div>

@@ -142,6 +142,27 @@
         padding-bottom: 0.5rem;
         font-family: "Poppins";
     }
+
+    @media (max-width: 768px) {
+
+      .pricing-card {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        width: 80vh;
+        max-width: 22rem;
+        margin: 0 auto;
+        text-align: center;
+        color: #1f2937; /* text-gray-900 */
+        background-color: #ffffff;
+        border-radius: 2rem; /* rounded-lg */
+        border: 4px solid #f3f4f6; /* border-gray-100 */
+        box-shadow: 16px -20px 0px rgba(119, 132, 190, 1);
+        margin-top: 50px
+      }
+    
+
+    }
 </style>
   
 <div class="pricing-card dark">
@@ -153,10 +174,10 @@
     <!-- List -->
     <ul role="list" class="features-list">
         {% for feature in object.display_features_list %}
-        <li class="flex items-center -space-x-2 space-y-2 text-2xl">
+        <li class="flex -space-x-2 space-y-2 text-2xl">
             <!-- Icon -->
             <img src="{%static "images/tick.png"%}" class="w-7 h-7"> </img>
-            <h1 class="feature-text">{{ feature }}</h1>
+            <h1 class="feature-text text-left pl-2">{{ feature }}</h1>
         </li>
         {% endfor %}
       
