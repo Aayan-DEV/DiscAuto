@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,6 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'icon/website-logo.png' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
 
@@ -222,27 +224,27 @@
                         {% if product.btc_price or product.eth_price or product.ltc_price or product.sol_price or product.usdt_price %}
                         <div class="text-center mt-4">
                             <button id="crypto-button" class="bg-yellow-400 border-gray-400 border hover:bg-yellow-500 text-white py-3 lg:py-5 rounded-full w-full mb-2 flex gap-5 justify-center">
-                                {% if product.ltc_price is not None and product.ltc_price != "" %}
-                                <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
+                                {% if product.ltc_price %}
+                                    <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
                                 {% endif %}
-
-                                {% if product.btc_price is not None and product.btc_price != "" %}
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
+                                {% if product.btc_price %}
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
                                 {% endif %}
-
-                                {% if product.eth_price is not None and product.eth_price != "" %}
-                                <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
+                                {% if product.eth_price %}
+                                    <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
                                 {% endif %}
-
-                                {% if product.sol_price is not None and product.sol_price != "" %}
-                                <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
+                                {% if product.sol_price %}
+                                    <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 {% endif %}
-
-                                {% if product.usdt_price is not None and product.usdt_price != "" %}
-                                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Tether" class="w-6 h-6 mr-2">
+                                {% if product.usdt_price %}
+                                    <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Tether" class="w-6 h-6 mr-2">
                                 {% endif %}
                             </button>
                         </div>
+                        {% else %}
+                            <script>
+                                console.log("Crypto button not rendered: No cryptocurrency prices are available.");
+                            </script>
                         {% endif %}
                     {% endif %}
                     <!-- Crypto Selection (Hidden initially) -->
@@ -347,135 +349,143 @@
     </div>
 
     <script type="text/javascript">
-        var stripe = Stripe('{{ STRIPE_PUBLISHABLE_KEY }}');
-
-        document.getElementById('checkout-button-down').addEventListener('click', function() {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-        });
-
-        document.getElementById("checkout-form").addEventListener("submit", function (event) {
-            event.preventDefault();  
-            const name = document.getElementById("name").value;
-            const email = document.getElementById("email").value;
-
-            fetch("{% url 'create_checkout_session' product.id %}", {
-                method: "POST",
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}', 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: "{{ product.id }}",
-                    name: name,
-                    email: email
-                })
-            })
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error("Failed to create session");
-                }
-                return response.json();
-            })
-            .then(function (session) {
-                return stripe.redirectToCheckout({ sessionId: session.id });
-            })
-            .catch(function (error) {
-                console.error("Error:", error);
-            });
-        });
-
-        let selectedCrypto = null;
-
-        const cryptoSelect = document.getElementById("crypto-select");
-
-        document.getElementById("crypto-button").addEventListener("click", function () {
-            const cryptoSelect = document.getElementById("crypto-select");
-        
-            if (cryptoSelect.style.display === "none" || cryptoSelect.style.maxHeight === "0px") {
-                cryptoSelect.style.display = "block";
-                cryptoSelect.style.maxHeight = cryptoSelect.scrollHeight + "px"; 
-        
-                setTimeout(() => {
+        window.onload = function() {
+            console.log("Page loaded, initializing elements");
+    
+            var stripe = Stripe('{{ STRIPE_PUBLISHABLE_KEY }}');
+            
+            const checkoutButtonDown = document.getElementById('checkout-button-down');
+            if (checkoutButtonDown) {
+                checkoutButtonDown.addEventListener('click', function() {
                     window.scrollTo({
-                        top: cryptoSelect.offsetTop,
-                        behavior: "smooth"
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
                     });
-                }, 200); 
-        
-            } else {
-                cryptoSelect.style.maxHeight = "0";
-                setTimeout(() => {
-                    cryptoSelect.style.display = "none"; 
-                }, 500);
-            }
-        });
-        
-        document.querySelectorAll('.crypto-item').forEach(item => {
-            item.addEventListener('click', function () {
-            document.querySelectorAll('.checkmark').forEach(checkmark => {
-                checkmark.classList.add('hidden');
-            });
-
-            this.querySelector('.checkmark').classList.remove('hidden');
-
-            selectedCrypto = this.getAttribute('data-crypto');
-            });
-        });
-
-        document.querySelectorAll('.crypto-item').forEach(item => {
-            item.addEventListener('click', function () {
-                document.querySelectorAll('.checkmark').forEach(checkmark => {
-                    checkmark.classList.add('hidden');
                 });
-
-                this.querySelector('.checkmark').classList.remove('hidden');
-
-                selectedCrypto = this.getAttribute('data-crypto');
-
-                const name = document.getElementById("name").value;
-                const email = document.getElementById("email").value;  
-
-                if (!name || !email) {
-                    alert("Please provide both name and email.");
-                    return;
-                }
-
-                if (!selectedCrypto) {
-                    alert("Please select a cryptocurrency.");
-                    return;
-                }
-
-                fetch("{% url 'create_crypto_transaction' product.id 'unlimited' %}", { 
-                    method: "POST",
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        crypto_choice: selectedCrypto  
+            } else {
+                console.warn("Element with ID 'checkout-button-down' not found");
+            }
+    
+            const checkoutForm = document.getElementById("checkout-form");
+            if (checkoutForm) {
+                checkoutForm.addEventListener("submit", function (event) {
+                    event.preventDefault();  
+                    const name = document.getElementById("name").value;
+                    const email = document.getElementById("email").value;
+    
+                    fetch("{% url 'create_checkout_session' product.id %}", {
+                        method: "POST",
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}', 
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_id: "{{ product.id }}",
+                            name: name,
+                            email: email
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.checkout_url) {
-                        window.location.href = data.checkout_url;  
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Failed to create session");
+                        }
+                        return response.json();
+                    })
+                    .then(function (session) {
+                        return stripe.redirectToCheckout({ sessionId: session.id });
+                    })
+                    .catch(function (error) {
+                        console.error("Error:", error);
+                    });
+                });
+            } else {
+                console.warn("Element with ID 'checkout-form' not found");
+            }
+    
+            const cryptoButton = document.getElementById("crypto-button");
+            if (cryptoButton) {
+                cryptoButton.addEventListener("click", function () {
+                    const cryptoSelect = document.getElementById("crypto-select");
+                
+                    if (cryptoSelect.style.display === "none" || cryptoSelect.style.maxHeight === "0px") {
+                        cryptoSelect.style.display = "block";
+                        cryptoSelect.style.maxHeight = cryptoSelect.scrollHeight + "px"; 
+                
+                        setTimeout(() => {
+                            window.scrollTo({
+                                top: cryptoSelect.offsetTop,
+                                behavior: "smooth"
+                            });
+                        }, 200); 
+                
                     } else {
-                        alert("Error: Could not retrieve checkout URL.");
+                        cryptoSelect.style.maxHeight = "0";
+                        setTimeout(() => {
+                            cryptoSelect.style.display = "none"; 
+                        }, 500);
                     }
-                })
-                .catch(error => console.error("Error:", error));
+                });
+            } else {
+                console.warn("Element with ID 'crypto-button' not found");
+            }
+    
+            let selectedCrypto = null;
+    
+            document.querySelectorAll('.crypto-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    document.querySelectorAll('.checkmark').forEach(checkmark => {
+                        checkmark.classList.add('hidden');
+                    });
+    
+                    this.querySelector('.checkmark').classList.remove('hidden');
+    
+                    selectedCrypto = this.getAttribute('data-crypto');
+                    const name = document.getElementById("name").value;
+                    const email = document.getElementById("email").value;  
+    
+                    if (!name || !email) {
+                        alert("Please provide both name and email.");
+                        return;
+                    }
+    
+                    if (!selectedCrypto) {
+                        alert("Please select a cryptocurrency.");
+                        return;
+                    }
+    
+                    fetch("{% url 'create_crypto_transaction' product.id 'unlimited' %}", { 
+                        method: "POST",
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            crypto_choice: selectedCrypto  
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.checkout_url) {
+                            window.location.href = data.checkout_url;  
+                        } else {
+                            alert("Error: Could not retrieve checkout URL.");
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                });
             });
-        });
-
-        // Back Button Logic
-        document.getElementById('back-button').addEventListener('click', function() {
-            window.location.href = "{% url 'get_seller_page' product.id %}";
-        });
+    
+            const backButton = document.getElementById('back-button');
+            if (backButton) {
+                backButton.addEventListener('click', function() {
+                    window.location.href = "{% url 'get_seller_page' product.id %}";
+                });
+            } else {
+                console.warn("Element with ID 'back-button' not found");
+            }
+        };
     </script>
 </body>
 </html>

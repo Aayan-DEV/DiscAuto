@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 
@@ -8,6 +9,7 @@
     <title>{% if user_data %}{{ user_data.name }} - Landing Page{% else %}Landing Page{% endif %}</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="{% static 'icon/website-logo.png' %}">
     
     <style>
         .hidden {
