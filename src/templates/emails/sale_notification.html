@@ -1,20 +1,5 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family: Arial, sans-serif;">
-    <div style="text-align: center;">
-        <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo" style="width: 150px;">
-    </div>
-    <h2>New Order Alert!</h2>
-    <p>Congratulations {{ username }} on your recent sale!</p>
-    <p><strong>Product:</strong> {{ product_title }}</p>
-    <p><strong>Purchased by:</strong> {{ customer_name }}</p>
-    <p><strong>Customer Email:</strong> {{ customer_email }}</p>
-    <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
-    <p>Thank you for selling with DiscAuto!</p>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
 <head>
     <style>
         body {
@@ -59,7 +44,6 @@
             padding: 10px 20px;
             text-decoration: none;
             border-radius: 5px;
-            margin-top: 20px;
             font-weight: bold;
         }
         .footer {
@@ -74,7 +58,7 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="https://yourdomain.com/path-to-logo/logo.png" alt="Mystorelink Logo">
+            <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo">
             <h1>Thank You for Your Purchase!</h1>
         </div>
         <div class="content">
@@ -84,7 +68,7 @@
             <p>Click the button below to download your product:</p>
             <a href="{{ download_link }}" class="button">Download Product</a>
             <p>Thank you for shopping with us!</p>
-            <p>Best regards,<br>Mystorelink Team</p>
+            <p>Best regards,<br>{{ customer_name }}</p>
         </div>
         <div class="footer">
             <p>&copy; 2024 Mystorelink. All rights reserved.</p>
