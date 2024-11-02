@@ -1,20 +1,5 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family: Arial, sans-serif;">
-    <div style="text-align: center;">
-        <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo" style="width: 150px;">
-    </div>
-    <h2>New Order Alert!</h2>
-    <p>Congratulations {{ username }} on your recent sale!</p>
-    <p><strong>Product:</strong> {{ product_title }}</p>
-    <p><strong>Purchased by:</strong> {{ customer_name }}</p>
-    <p><strong>Customer Email:</strong> {{ customer_email }}</p>
-    <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
-    <p>Thank you for selling with DiscAuto!</p>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
 <head>
     <style>
         body {
@@ -52,16 +37,6 @@
             font-size: 16px;
             line-height: 1.6;
         }
-        .button {
-            display: inline-block;
-            background-color: #4CAF50;
-            color: #ffffff;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
-            font-weight: bold;
-        }
         .footer {
             background-color: #eeeeee;
             text-align: center;
@@ -69,28 +44,37 @@
             font-size: 12px;
             color: #555;
         }
+        .order-details {
+            background-color: #f2f2f2;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="https://yourdomain.com/path-to-logo/logo.png" alt="Mystorelink Logo">
-            <h1>Thank You for Your Purchase!</h1>
+            <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo">
+            <h1>New Sale Notification</h1>
         </div>
         <div class="content">
-            <h2>Hello {{ customer_name }},</h2>
-            <p>We appreciate your order of <strong>{{ product_title }}</strong>.</p>
-            <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
-            <p>Click the button below to download your product:</p>
-            <a href="{{ download_link }}" class="button">Download Product</a>
-            <p>Thank you for shopping with us!</p>
-            <p>Best regards,<br>Mystorelink Team</p>
+            <h2>Congratulations, {{ username }}!</h2>
+            <p>You have successfully sold <strong>{{ product_title }}</strong>.</p>
+            <div class="order-details">
+                <h3>Order Details</h3>
+                <p><strong>Product:</strong> {{ product_title }}</p>
+                <p><strong>Customer:</strong> {{ customer_name }}</p>
+                <p><strong>Customer Email:</strong> {{ customer_email }}</p>
+                <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
+            </div>
+            <p>Keep up the great work, and thank you for partnering with Mystorelink!</p>
         </div>
         <div class="footer">
             <p>&copy; 2024 Mystorelink. All rights reserved.</p>
         </div>
     </div>
-    
+
     <!-- Unique invisible hash to prevent email trimming -->
     <span style="display: none;">{{ unique_hash }}</span>
 </body>
