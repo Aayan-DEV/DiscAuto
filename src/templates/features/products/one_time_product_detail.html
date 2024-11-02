@@ -60,7 +60,7 @@
                         <img src="https://www.svgrepo.com/show/18507/back-button.svg" class="w-8 h-8">
                     </button>
                 </div>
-                <img src="{{ first_product.category.category_image.url }}" alt="{{ first_product.category.name }}" class="w-full h-full object-contain rounded pt-10 lg:pt-0">
+                <img src="{{ first_product.category.category_image_url }}" alt="{{ first_product.category.name }}" class="w-full h-full object-contain rounded pt-10 lg:pt-0">
 
             </div>
 
@@ -107,7 +107,7 @@
                     </div>
                     
                     <div class="flex gap-4 items-start">
-                        <img src="{{ first_product.category.category_image.url }}" alt="{{ first_product.title }}" class="w-[82px] h-[82px] rounded-md">
+                        <img src="{{ first_product.category.category_image_url }}" alt="{{ first_product.title }}" class="w-[82px] h-[82px] rounded-md">
                         <div>
                             <h2 class="font-bold text-sm text-black mb-2"> {{ first_product.title }}</h2>
                             <div class="flex gap-x-2 items-baseline">

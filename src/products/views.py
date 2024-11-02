@@ -11,15 +11,22 @@ from django.core.mail import send_mail
 import os
 import json
 from pycoinpayments import CoinPayments
-from dotenv import load_dotenv 
+import uuid
+from dotenv import load_dotenv, dotenv_values
 from auths.models import UserProfile
 import requests
 from .models import UserIncome
 from decimal import Decimal
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from autosell.models import AutoSell  # Import AutoSell model from the autosell app
 
+# Load environment variables from .env and override if necessary
 if not os.getenv('RAILWAY_ENVIRONMENT'):
-    load_dotenv(override=True)
+    load_dotenv(override=True)  # Override all env vars from .env
+    os.environ.update(dotenv_values())  # Ensure any pre-existing vars are overwritten
 
+# Load variables with fallback to ensure they exist
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
@@ -159,7 +166,9 @@ def coinpayments_ipn(request):
             product_type = custom_data.get('product_type')
             name = custom_data.get('name')
             email = custom_data.get('email')
-            txn_id = data.get('txn_id')  
+            txn_id = data.get('txn_id')
+            amount = Decimal(data.get('amount1'))
+            currency = data.get('currency1').upper()
 
             if ProductSale.objects.filter(stripe_session_id=txn_id).exists():
                 print(f"Duplicate IPN received for transaction {txn_id}.")
@@ -171,8 +180,8 @@ def coinpayments_ipn(request):
                     user=product.category.user,
                     product=product,
                     stripe_session_id=txn_id,
-                    amount=data.get('amount1'),
-                    currency=data.get('currency1'),
+                    amount=amount,
+                    currency=currency,
                     customer_name=name,
                     customer_email=email
                 )
@@ -181,29 +190,53 @@ def coinpayments_ipn(request):
 
                 profile = UserProfile.objects.filter(user=product.category.user).first()
                 if profile and profile.pushover_user_key:
-                    message = f"🎉 {name} Ordered 1 item from your store!"
-                    send_pushover_notification(profile.pushover_user_key, message)
+                    send_pushover_notification(profile.pushover_user_key, f"🎉 {name} Ordered 1 item from your store!")
 
-                send_mail(
-                    subject=f"Your purchase of {product.title}",
-                    message=f"Hi {name},\n\nThank you for your purchase of {product.title}.\n {product.product_content} \nBest regards,",
-                    from_email=os.getenv('EMAIL_HOST_USER'),
-                    recipient_list=[email],
+                product = get_object_or_404(OneTimeProduct, id=product_id)
+                user = product.category.user
+                # Retrieve AutoSell info
+                autosell_info = AutoSell.objects.filter(user=user).first()
+                from_name = autosell_info.name if autosell_info else "Mystorelink"
+                from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
+                customer_subject = f"Your purchase of {product.title}"
+                customer_html_content = render_to_string("emails/crypto_one_time_purchase_confirmation.html", {
+                    "customer_name": name,
+                    "product_title": product.title,
+                    "product_content": product.product_content,
+                    "amount": amount,
+                    "currency": currency,
+                    "unique_hash": str(uuid.uuid4())
+                })
+                customer_email_message = EmailMultiAlternatives(
+                    subject=customer_subject,
+                    body=f"Hi {name},\n\nThank you for your purchase!",
+                    from_email=from_email,
+                    to=[email]
                 )
+                customer_email_message.attach_alternative(customer_html_content, "text/html")
+                customer_email_message.send()
                 print(f"Email sent for transaction {txn_id} (One-time product).")
 
                 owner_email = product.category.user.email
-                send_mail(
-                    subject=f"DiscAuto Order confirmation for: {product.title} from {name}",
-                    message=f"Congratulations on your sale, {product.category.user.username}!\n"
-                            f"Order Details:\n"
-                            f"Product: {product.title}\n"
-                            f"Purchased by: {name}\n"
-                            f"Customer Email: {email}\n\n"
-                            "Thank you for Selling With DiscAuto!",
-                    from_email=os.getenv('EMAIL_HOST_USER'),
-                    recipient_list=[owner_email],
+                owner_subject = f"DiscAuto Order confirmation for: {product.title} from {name}"
+                owner_html_content = render_to_string("emails/crypto_sale_notification.html", {
+                    "username": product.category.user.username,
+                    "customer_name": name,
+                    "product_title": product.title,
+                    "customer_email": email,
+                    "amount": amount,
+                    "currency": currency,
+                    "unique_hash": str(uuid.uuid4())
+                })
+                owner_email_message = EmailMultiAlternatives(
+                    subject=owner_subject,
+                    body=f"Congratulations on your sale, {product.category.user.username}!",
+                    from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
+                    to=[product.category.user.email]
                 )
+                owner_email_message.attach_alternative(owner_html_content, "text/html")
+                owner_email_message.send()
                 print(f"Owner notification email sent to {owner_email} for transaction {txn_id}.")
 
             elif product_type == 'unlimited':
@@ -212,8 +245,8 @@ def coinpayments_ipn(request):
                     user=product.user,
                     unlimited_product=product,
                     stripe_session_id=txn_id,
-                    amount=data.get('amount1'),
-                    currency=data.get('currency1'),
+                    amount=amount,
+                    currency=currency,
                     customer_name=name,
                     customer_email=email
                 )
@@ -222,29 +255,52 @@ def coinpayments_ipn(request):
 
                 profile = UserProfile.objects.filter(user=product.user).first()
                 if profile and profile.pushover_user_key:
-                    message = f"🎉 {name} Ordered 1 item from your store!"
-                    send_pushover_notification(profile.pushover_user_key, message)
+                    send_pushover_notification(profile.pushover_user_key, f"🎉 {name} Ordered 1 item from your store!")
 
-                send_mail(
-                    subject=f"Your purchase of {product.title}",
-                    message=f"Hi {name},\n\nThank you for your purchase! You can download your product using the following link: {product.link}\n\nBest regards,",
-                    from_email=os.getenv('EMAIL_HOST_USER'),
-                    recipient_list=[email],
+                product = get_object_or_404(UnlimitedProduct, id=product_id)
+                user = product.user
+                autosell_info = AutoSell.objects.filter(user=user).first()
+                from_name = autosell_info.name if autosell_info else "Mystorelink"
+                from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
+                customer_subject = f"Your purchase of {product.title}"
+                customer_html_content = render_to_string("emails/crypto_purchase_confirmation.html", {
+                    "customer_name": name,
+                    "product_title": product.title,
+                    "download_link": product.link,
+                    "amount": amount,
+                    "currency": currency,
+                    "unique_hash": str(uuid.uuid4())
+                })
+                customer_email_message = EmailMultiAlternatives(
+                    subject=customer_subject,
+                    body=f"Hi {name},\n\nThank you for your purchase!",
+                    from_email=from_email,
+                    to=[email]
                 )
+                customer_email_message.attach_alternative(customer_html_content, "text/html")
+                customer_email_message.send()
                 print(f"Email sent for transaction {txn_id} (Unlimited product).")
 
                 owner_email = product.user.email
-                send_mail(
-                    subject=f"DiscAuto Order confirmation for: {product.title} from {name}",
-                    message=f"Congratulations on your sale, {product.user.username}!\n"
-                            f"Order Details:\n"
-                            f"Product: {product.title}\n"
-                            f"Purchased by: {name}\n"
-                            f"Customer Email: {email}\n\n"
-                            "Thank you for Selling With DiscAuto!",
-                    from_email=os.getenv('EMAIL_HOST_USER'),
-                    recipient_list=[owner_email],
+                owner_subject = f"DiscAuto Order confirmation for: {product.title} from {name}"
+                owner_html_content = render_to_string("emails/crypto_sale_notification.html", {
+                    "username": product.user.username,
+                    "customer_name": name,
+                    "product_title": product.title,
+                    "customer_email": email,
+                    "amount": amount,
+                    "currency": currency,
+                    "unique_hash": str(uuid.uuid4())
+                })
+                owner_email_message = EmailMultiAlternatives(
+                    subject=owner_subject,
+                    body=f"Congratulations on your sale, {product.user.username}!",
+                    from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
+                    to=[product.user.email]
                 )
+                owner_email_message.attach_alternative(owner_html_content, "text/html")
+                owner_email_message.send()
                 print(f"Owner notification email sent to {owner_email} for transaction {txn_id}.")
 
             else:
@@ -283,7 +339,7 @@ def coinpayments_ipn(request):
                     f"If you need any support, please contact us on our website.\n\n"
                     "Best regards,"
                 ),
-                from_email=os.getenv('EMAIL_HOST_USER'),
+                from_email=from_email,
                 recipient_list=[email],
             )
             print(f"Payment canceled email sent to {email} for transaction {txn_id}.")
@@ -358,6 +414,7 @@ def add_category(request):
             category = form.save(commit=False)
             category.user = request.user
             
+            # Upload to Supabase
             if 'category_image' in request.FILES:
                 category_image_url = upload_to_supabase(request.FILES['category_image'], folder='categories')
                 category.category_image_url = category_image_url 
@@ -383,6 +440,13 @@ def add_product_to_category(request, category_id):
         if form.is_valid():
             one_time_product = form.save(commit=False)
             one_time_product.category = category
+
+            # Upload to Supabase
+            if 'product_image' in request.FILES:
+                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
+                one_time_product.product_image_url = product_image_url 
+            one_time_product.save()
+
             try:
                 stripe_product = stripe.Product.create(
                     name=one_time_product.title,
@@ -419,6 +483,12 @@ def edit_one_time_product(request, pk):
         form = OneTimeProductForm(request.POST, request.FILES, instance=one_time_product)
         if form.is_valid():
             updated_product = form.save(commit=False)
+
+            # Upload to Supabase if new image provided
+            if 'product_image' in request.FILES:
+                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
+                updated_product.product_image_url = product_image_url 
+            updated_product.save()
 
             if one_time_product.stripe_product_id:
                 try:
@@ -462,10 +532,13 @@ def edit_unlimited_product(request, pk):
         if form.is_valid():
             updated_product = form.save(commit=False)
 
+            # Upload to Supabase if new image provided
             if 'product_image' in request.FILES:
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
                 updated_product.product_image_url = product_image_url 
 
+            updated_product.save()
+            # Handle Stripe product update logic
             if product.stripe_product_id:
                 try:
                     stripe.Product.modify(
@@ -505,12 +578,19 @@ def edit_category(request, pk):
     if request.method == 'POST':
         form = OneTimeProductCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
-            form.save()
+            updated_category = form.save(commit=False)
+
+            # Upload the new image to Supabase if provided
+            if 'category_image' in request.FILES:
+                category_image_url = upload_to_supabase(request.FILES['category_image'], folder='category_images')
+                updated_category.category_image_url = category_image_url
+
+            updated_category.save()
             return redirect('category_detail', category_id=category.id)  
     else:
         form = OneTimeProductCategoryForm(instance=category)
 
-    return render(request, 'features/products/edit_category.html', {'form': form})  
+    return render(request, 'features/products/edit_category.html', {'form': form})
 
 @login_required
 def delete_one_time_product(request, pk):
@@ -563,6 +643,8 @@ def add_unlimited_product(request):
         if form.is_valid():
             unlimited_product = form.save(commit=False)
             unlimited_product.user = request.user
+
+            # Upload to Supabase
             if 'product_image' in request.FILES:
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
                 unlimited_product.product_image_url = product_image_url 
@@ -670,6 +752,13 @@ def checkout_success(request):
     unlimited_product = UnlimitedProduct.objects.filter(id=product_id).first()
 
     if unlimited_product:
+        user = unlimited_product.user
+        
+        # Retrieve AutoSell info
+        autosell_info = AutoSell.objects.filter(user=user).first()
+        from_name = autosell_info.name if autosell_info else "Mystorelink"
+        from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
         ProductSale.objects.create(
             user=unlimited_product.user,
             unlimited_product=unlimited_product,
@@ -680,32 +769,58 @@ def checkout_success(request):
             customer_email=customer_email
         )
 
-        send_mail(
-            subject=f"Your purchase of {unlimited_product.title}",
-            message=f"Hi {customer_name},\n\nThank you for your purchase! You can download your product using the following link: {unlimited_product.link}\n\nThank you for your purchase!",
-            from_email=EMAIL_HOST_USER,
-            recipient_list=[customer_email],
-        )
+        # Generate unique ID for invisible content
+        unique_hash = str(uuid.uuid4())
 
-        owner_email = unlimited_product.user.email
-        send_mail(
-            subject=f"DiscAuto Order confirmation for: {unlimited_product.price} {unlimited_product.currency} from {customer_name}",
-            message=f"Congratulation on your sale {unlimited_product.user.username}! \nOrder Details: \nProduct: {unlimited_product.title} \nPurchased by {customer_name} \nCustomer Email:({customer_email}).\n\nThank you for Selling With DiscAuto!",
-            from_email=EMAIL_HOST_USER,
-            recipient_list=[owner_email],
+        # Customer email (HTML template)
+        customer_subject = f"Your purchase of {unlimited_product.title}"
+        customer_html_content = render_to_string("emails/purchase_confirmation.html", {
+            "customer_name": customer_name,
+            "product_title": unlimited_product.title,
+            "download_link": unlimited_product.link,
+            "amount": session.amount_total / 100,
+            "currency": session.currency.upper(),
+            "unique_hash": unique_hash
+        })
+        customer_email_message = EmailMultiAlternatives(
+            subject=customer_subject,
+            body=f"Hi {customer_name},\n\nThank you for your purchase!",
+            from_email=from_email,
+            to=[customer_email]
         )
+        customer_email_message.attach_alternative(customer_html_content, "text/html")
+        customer_email_message.send()
 
+        # Owner email (HTML template)
+        owner_subject = f"DiscAuto Order confirmation for: {unlimited_product.price} {unlimited_product.currency} from {customer_name}"
+        owner_html_content = render_to_string("emails/sale_notification.html", {
+            "username": unlimited_product.user.username,
+            "customer_name": customer_name,
+            "product_title": unlimited_product.title,
+            "customer_email": customer_email,
+            "amount": session.amount_total / 100,
+            "currency": session.currency.upper(),
+            "unique_hash": unique_hash
+        })
+        owner_email = EmailMultiAlternatives(
+            subject=owner_subject,
+            body=f"Congratulations on your sale {unlimited_product.user.username}!",
+            from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
+            to=[unlimited_product.user.email]
+        )
+        owner_email.attach_alternative(owner_html_content, "text/html")
+        owner_email.send()
+
+        # Push notification logic remains unchanged
         profile, created = UserProfile.objects.get_or_create(user=unlimited_product.user)
-
         owner_pushover_key = profile.pushover_user_key
-
         if owner_pushover_key:
             message = f"🎉 {customer_name} Ordered 1 item from your store!"
             send_pushover_notification(owner_pushover_key, message)
             update_user_income(unlimited_product.user, session.amount_total / 100, session.currency.upper())
         else:
             print(f"No Pushover key found for {unlimited_product.user.username}, skipping push notification.")
-
+    
     else:
         return JsonResponse({'error': 'Product not found'}, status=400)
 
@@ -813,20 +928,65 @@ def one_time_checkout_success(request):
         customer_email=customer_email 
     )
 
-    send_mail(
-        subject=f"Your purchase of {product.title}",
-        message=f"Hi {customer_name},\n\nThank you for buying! Here is your product:\n\n{product.product_content}\n\nRegards,",
-        from_email=EMAIL_HOST_USER,
-        recipient_list=[customer_email],
+    # Retrieve AutoSell info
+    user = product.category.user
+    autosell_info = AutoSell.objects.filter(user=user).first()
+    from_name = autosell_info.name if autosell_info else "Mystorelink"
+    from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
+    unique_hash = str(uuid.uuid4())
+
+    # Customer email with product content directly included
+    customer_subject = f"Your purchase of {product.title}"
+    customer_html_content = render_to_string("emails/one_time_product_purchase_confirmation.html", {
+        "customer_name": customer_name,
+        "product_title": product.title,
+        "product_content": product.product_content,  # Use product content directly
+        "amount": session.amount_total / 100,
+        "currency": session.currency.upper(),
+        "unique_hash": unique_hash
+    })
+    customer_email_message = EmailMultiAlternatives(
+        subject=customer_subject,
+        body=f"Hi {customer_name},\n\nThank you for your purchase!",
+        from_email=from_email,
+        to=[customer_email]
     )
+    customer_email_message.attach_alternative(customer_html_content, "text/html")
+    customer_email_message.send()
+
+    # Owner email notification
+    owner_subject = f"New Order for {product.title} from {customer_name}"
+    owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
+        "username": product.category.user.username,
+        "product_title": product.title,
+        "customer_name": customer_name,
+        "customer_email": customer_email,
+        "amount": session.amount_total / 100,
+        "currency": session.currency.upper(),
+        "unique_hash": unique_hash
+    })
+    owner_email_message = EmailMultiAlternatives(
+        subject=owner_subject,
+        body=f"Congratulations on your sale {product.category.user.username}!",
+        from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
+        to=[product.category.user.email]
+    )
+    owner_email_message.attach_alternative(owner_html_content, "text/html")
+    owner_email_message.send()
+
+    # Check for pushover_user_key and send push notification if available
+    profile, created = UserProfile.objects.get_or_create(user=product.category.user)
+    owner_pushover_key = profile.pushover_user_key
+    if owner_pushover_key:
+        message = f"🎉 {customer_name} ordered 1 item from your store!"
+        send_pushover_notification(owner_pushover_key, message)
 
     update_user_income(product.category.user, session.amount_total / 100, session.currency.upper())
 
+    # Archive the product in Stripe and delete it from the database
     try:
-        stripe.Product.modify(
-            product.stripe_product_id,
-            active=False 
-        )
+        stripe.Product.modify(product.stripe_product_id, active=False)
     except stripe.error.StripeError as e:
         print(f"Error archiving product on Stripe: {e}")
 

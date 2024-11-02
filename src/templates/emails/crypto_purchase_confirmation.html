@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Use Tailwind CSS here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #1e40af;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .button {
+            background-color: #1e40af;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #f3f4f6;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>Thank You for Your Purchase!</h1>
+        </div>
+        <div class="content">
+            <h2>Hello {{ customer_name }},</h2>
+            <p>We appreciate your order of <strong>{{ product_title }}</strong>.</p>
+            <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
+            <a href="{{ download_link }}" class="button">Download Product</a>
+            <p>Thank you for shopping with us!</p>
+            <p>Best regards,<br>Mystorelink Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 Mystorelink. All rights reserved.</p>
+        </div>
+        <span style="display: none;">{{ unique_hash }}</span>
+    </div>
+</body>
+</html>

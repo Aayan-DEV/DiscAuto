@@ -33,11 +33,25 @@
                 <div>
                     {{ form.category_image.errors }}
                     <label class="block text-sm font-medium text-gray-700">{{ form.category_image.label_tag }}</label>
-                    <div class="mt-1">
-                        {{ form.category_image }}
+                    <div class="mt-1 flex items-center">
+                        <span class="inline-block h-12 w-12 rounded-full overflow-hidden bg-gray-100">
+                            {% if form.instance.category_image_url %}
+                                <!-- Display existing category image from Supabase -->
+                                <img src="{{ form.instance.category_image_url }}" alt="{{ form.name.value }}" class="h-full w-full object-cover">
+                            {% else %}
+                                <!-- Placeholder if no image is available -->
+                                <svg class="h-full w-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 0H0v24h24V0z" fill="none"/>
+                                    <path d="M19 19H5V5h14v14zm0-16H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 12.5l1.2 1.5 3.3-4.5 4.5 6H7l2-3z"/>
+                                </svg>
+                            {% endif %}
+                        </span>
+                        <!-- File input for optional image update -->
+                        <input type="file" name="{{ form.category_image.name }}" class="ml-5 text-black font-semibold py-2 px-3 rounded-md" />
                     </div>
                     <p class="text-sm text-gray-500 mt-1">(Category Image)</p>
                 </div>
+
 
                 <!-- Show on Landing Page Checkbox -->
                 <div class="flex items-start">

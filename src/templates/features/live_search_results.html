@@ -1,8 +1,8 @@
 <ul class="space-y-2">
     {% for category in categories %}
         <li class="category-item bg-purple-500 rounded-md p-4 text-center">
-            {% if category.category_image.url %}
-                <img src="{{ category.category_image.url }}" alt="{{ category.name }}" class="h-24 w-full object-cover rounded-md mb-2">
+            {% if category.category_image_url %}
+                <img src="{{ category.category_image_url }}" alt="{{ category.name }}" class="h-24 w-full object-cover rounded-md mb-2">
             {% else %}
                 <div class="category-image h-24 w-full rounded-md mb-2 bg-purple-400"></div>
             {% endif %}
