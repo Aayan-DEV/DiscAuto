@@ -1,3 +1,4 @@
+# ImportS:
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import AutoSell, AutoSellView
@@ -11,42 +12,57 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from helpers.supabase import upload_to_supabase
 
-# Login required as usual. 
+# User needs to be logged in to access and use the page. 
 @login_required
 def auto_sell_view(request):
+    # First we get the AutoSell instance for the logged-in user.
     auto_sell = AutoSell.objects.filter(user=request.user).first()
 
+    # Check if request is POST or not. 
     if request.method == 'POST':
+        # Here we connect the form to the submitted data and files.
         form = AutoSellForm(request.POST, request.FILES, instance=auto_sell)
+
+        # Validate the form.
         if form.is_valid():
+            # First we save the form without committing to the database.
             auto_sell = form.save(commit=False)
 
+            # If a banner was uploaded, it saves it to Supabase, gets the Public URL, then assigns it to auto_sell.
             if 'banner' in request.FILES:
                 banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
                 auto_sell.banner = banner_url
-                print(f"Banner URL: {banner_url}") 
+                print(f"Banner URL: {banner_url}")  
 
+            # If a Profile pic was uploaded, it saves it to Supabase, gets the Public URL, then assigns it to auto_sell.
             if 'profile_picture' in request.FILES:
                 profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
                 auto_sell.profile_picture = profile_url
-                print(f"Profile Picture URL: {profile_url}") 
+                print(f"Profile Picture URL: {profile_url}")  
 
+            # Set the current user as the owner of the AutoSell instance.
+            # The person who uploaded the files is the owner of the landing page. 
             auto_sell.user = request.user
+            # Save the auto_sell data to the database with all changes.
             auto_sell.save()
             messages.success(request, 'Your Landing page has been successfully created!')
-            return redirect('auto_sell')  
+            return redirect('auto_sell')
         else:
+            # If the form is invalid, show error. 
             messages.error(request, 'Please correct the errors below.')
     else:
-        form = AutoSellForm(instance=auto_sell)
+        # If the request method is not POST, create a form with the existing auto_sell instance, if available.
+        return JsonResponse({'error': 'Wrong request method!'}, status=404)
 
+    # Here we initialize the custom link URL as None.
     custom_link_url = None
     if auto_sell:
         custom_link_url = request.build_absolute_uri('/') + auto_sell.custom_link
 
+    # Render the auto-sell template with the form, auto_sell data, and custom link URL so they can be used in the landing page.
     return render(request, 'features/auto-sell/auto-sell.html', {
         'form': form,
-        'auto_sell': auto_sell, 
+        'auto_sell': auto_sell,
         'custom_link_url': custom_link_url
     })
 

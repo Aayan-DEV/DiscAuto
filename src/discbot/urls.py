@@ -30,7 +30,6 @@ urlpatterns = [
     path("checkout/start/", checkout_views.checkout_redirect_view, name='stripe-checkout-start'),
     path('checkout-success/', products_views.checkout_success, name='checkout_success'),
     path('products/', products_views.products, name='products'),
-    path('refresh-sales/', products_views.refresh_sales, name='refresh_sales'),
     path('products/add/', products_views.add_product_options, name='add_product_options'),
     path('products/add/category/', products_views.add_category, name='add_category'),
     path('products/add/unlimited/', products_views.add_unlimited_product, name='add_unlimited_product'),
@@ -72,14 +71,13 @@ urlpatterns = [
     path('confirm-timer/<str:channel_id>/', autoad_views.confirm_ad_posted, name='confirm_timer'),
     
      # TEMPORARY PATHS: 
-
-    # path('products/categories/', products_views.one_time_product_categories, name='one_time_product_categories'),
     # path('products/category/<int:category_id>/', products_views.category_detail, name='category_detail'),
     # path('product/<str:product_type>/<int:product_id>/', products_views.product_detail, name='product_detail'),
     # path('product/<int:product_id>/', products_views.one_time_product_detail, name='one_time_product_detail'),
     # path('auto-ad/save-channel/', autoad_views.save_channel, name='save-channel'),
     # path('get_timers/', autoad_views.get_timers, name='get_timers'),
     # path('get_timer/<str:channel_id>/', autoad_views.get_timer, name='get_timer'),  # For individual timer
+    # path('refresh-sales/', products_views.refresh_sales, name='refresh_sales'),
     
 
 ]

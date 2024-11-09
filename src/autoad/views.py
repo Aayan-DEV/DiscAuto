@@ -8,7 +8,6 @@ from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 from dotenv import load_dotenv
 import os
-from django.utils import timezone
 from django.db.models import F
  
 # Auto_ad function made to handle the autoad feature. 
@@ -149,7 +148,7 @@ def send_timer_expiry_email(request):
     if channel_name and channel_id:
         try:
             # First we check if the channel still exists before proceeding, the user could have deleted the channel
-            # It continues if it exists, and does nothing if it doesnt.
+            # It continues if it exists.
             Channels.objects.get(channel_id=channel_id)
         except Channels.DoesNotExist:
             # If the channel does not exist, do nothing (no response, no email sent)
@@ -181,45 +180,46 @@ def send_timer_expiry_email(request):
             fail_silently=False, # If there is an error, it raises an exception instead of failing silently so that we know whats the problem and can solve it.
         )
 
-        return JsonResponse({'success': True, 'message': 'Email sent successfully!'})
         # Returns a JSON response saying that the email was sent successfully.    
-
-    return JsonResponse({'success': False, 'message': 'Missing channel name or ID!'})
+        return JsonResponse({'success': True, 'message': 'Email sent successfully!'})
+        
     # Returns a JSON response saying the channel name or ID is missing. 
+    return JsonResponse({'success': False, 'message': 'Missing channel name or ID!'})
+    
 
 """
-This function below is used to confirm the ad is posted, so that there can be an increment in the number of ad posted for 
-a perticular user, so that we can display the number on the dashboard. 
+This function is used to confirm that an ad has been posted by the client, then it increments 
+the count of ads posted by the specific user. Finally this count is then displayed on the user's dashboard to tell them
+how many ads they have posted that day.
 """
 @login_required
 def confirm_ad_posted(request, channel_id):
-    # First check if the request method is POST
+    # First we check if the request method is POST
     if request.method == 'POST': 
         try:
-            # Check if channel_id is provided in the request, This HAS to be provided, and will 100% be there as without it,
-            # the channel Box would not even exist. But just in case there was a problem, there is error checking implemented. 
-            if not channel_id:
-                return JsonResponse({'success': False, 'message': 'No channel_id provided'}, status=400)
-            
-            # Then we get the channel Id from the request
+            # First it gets the channel object using the given channel_id.
+            # This uses Django's ORM to fetch the record from the Channels table.
             channel = Channels.objects.get(channel_id=channel_id)
 
-            # Becuase each channel id is unique, when we increase the ad count, that 
-            # increment always increased the correct ad box's count. 
-            # The F() is a great way in Django to reference the field in the database. 
-            # The F() modifies and saves the field in a single query and is very efficient. 
+            # Each channel_id is unique, so when we increment the ad count, we know that
+            # it will be connected to the correct ad box's counter.
+            # Using Django's F() function here make it so that we are able to rrference and update 
+            # the ad_count field in a single database query, making it efficient.
             channel.ad_count = F('ad_count') + 1
             channel.save()
 
+            # If successful, return a JSON response saying the ad count was incremented
             return JsonResponse({'success': True})
 
+        # Here we handle the case where the specified channel_id does not exist in the database.
         except Channels.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Channel not found'}, status=404)
 
+        # This is just a generic exception handling to catch any unexpected errors during execution.
         except Exception as e:
-            # Log the error for debugging
+            # We also print error details for debugging purposes and return a JSON response with the error message.
             print(f"Error: {str(e)}")
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
-    # If it's not a POST request, return a 405 Method Not Allowed
+    # Here we return a JSON response with a 405 status if the request method is not POST
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)

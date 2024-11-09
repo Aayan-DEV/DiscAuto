@@ -23,7 +23,7 @@ class Channels(models.Model):
     seconds = models.IntegerField(default=0)
     # The DateTime field is used to store the start time of the channel, and the default value is set to the current time when the timer first is created and confirmed. 
     start_time = models.DateTimeField(default=timezone.now)
-
+    # The ad count is a interger field used to store the amount of ads posted per day. 
     ad_count = models.IntegerField(default=0)
 
     # The __str__(self) method is usual in Django, used to return a human readable string representation of the model instance.

@@ -574,57 +574,70 @@
         // container as arguments to process the form and create the timer boxes. 
         // And some error handling has been added. 
         document.getElementById('create-timer-btn').addEventListener('click', function () {
+            // First get the values of 'timer-name' and 'timer-id' fields.
             const timerName = document.getElementById('timer-name').value;
             const timerId = document.getElementById('timer-id').value;
+
+            // We store the errorMessage field so that we can later use it to show errors.
             const errorMessage = document.getElementById('error-message');
-        
+            
+            // Check if the 'timer-name' field is empty. If it is, then we can display an error message
+            // by setting the error message text and making it visible.
             if (timerName === "") {
                 errorMessage.textContent = "Channel Name cannot be empty.";
                 errorMessage.classList.remove('hidden');
             } 
+            // Check if the 'timer-id' field is empty. If it is, then we can display a corresponding error message.
             else if (timerId === "") {
                 errorMessage.textContent = "Channel ID cannot be empty.";
                 errorMessage.classList.remove('hidden');
-            } else {
+            } 
+            // If both fields are filled, we can hide any old error messages and submit.
+            else {
                 errorMessage.classList.add('hidden');
                 createTimer(document.getElementById('timer-form'), timerFormContainer);
             }
         });        
     }); 
 
-
-
-    // Add an event listener for all confirm buttons
+    // This is an event listener for each "Confirm" button in the timer boxes.
+    // This makes it so that the user can confirm the posting of an ad by clicking the "Confirm" button.
     document.querySelectorAll('.confirm-btn').forEach(function(button) {
         button.addEventListener('click', function() {
-            // Get the parent overlay of the button and hide it
+            // First we get the closest overlay element to the button and hide it by adding the 'hidden' class.
+            // The closest because there can be multiple, so getting the closes will ensure that we get the one 
+            // that corresponds to the confirm button. 
+            // Then we hides the overlay if it exists. 
             const overlay = this.closest('.confirm-overlay');
-            if (overlay) {
-                overlay.classList.add('hidden');
-            }
+            overlay.classList.add('hidden');
 
-            // Get the channel ID from the parent timer-box using data attribute
+            // Next we get the channel ID from the parent timer box using the data attribute 'data-channel-id'.
+            // This channel ID will be used in the request.
             const timerBox = this.closest('.timer-box');
             const channelId = timerBox.getAttribute('data-channel-id');
 
-            // Send a POST request to the server to confirm the ad has been posted
+            // Then we send a POST request to the server endpoint to confirm that the ad has been posted for that specified channel.
+            // The channelId is sent in the request body.
             fetch(`/confirm-timer/${channelId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-CSRFToken': '{{ csrf_token }}', 
                 },
                 body: new URLSearchParams({
-                    'channel_id': channelId
+                    'channel_id': channelId 
                 })
             })
-            .then(response => response.json())
+            .then(response => response.json()) 
             .then(data => {
+                // If the server response says success, we log a success message to the console for debugging purpose.
                 if (data.success) {
                     console.log(`Ad confirmation for channel ${channelId} was successful!`);
-                } else {
+                } 
+                // If there was an error, first it logs the error message to the console, then it shows an alert to tell the user.
+                else {
                     console.error(`Failed to confirm ad: ${data.message}`);
-                    alert(`Error: ${data.message}`);
+                    alert(`Error: ${data.message} - Send this message to the email: support@mystorel.ink`);
                 }
             })
             .catch(error => {
