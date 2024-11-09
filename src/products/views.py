@@ -526,7 +526,7 @@ def add_category(request):
             return redirect('products')
     else:
         # Send error if request method is not POST.
-        return JsonResponse({'error': 'Invalid request method!'}, status=400)
+        form = OneTimeProductCategoryForm()
 
     # Finally we render the "add_category.html" template with the form to show the user.
     return render(request, 'features/products/add_category.html', {'form': form})
@@ -589,7 +589,7 @@ def add_product_to_category(request, category_id):
             return redirect('category_detail', category_id=category.id)
     else:
         # Send error if request method is not POST.
-        return JsonResponse({'error': 'Invalid request method!'}, status=400)
+        form = OneTimeProductForm()
     
     # Finally render the "add_product_to_category.html" template with the form and category context to show the user.
     return render(request, 'features/products/add_product_to_category.html', {'form': form, 'category': category})
@@ -662,7 +662,7 @@ def edit_one_time_product(request, pk):
             return redirect('category_detail', category_id=one_time_product.category.id)
     else:
         # Send error if request method is not POST.
-        return JsonResponse({'error': 'Invalid request method!'}, status=400)
+        form = OneTimeProductForm(instance=one_time_product)
 
     # Finally render the template with the form to show the user.
     return render(request, 'features/products/edit_one_time_product.html', {'form': form})
@@ -734,7 +734,7 @@ def edit_unlimited_product(request, pk):
             return redirect('products')
     else:
         # Send error if request method is not POST.
-        return JsonResponse({'error': 'Invalid request method!'}, status=400)
+        form = UnlimitedProductForm(instance=product)
 
     # Finally render the template with the form to show the user.
     return render(request, 'features/products/edit_unlimited_product.html', {'form': form})
@@ -784,7 +784,7 @@ def edit_category(request, pk):
             return redirect('category_detail', category_id=category.id)
     else:
         # Send error if request method is not POST.
-        return JsonResponse({'error': 'Invalid request method!'}, status=400)
+        form = OneTimeProductCategoryForm(instance=category)
 
     # Finally render the template with the form to show the user.
     return render(request, 'features/products/edit_category.html', {'form': form})
