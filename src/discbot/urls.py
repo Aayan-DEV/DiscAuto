@@ -14,6 +14,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
+    path('auto-sell/', autosell_views.auto_sell_view, name='auto_sell'),
     path('profiles/', include('profiles.urls')),
     path("hello-world/", home_view),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),  
@@ -22,7 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('checkout/one-time/success/', products_views.one_time_checkout_success, name='one_time_checkout_success'),
     path('create_one_time_checkout_session/<int:product_id>/', products_views.create_one_time_checkout_session, name='create_one_time_checkout_session'),
-    path('auto-sell/', autosell_views.auto_sell_view, name='auto_sell'),
     path('pricing/', subscriptions_views.subscription_price_view, name="pricing"),
     path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name="user_subscription_cancel"),
     path('accounts/billing/', subscriptions_views.user_subscription_view, name="user_subscription"),

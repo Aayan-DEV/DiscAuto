@@ -52,7 +52,7 @@ def auto_sell_view(request):
             messages.error(request, 'Please correct the errors below.')
     else:
         # If the request method is not POST, create a form with the existing auto_sell instance, if available.
-        return JsonResponse({'error': 'Wrong request method!'}, status=404)
+        form = AutoSellForm(instance=auto_sell)
 
     # Here we initialize the custom link URL as None.
     custom_link_url = None
