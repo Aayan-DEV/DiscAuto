@@ -488,30 +488,6 @@
 
             
         };
-
-        function incrementViewCount() {
-            setTimeout(function() {
-                fetch("{% url 'increment_view_count' user_data.custom_link %}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',  
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ custom_link: "{{ user_data.custom_link }}" })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log("View count incremented.");
-                    } else {
-                        console.log("Failed to increment view count:", data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
-            }, 500); 
-        }
     </script>
 </body>
 </html>
