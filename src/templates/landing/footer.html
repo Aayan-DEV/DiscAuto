@@ -96,7 +96,7 @@
 </head>
 
 <body>
-    <footer class="footer-section bg-transparent text-white p-8 relative">
+    <footer class="footer-section bg-transparent text-white p-8 relative border-t-2 border-purple-600">
         <div class="footer-header bg-gradient-to-r from-purple-500 to-blue-500 rounded-full py-2 px-6 inline-block mb-4">
             <span class="text-2xl">DiscAuto</span>
         </div>
@@ -108,20 +108,17 @@
             <div class="footer-column flex-1">
                 <h3 class="footer-title text-xl text-purple-400 mb-4">Links</h3>
                 <ul class="list-none space-y-2">
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Pricing</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Contact</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Terms and Conditions</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Privacy Policy</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">About Us</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Documentation</a></li>
+                    <li><a href="{% url 'pricing' %}" class="text-purple-400 hover:text-purple-600">Pricing</a></li>
+                    <li><a href="{% url 'contact' %}" class="text-purple-400 hover:text-purple-600">Contact</a></li>
+                    <li><a href="{% url 'home' %}" class="text-purple-400 hover:text-purple-600">Home</a></li>
                 </ul>
             </div>
             <div class="footer-column flex-1">
                 <h3 class="footer-title text-xl text-purple-400 mb-4">Socials</h3>
                 <ul class="list-none space-y-2">
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Discord</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Twitter</a></li>
-                    <li><a href="#" class="text-purple-400 hover:text-purple-600">Instagram</a></li>
+                    <li><a href="https://www.discord.com" class="text-purple-400 hover:text-purple-600">Discord</a></li>
+                    <li><a href="https://www.twitter.com" class="text-purple-400 hover:text-purple-600">Twitter</a></li>
+                    <li><a href="https://www.instagram.com" class="text-purple-400 hover:text-purple-600">Instagram</a></li>
                 </ul>
             </div>
         </div>

@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+# First we define a model named "UserProfile" that receives data from Django's Model Class. 
 class UserProfile(models.Model):
+    # Normal Fields.
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     pushover_user_key = models.CharField(max_length=255, blank=True, null=True)
     paypal_email = models.EmailField(blank=True, null=True)
@@ -18,3 +20,8 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+"""
+Citations:
+("Models") -> Lines 5 - 22
+"""

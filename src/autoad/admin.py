@@ -12,3 +12,8 @@ class ChannelsAdmin(admin.ModelAdmin):
     list_filter = ('user',)
 # Here we register the channels model with the custom ChannelsAdmin class to control how it looks in the Django admin page.
 admin.site.register(Channels, ChannelsAdmin)
+
+"""
+Citations:
+("The Django Admin") -> Lines 6 - 14
+"""

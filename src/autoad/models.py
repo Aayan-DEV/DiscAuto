@@ -37,3 +37,10 @@ class Channels(models.Model):
         # 'verbose_name_plural' specifies a more human-readable name for the model in the Django admin.
         verbose_name_plural = "Channels"
  
+
+"""
+Citations:
+("Models") -> Lines 6 - 38
+"""
+
+

@@ -100,7 +100,7 @@ class UnlimitedProduct(models.Model):
     sku = models.CharField(max_length=100)
     quantity = models.IntegerField(default=-1, help_text="Enter -1 for unlimited quantity.")
     link = models.URLField()
-    description = models.TextField(blank=True, default='')
+    description = models.TextField(blank=True, default='', null=True)
     product_image = models.ImageField(upload_to='products/', null=True, blank=True)
     product_image_url = models.URLField(max_length=500, blank=True, null=True)
     stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
@@ -211,3 +211,8 @@ class UserIncome(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - USD: {self.usd_total}, GBP: {self.gbp_total}, EUR: {self.eur_total}, BTC: {self.btc_total}'
+
+"""
+Citations:
+("Models") -> Lines 8 - 213
+"""

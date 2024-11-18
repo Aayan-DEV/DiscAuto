@@ -30,3 +30,8 @@ admin.site.register(UserColdDMStats, UserColdDMStatsAdmin)
 
 
 
+'''
+Citations: 
+("Document How to Extend UserAdmin") -> 6 - 29
+'''
+

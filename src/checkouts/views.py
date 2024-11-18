@@ -8,6 +8,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseBadRequest
 
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") --> 18 - 94
+'''
+
 BASE_URL = settings.BASE_URL
 User = get_user_model()
 

@@ -24,4 +24,12 @@ def auths(request):
         messages.success(request, "Your settings have been saved.")
         return redirect('auths')
     
-    return render(request, 'features/auths/auths.html', {'profile': profile})
+    return render(request, 'features/auths/auths.html', {'profile': profile}) 
+
+
+'''
+Citations:
+("Writing Your First Django App") -> 27
+(JcKelley) -> 13 - 23
+(Saleh, Ali)-> 9
+'''

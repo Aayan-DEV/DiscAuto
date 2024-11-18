@@ -24,4 +24,9 @@ class AutoSellAdmin(admin.ModelAdmin):
 
 
 
+'''
+Citations: 
+("The Django Admin") -> 4 - 23
+'''
+
     

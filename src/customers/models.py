@@ -52,3 +52,9 @@ def allauth_email_confirmed_handler(request, email_address, *args, **kwargs):
         obj.save()
 
 allauth_email_confirmed.connect(allauth_email_confirmed_handler)
+
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") -> Lines 5 - 54
+("Models") -> Lines 5 - 54
+'''

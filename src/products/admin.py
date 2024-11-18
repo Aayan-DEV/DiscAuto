@@ -1,4 +1,3 @@
-# Imports:
 from django.contrib import admin
 from .models import OneTimeProductCategory, OneTimeProduct, UnlimitedProduct, ProductSale, UserIncome
 
@@ -90,3 +89,10 @@ products_admin_site.register(OneTimeProductCategory, OneTimeProductCategoryAdmin
 products_admin_site.register(UnlimitedProduct, UnlimitedProductAdmin)
 products_admin_site.register(ProductSale, ProductSaleAdmin)
 products_admin_site.register(UserIncome, UserIncomeAdmin)
+
+
+'''
+Citations: 
+("The Django Admin") -> 6 - 92
+'''
+

@@ -74,41 +74,64 @@ def handle_unsupported_currency(sale, rates):
     sale.amount_in_usd = convert_to_usd(product_price, product_currency, rates)
 
 def get_sales_data_by_day(start_date, end_date, user, exchange_rates):
+    # Here we get the sales data for a specific date range, and then organize it by day.
     sales = ProductSale.objects.filter(
         user=user,
         created_at__range=[start_date, end_date]
+        # TruncDay only extracts the date from the created_at field.
     ).select_related('product', 'unlimited_product').annotate(day=TruncDay('created_at'))
 
+    # Initialize an empty dictionary to store all the daily sales data.
     daily_sales = {}
 
+    # Here we loop through each sale so that we can calculate the daily totals.
     for sale in sales:
+        # First we convert the sale's timestamp to the day's name (monday, etc).
         day_name = sale.day.strftime('%A')
 
+        # If not already in the dictionary, we initialize the day's total. 
         if day_name not in daily_sales:
             daily_sales[day_name] = 0
 
+        # Then we add the sale amount to the daily total, also also converting to USD if necessary.
         if sale.currency in SUPPORTED_CURRENCIES:
             daily_sales[day_name] += convert_to_usd(float(sale.amount), sale.currency, exchange_rates)
         else:
+            # If the currency is not supported, meaning a crypto currency, first it checks if the product is an 
+            # unlimited product or 1 time product.
             if sale.product:
+                # If the product is one time, it gets its price.
                 product_price = sale.product.price
+                # Then it gets the products currency. 
                 product_currency = sale.product.currency
             elif sale.unlimited_product:
+                # If the product is unlimited, it gets its price.
                 product_price = sale.unlimited_product.price
+                # Then it gets the products currency.
                 product_currency = sale.unlimited_product.currency
             else:
+                # If both are missing, raise an exception or log the issue
                 print(f"Error: No product or unlimited product found for sale ID {sale.id}")
                 continue
-
+            # Then it converts the price to USD.
             daily_sales[day_name] += convert_to_usd(float(product_price), product_currency, exchange_rates)
 
+    # Then it converts the dictionary of daily sales (day_name: total_sales) into a list of dictionaries
+    # so that each dictionary in the list will have a day and the its corresponding total sales amount!
     daily_sales_list = [{'day': day, 'total_sales': total_sales} for day, total_sales in daily_sales.items()]
-    daily_sales_list.sort(key=lambda x: x['day']) 
+
+    # Finally we sort the list of daily sales dictionaries by the day (Monday, Tuesday, etc...)
+    # This makes sure that the data is in order.
+    daily_sales_list.sort(key=lambda x: x['day'])
+
+    # Then we return the sorted list of daily sales dictionaries as the final output for graphs.
     return daily_sales_list
 
 def get_total_sales_by_currency(user):
+    # First we get tje total sales amounts grouped by currency for a specific user.
     sales_by_currency = ProductSale.objects.filter(user=user).values('currency').annotate(total_amount=Sum('amount'))
 
+    # Then we initialize a dictionary to store total sales for each currency, will be used later in frontend.
     total_sales_by_currency = {
         "USD": 0,
         "GBP": 0,
@@ -119,35 +142,51 @@ def get_total_sales_by_currency(user):
         "SOL": 0
     }
 
+    # I also made it to print the values for debugging.
     print(f"Total sales by currency: {total_sales_by_currency}")
 
+    # Then we loop through the sales data and update the total sales for each currency
     for entry in sales_by_currency:
-        currency = entry['currency']
+        # First get the currency type (USD, GBP, etc..)
+        currency = entry['currency']  
+        # Then get the total sales amount for that currency
         amount = entry['total_amount']
         if currency in total_sales_by_currency:
+            # Then we update the total sales for the matching currency
             total_sales_by_currency[currency] = amount
 
+    # At the end we return the updated dictionary of total sales grouped by currency!
     return total_sales_by_currency
 
 def format_decimal(value):
     """Remove trailing zeros from a Decimal and convert to string."""
-    # Ensure the value is a Decimal, even if an int or float is passed
+    # Makes sure that the value is a Decimal, even if an int or float is passed
     value = Decimal(value)
+    # Here we return the value without trailing zeros if it's a whole number
     return value.quantize(Decimal(1)) if value == value.to_integral() else value.normalize()
 
-@login_required 
+@login_required
 def dashboard_view(request):
-    today = timezone.now()  
-    start_of_week = today - timedelta(days=today.weekday())  
-    end_of_week = today 
+    # First we get the current time and store it in "today"
+    today = timezone.now()
 
+    # Then we calculate the start of the week (Monday) for filtering data
+    start_of_week = today - timedelta(days=today.weekday())
+
+    # Then we set the end of the week to today
+    end_of_week = today
+
+    # Then we get the latest exchange rates for currency conversion
     exchange_rates = get_exchange_rates()
 
     try:
+        # Here we try to get the user's income data from the database
         user_income = UserIncome.objects.get(user=request.user)
     except ObjectDoesNotExist:
-        user_income = None 
+        # If no income data exists for the user, we just set the user_income to none.
+        user_income = None
 
+    # Here we format the user's income data so that it can be displayed in the dashboard.
     if user_income:
         formatted_income = {
             'usd_total': format_decimal(user_income.usd_total),
@@ -165,6 +204,7 @@ def dashboard_view(request):
             'ltct_total': format_decimal(user_income.ltct_total)
         }
     else:
+        # If no income data exists, we put all values to 0
         formatted_income = {
             'usd_total': format_decimal(0),
             'gbp_total': format_decimal(0),
@@ -181,36 +221,42 @@ def dashboard_view(request):
             'ltct_total': format_decimal(0)
         }
 
+    # Here we get the user's recent sales to display on the dashboard.
+    recent_sales = ProductSale.objects.filter(
+        user=request.user
+    ).select_related('user', 'product', 'unlimited_product').order_by('-created_at')
 
-    # Get recent sales for display
-    recent_sales = ProductSale.objects.filter(user=request.user).select_related('user', 'product', 'unlimited_product').order_by('-created_at')
-
-    # Get sales data for the dashboard graphs
+    # Then we get the sales data grouped by day for the current week
     sales_data_by_day = get_sales_data_by_day(start_of_week, end_of_week, request.user, exchange_rates)
 
-    # Fetch Cold DM, Ads, and View Data for the dashboard
+    # Then we get the data related to Cold DMs sent during the week
     cold_dm_data = ColdDM.objects.filter(
         saved_by=request.user,
         created_at__range=[start_of_week, end_of_week]
     ).annotate(day=TruncDay('created_at')).values('day').annotate(total_dms=Count('id')).order_by('day')
 
+    # Then we get the ads sent for the week
     ads_data = Channels.objects.filter(
         user=request.user,
         start_time__range=[start_of_week, end_of_week]
     ).annotate(day=TruncDay('start_time')).values('day').annotate(total_ads=Sum('ad_count')).order_by('day')
 
+    # Then we get the views sent for the week
     views_data = AutoSellView.objects.filter(
         autosell__user=request.user,
         view_date__range=[start_of_week, end_of_week]
     ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
 
+    # Here we generate a list of day names (Monday to Sunday) for the current week
     days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
 
+    # Here we initialize dictionaries to store total counts for sales, ads, DMs, and views per day
     total_sales_per_day = {day: 0 for day in days}
     total_ads_per_day = {day: 0 for day in days}
     total_dms_per_day = {day: 0 for day in days}
     total_views_per_day = {day: 0 for day in days}
 
+    # Then we set the dictionaries with data gotten earlier
     for data in sales_data_by_day:
         day_name = data['day']
         total_sales_per_day[day_name] += data['total_sales']
@@ -227,33 +273,42 @@ def dashboard_view(request):
         day_name = data['day'].strftime('%A')
         total_views_per_day[day_name] = data['total_views']
 
+    # Here we handle the payout form submissions from the dashboard
     if request.method == 'POST' and 'payout_form' in request.POST:
         payout_form = PayoutRequestForm(request.POST, user=request.user)
         if payout_form.is_valid():
+            # We save the payout request and update the user's income
             payout_request = payout_form.save(commit=False)
             payout_request.user = request.user
 
+            # We get the requested currency and amount for payout
             currency = payout_request.currency
             amount = Decimal(payout_request.amount)
 
+            # We also get the user's balance for the selected currency
             currency_attribute = f"{currency.lower().replace('.', '_')}_total"
-
             user_income_balance = getattr(user_income, currency_attribute, None)
 
             if user_income_balance is not None and amount <= user_income_balance:
+                # If the user has enough balance, we minus the requested amount from the user's balance
                 setattr(user_income, currency_attribute, user_income_balance - amount)
                 user_income.save()
 
+                # Then we save the payout request and show a success message
                 payout_request.save()
                 messages.success(request, 'Your payout request has been received. You will receive your funds within 24 hours.')
                 return redirect('dashboard')
             else:
+                # Here we show an error message if the user has insufficient funds, meaning less than what was requested.
                 messages.error(request, 'Insufficient funds for the requested payout.')
         else:
+            # We also show an error message if the form is invalid
             messages.error(request, 'Invalid payout request form.')
     else:
+        # If there was no submission, we initialize an empty payout form!
         payout_form = PayoutRequestForm(user=request.user)
 
+    # Finally we render the dashboard template with all the collected data
     return render(request, 'dashboard/main.html', {
         'days': days,
         'total_sales': [float(total_sales_per_day[day]) for day in days],
@@ -264,3 +319,6 @@ def dashboard_view(request):
         'payout_form': payout_form,
         'user_income': formatted_income
     })
+
+
+

@@ -152,7 +152,7 @@ def send_timer_expiry_email(request):
             Channels.objects.get(channel_id=channel_id)
         except Channels.DoesNotExist:
             # If the channel does not exist, do nothing (no response, no email sent)
-            return
+            return JsonResponse({'success': False, 'message': 'Channel not found!'})
 
         # It then gets the email of the currently logged-in user.
         user_email = request.user.email  

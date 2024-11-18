@@ -14,3 +14,8 @@ def download_to_local(url:str, out_path:Path, parent_mkdir: bool = True):
     except requests.RequestException as e:
         print(f"Failed to download {url}: {e}")
         return False
+    
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") -> Lines 4 - 16
+'''

@@ -185,3 +185,8 @@ def get_checkout_customer_plan(session_id):
         **subscription_data,
     }
     return data
+
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") -> Lines 5 - 188
+'''

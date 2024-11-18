@@ -1,4 +1,3 @@
-# forms.py
 from django import forms
 from .models import OneTimeProductCategory, OneTimeProduct, UnlimitedProduct
 from helpers.supabase import upload_to_supabase
@@ -14,11 +13,12 @@ class OneTimeProductForm(forms.ModelForm):
     def save(self, commit=True):
         product = super().save(commit=False)
         
-        # Upload to Supabase and store URL only
+        # Here we upload to Supabase and store URL only
         if self.cleaned_data.get('product_image'):
             product_image = self.cleaned_data['product_image']
             product.product_image_url = upload_to_supabase(product_image, folder='one_time_products')
-            product.product_image = None  # Clear the local image field
+            # Here we clear the local image field
+            product.product_image = None 
 
         if commit:
             product.save()
@@ -38,11 +38,12 @@ class OneTimeProductCategoryForm(forms.ModelForm):
     def save(self, commit=True):
         category = super().save(commit=False)
         
-        # Upload to Supabase and store URL only
+        # Here we upload to Supabase and store URL only
         if self.cleaned_data.get('category_image'):
             category_image = self.cleaned_data['category_image']
             category.category_image_url = upload_to_supabase(category_image, folder='category_images')
-            category.category_image = None  # Clear the local image field
+            # Here we clear the local image field
+            category.category_image = None 
 
         if commit:
             category.save()
@@ -66,13 +67,19 @@ class UnlimitedProductForm(forms.ModelForm):
     def save(self, commit=True):
         product = super().save(commit=False)
         
-        # Upload to Supabase and store URL only
+        # Here we upload to Supabase and store URL only
         if self.cleaned_data.get('product_image'):
             product_image = self.cleaned_data['product_image']
             product.product_image_url = upload_to_supabase(product_image, folder='unlimited_products')
-            product.product_image = None  # Clear the local image field
+            # Here we clear the local image field
+            product.product_image = None 
 
         if commit:
             product.save()
         return product
  
+"""
+Citations:
+("Working with forms") -> Lines 6 - 80
+"""
+

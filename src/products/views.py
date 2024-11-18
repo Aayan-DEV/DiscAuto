@@ -560,13 +560,22 @@ def add_product_to_category(request, category_id):
             try:
                 # We also have to create a new stripe product.
                 # Create a new product in Stripe for this one-time product.
-                stripe_product = stripe.Product.create(
-                    name=one_time_product.title, 
-                    description=one_time_product.description, 
-                    metadata={
-                        'django_product_id': one_time_product.id 
-                    }
-                )
+                try:
+                    stripe_product = stripe.Product.create(
+                        name=one_time_product.title, 
+                        description=one_time_product.description, 
+                        metadata={
+                            'django_product_id': one_time_product.id 
+                        }
+                    )
+                except stripe.error.InvalidRequestError:
+                    stripe_product = stripe.Product.create(
+                        name=one_time_product.title, 
+                        description="No description of product.", 
+                        metadata={
+                            'django_product_id': one_time_product.id 
+                        }
+                    )
                 # Create a price object in Stripe for the product.
                 stripe_price = stripe.Price.create(
                     product=stripe_product.id,
@@ -739,302 +748,268 @@ def edit_unlimited_product(request, pk):
     # Finally render the template with the form to show the user.
     return render(request, 'features/products/edit_unlimited_product.html', {'form': form})
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Only allow logged in users. 
 @login_required
 def edit_category(request, pk):
-    # First get the specific category by primary key (pk) from the database, or return a 404 error.
+    # First we get the specific category using the primary key from the database.
     category = get_object_or_404(OneTimeProductCategory, pk=pk)
 
-    # Check if the request method is POST, meaning the form has been submitted.
+    # Then we check if the request method is POST.
     if request.method == 'POST':
-        # Bind the form to the submitted data and files, and link it to the current category instance.
+        # Then we set "form" to the submitted data and files, and also link it to the current category instance
         form = OneTimeProductCategoryForm(request.POST, request.FILES, instance=category)
         
-        # Validate the form data to ensure it meets all required conditions.
+        # Here we validate the form data to make sure that it meets all required conditions.
         if form.is_valid():
-            # Save the form data without committing to the database yet, allowing further edits.
+            # Here we save the form data without committing to the database because it makes it so that we can do more edits.
             updated_category = form.save(commit=False)
 
-            # Check if a new category image is included in the request.
+            # Then we check if a new category image is included in the request
             if 'category_image' in request.FILES:
-                # Upload the image to Supabase, saving the returned URL to the category object.
+                # If it is, we upload the image to Supabase, and save the given public URL to the category object.
                 category_image_url = upload_to_supabase(request.FILES['category_image'], folder='category_images')
                 updated_category.category_image_url = category_image_url
 
-            # Save the updated category to the database.
+            # Then we save the updated category to the database.
             updated_category.save()
-            # Redirect the user to the category detail page after saving.
+            # We also redirect the user to the category detail page after saving.
             return redirect('category_detail', category_id=category.id)
     else:
-        # Send error if request method is not POST.
         form = OneTimeProductCategoryForm(instance=category)
 
-    # Finally render the template with the form to show the user.
+    # Finally we render the template with the form to show the user.
     return render(request, 'features/products/edit_category.html', {'form': form})
 
 
-# Ensure only logged-in users can delete a one-time product, protecting data access.
 @login_required
 def delete_one_time_product(request, pk):
-    # Retrieve the one-time product by primary key (pk) for the current user’s category.
-    # If the product doesn’t exist or doesn’t belong to the user, return a 404 error.
+    # Here we first get the one-time product by primary key for the current user’s category.
     product = get_object_or_404(OneTimeProduct, pk=pk, category__user=request.user)
-    # Store the ID of the category that the product belongs to, to use in redirection after deletion.
+    # Then we store the ID of the category that the product belongs to, as we will use it later
     category_id = product.category.id
 
-    # Check if the product has an associated Stripe product ID for archiving.
+    # Here we check if the product has an associated Stripe product ID because we need to archive it from there.
     if product.stripe_product_id:
         try:
-            # Deactivate the product on Stripe to prevent further use but keep it in Stripe’s records.
+            # We deactivate the product on Stripe.
             stripe.Product.modify(
                 product.stripe_product_id,
                 active=False
             )
-        # Handle any errors from Stripe gracefully.
+        # We also handle any errors from Stripe gracefully.
         except stripe.error.StripeError as e:
             print(f"Error archiving one-time product on Stripe: {e}")
 
-    # Delete the product from the database after handling Stripe archiving.
+    # Here we delete the product from the database after archiving it from stripe.
     product.delete()
 
-    # Redirect the user to the category detail page after successful deletion.
+    # Finally we redirect the user to the category detail page after successfully deleting the product.
     return redirect('category_detail', category_id=category_id)
 
-# Ensure only logged-in users can delete a category to protect user data.
 @login_required
 def delete_category(request, pk):
-    # Retrieve the category by primary key (pk) that belongs to the current user.
-    # Return a 404 error if it doesn’t exist or doesn’t belong to the user.
+    # First we get the category by primary key that belongs to the current user.
     category = get_object_or_404(OneTimeProductCategory, pk=pk, user=request.user)
 
-    # Retrieve all one-time products associated with this category to handle them before deleting the category.
+    # Then we get all the one-time products associated with this category to handle them before deleting the category.
     one_time_products = OneTimeProduct.objects.filter(category=category)
 
-    # Loop through each product in the category to handle any Stripe-related data.
+    # Here we loop through each product in the category to archive all the products from stripe.
     for product in one_time_products:
         # If the product has a Stripe product ID, deactivate it on Stripe before deletion.
         if product.stripe_product_id:
             try:
                 stripe.Product.modify(
                     product.stripe_product_id,
-                    active=False  # Deactivates the product on Stripe.
+                    active=False  #
                 )
             except stripe.error.StripeError as e:
-                # Print an error message if the deactivation fails.
                 print(f"Error archiving product {product.title} on Stripe: {e}")
         
-        # Delete the product from the database after handling Stripe.
+        # And we also delete the product from database.
         product.delete()
 
-    # Delete the category itself from the database after all products have been removed.
+    # After deleting all the products inside the category, we delete the category too.
     category.delete()
 
-    # Redirect the user to the main products page after deleting the category.
+    # Finally we redirect the user to the main products page.
     return redirect('products')
 
-# Ensure only logged-in users can access the product options page for adding new products.
 @login_required
 def add_product_options(request):
-    # Render the page with options for adding different types of products.
+    # Here we only render the page with options for adding different types of products.
     return render(request, "features/products/add_product_options.html")
 
-# Ensure only logged-in users can add an unlimited product to protect data.
 @login_required
 def add_unlimited_product(request):
-    # Check if the request method is POST, indicating form submission for adding a new product.
     if request.method == 'POST':
-        # Initialize the form with the submitted data and files.
         form = UnlimitedProductForm(request.POST, request.FILES)
         
-        # Validate the form data to ensure it meets all requirements.
+        # Here we validate the form data to make sure it meets all the requirements
         if form.is_valid():
-            # Save the form data without committing, so we can set additional fields.
+            # First we save the form data without committing
             unlimited_product = form.save(commit=False)
-            # Assign the current logged-in user as the owner of the new product.
+            # Then we assign the current logged-in user as the owner of the new product.
             unlimited_product.user = request.user
 
-            # Check if an image file is uploaded with the product form.
+            # Then we check if an image file is uploaded with the product form
             if 'product_image' in request.FILES:
-                # Upload the image to Supabase and get the URL, saving it to the product.
+                # If it is, we upload the image to Supabase and get the Public URL, saving it to the product
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
                 unlimited_product.product_image_url = product_image_url 
 
-            # Save the product to the database with all information.
+            # Then we save the product to the database
             unlimited_product.save()
 
-            # Create a new product on Stripe to link this Django product to Stripe.
-            stripe_product = stripe.Product.create(
-                name=unlimited_product.title,
-                description=unlimited_product.description,
-                metadata={
-                    'django_product_id': unlimited_product.id  # Attach the Django product ID for reference.
-                }
-            )
-            # Create a price on Stripe associated with this product using the provided price and currency.
+            # Here we also create a new product on Stripe to link this Django product to Stripe.
+            try:
+                stripe_product = stripe.Product.create(
+                    name=unlimited_product.title,
+                    description=unlimited_product.description,
+                    metadata={
+                        'django_product_id': unlimited_product.id 
+                    }
+                )
+            except stripe.InvalidRequestError:
+                stripe_product = stripe.Product.create(
+                    name=unlimited_product.title,
+                    description="No Description for this product.",
+                    metadata={
+                        'django_product_id': unlimited_product.id 
+                    }
+                )
+            # Here we create a price on Stripe connected with this product using the given price and currency by the user
+            # when they were adding the product.
             stripe_price = stripe.Price.create(
                 product=stripe_product.id,
-                unit_amount=int(unlimited_product.price * 100),  # Convert price to cents for Stripe.
+                unit_amount=int(unlimited_product.price * 100), 
                 currency=unlimited_product.currency.lower(),
-                recurring=None,  # No recurring price since this is a one-time product.
+                recurring=None,  
             )
 
-            # Save the Stripe product and price IDs to the unlimited product for future reference.
+            # Finally we save the Stripe product and price IDs to the unlimited product for future
             unlimited_product.stripe_product_id = stripe_product.id
             unlimited_product.stripe_price_id = stripe_price.id
-            unlimited_product.save()  # Commit all changes to the database.
+             # We commit all changes to the database.
+            unlimited_product.save() 
 
-            # Redirect the user to the products page after successfully adding the product.
+            # We also redirect the user to the products page
             return redirect('products')
     else:
-        # If the request method is not POST, initialize an empty form for the user to fill in.
         form = UnlimitedProductForm()
 
-    # Render the add unlimited product page with the form for user input.
+    # Here we render the add unlimited product page with the form for user input
     return render(request, 'features/products/add_unlimited_product.html', {'form': form})
 
-
-# Restrict this view to logged-in users for security, only allowing product deletion by the owner.
 @login_required
 def delete_unlimited_product(request, pk):
-    # Retrieve the unlimited product by primary key (pk) that belongs to the logged-in user.
-    # If it doesn’t exist or doesn’t belong to the user, return a 404 error.
     product = get_object_or_404(UnlimitedProduct, pk=pk, user=request.user)
 
-    # Check if the product has a Stripe product ID before attempting to deactivate it.
+    # First we check if the product has a Stripe product ID 
     if product.stripe_product_id:
         try:
-            # Deactivate the product on Stripe to keep records without allowing new purchases.
+            # We try to deactivate the product on Stripe
             stripe.Product.modify(
                 product.stripe_product_id,
                 active=False
             )
         except stripe.error.StripeError as e:
-            # Log any errors encountered when attempting to deactivate the product on Stripe.
+            # If any errors, we log them
             print(f"Error archiving unlimited product on Stripe: {e}")
 
-    # Delete the product from the database after handling Stripe.
+    # Then we delete the product from the database
     product.delete()
 
-    # Redirect the user to the products page after successfully deleting the product.
+    # We also redirect the user to the products page
     return redirect('products')
 
-# Limit access to logged-in users to view details of a specific category.
 @login_required
 def category_detail(request, category_id):
-    # Retrieve the category by its ID, ensuring it belongs to the logged-in user.
-    # Return a 404 error if the category doesn’t exist or doesn’t belong to the user.
     category = get_object_or_404(OneTimeProductCategory, id=category_id, user=request.user)
 
-    # Retrieve all products associated with this category for display in the template.
+    # First we get all products connected with this category for display in the template.
     products = category.products.all()
     
-    # Render the category detail template, passing in the category and its products for display.
+    # Then we render the category detail template, passing in the category and its products to show on frontend
     return render(request, 'features/products/category_detail.html', {
         'category': category,
         'products': products,
     })
 
-# View the details of a specific unlimited product, accessible to all users.
 def product_detail(request, product_id):
-    # Retrieve the unlimited product by its ID.
-    # Return a 404 error if the product doesn’t exist.
     product = get_object_or_404(UnlimitedProduct, id=product_id)
 
-    # Render the product detail template, passing in the product and Stripe publishable key for frontend use.
+    # Here we render the product detail template, we pass in the product and Stripe publishable key to use in the Fronted.
     return render(request, 'features/products/product_detail.html', {
         'product': product,
         'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY 
     })
 
-# Exempt CSRF protection for creating a checkout session, since it’s meant to receive POST requests from external sources.
 @csrf_exempt
 def create_checkout_session(request, product_id):
-    # Check if the request method is POST, indicating a request to create a checkout session.
     if request.method == 'POST':
-        # Parse the JSON data from the request body, expecting customer details.
+        # First we parse the JSON data from the request body.
         data = json.loads(request.body)
         
-        # Retrieve the unlimited product by ID, returning a 404 if it doesn’t exist.
+        # Then we get the unlimited product by using the ID.
         product = get_object_or_404(UnlimitedProduct, id=product_id)
         customer_name = data.get('name')
         customer_email = data.get('email')
 
-        # Store the previous page URL in session to redirect back after checkout.
+        # We then store the previous page URL in session to then redirect back after checkout is successful
         previous_url = request.META.get('HTTP_REFERER')
         request.session['previous_url'] = previous_url
 
         try:
-            # Create a Stripe checkout session for the selected product.
+            # First we try to create a Stripe checkout session for the product
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card', 'paypal'],
                 line_items=[{
-                    'price': product.stripe_price_id,  # Use the product's Stripe price ID.
+                    'price': product.stripe_price_id, 
                     'quantity': 1,
                 }],
-                mode='payment',  # Set the mode to one-time payment.
+                mode='payment',
                 success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
-                customer_email=customer_email,  # Pre-fill customer's email for Stripe.
+                customer_email=customer_email,  
                 metadata={
                     'product_id': product.id,
                     'customer_name': customer_name,  
                     'customer_email': customer_email
                 }
             )
-            # Return the checkout session ID as a JSON response for frontend use.
             return JsonResponse({'id': checkout_session.id})
         except Exception as e:
-            # Return an error message in JSON format if creating the session fails.
             return JsonResponse({'error': str(e)}, status=400)
 
-# Update the user's income with the amount and currency, creating an income record if it doesn’t exist.
 def update_user_income(user, amount, currency):
-    # Retrieve or create a UserIncome record for the user, then update their income.
+    # First we get UserIncome record for the user
     user_income, created = UserIncome.objects.get_or_create(user=user)
+    #  then we update their income
     user_income.update_income(Decimal(str(amount)), currency)
 
-# Handle successful checkout sessions, including updating records and sending confirmation emails.
 def checkout_success(request):
-    # Retrieve the session ID from the query parameters.
+    # First we get the session ID.
     session_id = request.GET.get('session_id')
-    # Fetch the checkout session details from Stripe.
+    # Then we get the checkout session details from Stripe.
     session = stripe.checkout.Session.retrieve(session_id)
 
-    # Retrieve metadata from the session for product and customer details.
+    # Then we get the metadata from the session for product and customer details to use later
     product_id = session.metadata.get('product_id')
     customer_name = session.metadata.get('customer_name')
     customer_email = session.metadata.get('customer_email')
 
-    # Find the purchased unlimited product by its ID.
+    # Here we find the purchased unlimited product using its ID.
     unlimited_product = UnlimitedProduct.objects.filter(id=product_id).first()
 
-    # Proceed if the product exists, otherwise return an error.
     if unlimited_product:
         user = unlimited_product.user
 
-        # Retrieve the user's AutoSell info for branding the email sender.
+        # Here we get the user's AutoSell info for sending the email.
         autosell_info = AutoSell.objects.filter(user=user).first()
         from_name = autosell_info.name if autosell_info else "Mystorelink"
         from_email = f"{from_name} <{EMAIL_HOST_USER}>"
 
-        # Record the sale in the ProductSale model, including all transaction details.
+        # We also record the sale in the ProductSale model
         ProductSale.objects.create(
             user=unlimited_product.user,
             unlimited_product=unlimited_product,
@@ -1045,10 +1020,10 @@ def checkout_success(request):
             customer_email=customer_email
         )
 
-        # Generate a unique identifier for tracking purposes.
+        # Here we generate a unique identifier because same gmails will have a error
         unique_hash = str(uuid.uuid4())
 
-        # Prepare and send a confirmation email to the customer with the purchase details.
+        # Then we prepare and send a confirmation email to the customer with their purchase details.
         customer_subject = f"Your purchase of {unlimited_product.title}"
         customer_html_template = render_to_string("emails/purchase_confirmation.html", {
             "customer_name": customer_name,
@@ -1067,7 +1042,7 @@ def checkout_success(request):
         customer_email_message.attach_alternative(customer_html_template, "text/html")
         customer_email_message.send()
 
-        # Prepare and send a notification email to the product owner about the sale.
+        # We also prepare and send a notification email to the product owner about the sale
         owner_subject = f"DiscAuto Order confirmation for: {unlimited_product.price} {unlimited_product.currency} from {customer_name}"
         owner_html_content = render_to_string("emails/sale_notification.html", {
             "username": unlimited_product.user.username,
@@ -1087,46 +1062,45 @@ def checkout_success(request):
         owner_email.attach_alternative(owner_html_content, "text/html")
         owner_email.send()
 
-        # Update the owner's income record and send a Pushover notification if they have a key.
+        # Here we then update the owner's income record and send a Pushover notification if they have a key saved.
         profile, created = UserProfile.objects.get_or_create(user=unlimited_product.user)
         owner_pushover_key = profile.pushover_user_key
         if owner_pushover_key:
             message = f"🎉 {customer_name} Ordered 1 item from your store!"
             send_pushover_notification(owner_pushover_key, message)
-            # Add the income to the user's income record with the transaction currency.
+            # Here we ddd the income to the user's income record with the transaction currency
             update_user_income(unlimited_product.user, session.amount_total / 100, session.currency.upper())
         else:
-            # Log a message if the owner doesn’t have a Pushover key for notifications.
+            # We also log a message if the owner doesn’t have a Pushover key for notifications, just for debugging
             print(f"No Pushover key found for {unlimited_product.user.username}, skipping push notification.")
     
     else:
-        # Return a JSON error if the product isn’t found.
         return JsonResponse({'error': 'Product not found'}, status=400)
 
-    # Retrieve the previous URL from the session for redirection, then remove it.
+    # Here we get the previous URL from the session for redirection, then remove it.
     previous_url = request.session.get('previous_url', '/')
     request.session.pop('previous_url', None)
-    # Redirect the user back to the previous page or homepage after checkout.
+    # Then we redirect the user back to the previous page after checkout.
     return redirect(previous_url)
 
 
-# Render the cancel checkout page if a customer cancels the checkout process.
+# Here we render the cancel checkout page if a customer cancels the checkout process.
 def checkout_cancel(request):
     return render(request, 'checkout/cancel.html')
 
-# Display the details of a specific one-time product.
+# Here we show the details of a specific one-time product.
 def one_time_product_detail(request, product_id):
-    # Retrieve the one-time product by its ID; return a 404 error if not found.
+    # We get the one-time product by its ID
     product = get_object_or_404(OneTimeProduct, id=product_id)
 
-    # Get the first product in the product's category for additional context, if needed.
+    # Here we get the first product in the product's category
     first_product_in_category = product.category.products.first()
 
-    # Store the previous page URL in session to return to it later, if available.
+    # Then we also store the previous page URL if available 
     if 'HTTP_REFERER' in request.META:
         request.session['previous_url'] = request.META.get('HTTP_REFERER')
 
-    # Prepare context data to pass to the template, including the product, its category, and Stripe key.
+    # Here we prepare context data to pass to the template, including the product, its category, and Stripe key.
     context = {
         'product': product,
         'first_product': first_product_in_category,
@@ -1134,43 +1108,39 @@ def one_time_product_detail(request, product_id):
         'STRIPE_PUBLISHABLE_KEY': os.getenv('STRIPE_PUBLISHABLE_KEY')
     }
 
-    # Render the one-time product detail template with the context data.
+    # Finally we render the one-time product detail template with the context data collected
     return render(request, 'features/products/one_time_product_detail.html', context)
 
-# Display the details of a specific unlimited product.
+# Here we show the details of a specific unlimited product.
 def unlimited_product_detail(request, product_id):
-    # Retrieve the unlimited product by its ID; return a 404 error if not found.
+    # First we get the unlimited product by its ID
     product = get_object_or_404(UnlimitedProduct, id=product_id)
 
-    # Render the unlimited product detail template, passing in the product and Stripe publishable key.
+    # Then we render the unlimited product detail template
     return render(request, 'features/products/unlimited_product_detail.html', {
         'product': product,
         'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY  
     })
 
-# Exempt CSRF protection for creating a one-time checkout session.
 @csrf_exempt
 def create_one_time_checkout_session(request, product_id):
-    # Ensure the request method is POST before processing.
     if request.method == 'POST':
-        # Parse JSON data from the request body to retrieve customer details.
         data = json.loads(request.body)
 
-        # Retrieve the one-time product by ID; return a 404 if not found.
+        # First we get the one-time product by ID
         current_product = get_object_or_404(OneTimeProduct, id=product_id)
-
         customer_name = data.get('name')
         customer_email = data.get('email')
 
         try:
-            # Create a checkout session on Stripe for the specified one-time product.
+            # Here we create a checkout session on Stripe for the one-time product.
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card', 'paypal'],
                 line_items=[{
-                    'price': current_product.stripe_price_id,  # Use Stripe price ID for the product.
+                    'price': current_product.stripe_price_id,  
                     'quantity': 1,
                 }],
-                mode='payment',  # Set session to one-time payment mode.
+                mode='payment',  
                 success_url=request.build_absolute_uri(reverse('one_time_checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
                 customer_email=customer_email,
@@ -1181,49 +1151,43 @@ def create_one_time_checkout_session(request, product_id):
                 }
             )
 
-            # Return the checkout session ID as a JSON response.
             return JsonResponse({'id': checkout_session.id})
-
         except stripe.error.StripeError as e:
-            # If a Stripe error occurs, return the error as a JSON response.
             return JsonResponse({'error': str(e)}, status=400)
 
-# Handle successful checkout for a one-time product purchase.
+# Here we handle successful checkout for a one-time product purchase.
 def one_time_checkout_success(request):
-    # Retrieve the session ID from the query parameters.
     session_id = request.GET.get('session_id')
-    # Retrieve the Stripe checkout session to access metadata and payment details.
+    # Here it gets the Stripe checkout session to see metadata and payment details
     session = stripe.checkout.Session.retrieve(session_id)
 
-    # Extract product and customer details from the session metadata.
+    # Then we take out the product and customer details from the session metadata
     product_id = session.metadata.get('product_id')
     customer_name = session.metadata.get('customer_name')
     customer_email = session.metadata.get('customer_email')
 
-    # Retrieve the one-time product by ID; return a 404 if it doesn’t exist.
+    # Then we get the one-time product by ID
     product = get_object_or_404(OneTimeProduct, id=product_id)
 
-    # Create a new record of the sale in the ProductSale model.
+    # Here we create a new record of the sale in the ProductSale model.
     ProductSale.objects.create(
-        user=product.category.user,  # Assign the sale to the product's owner.
+        user=product.category.user,  
         product=product, 
         stripe_session_id=session_id,
-        amount=session.amount_total / 100,  # Convert cents to dollars.
+        amount=session.amount_total / 100,  
         currency=session.currency.upper(),
         customer_name=customer_name, 
         customer_email=customer_email 
     )
 
-    # Retrieve the product owner's AutoSell information for email branding.
+    # Here we get the product owner's AutoSell information to send them a email.
     user = product.category.user
     autosell_info = AutoSell.objects.filter(user=user).first()
     from_name = autosell_info.name if autosell_info else "Mystorelink"
     from_email = f"{from_name} <{EMAIL_HOST_USER}>"
 
-    # Generate a unique identifier for tracking and include it in the email.
     unique_hash = str(uuid.uuid4())
 
-    # Prepare and send a confirmation email to the customer.
     customer_subject = f"Your purchase of {product.title}"
     customer_html_template = render_to_string("emails/one_time_product_purchase_confirmation.html", {
         "customer_name": customer_name,
@@ -1242,7 +1206,6 @@ def one_time_checkout_success(request):
     customer_email_message.attach_alternative(customer_html_template, "text/html")
     customer_email_message.send()
 
-    # Prepare and send a notification email to the product owner about the sale.
     owner_subject = f"New Order for {product.title} from {customer_name}"
     owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
         "username": product.category.user.username,
@@ -1262,90 +1225,20 @@ def one_time_checkout_success(request):
     owner_email_message.attach_alternative(owner_html_content, "text/html")
     owner_email_message.send()
 
-    # Check if the product owner has a Pushover key and send a notification if available.
     profile, created = UserProfile.objects.get_or_create(user=product.category.user)
     owner_pushover_key = profile.pushover_user_key
     if owner_pushover_key:
         message = f"🎉 {customer_name} ordered 1 item from your store!"
         send_pushover_notification(owner_pushover_key, message)
 
-    # Update the product owner's income with the sale amount and currency.
     update_user_income(product.category.user, session.amount_total / 100, session.currency.upper())
 
-    # Deactivate the product on Stripe to prevent further purchases, since it's a one-time sale.
     try:
         stripe.Product.modify(product.stripe_product_id, active=False)
     except stripe.error.StripeError as e:
-        # Log any errors encountered during deactivation on Stripe.
         print(f"Error archiving product on Stripe: {e}")
 
-    # Delete the product from the database after handling the sale.
     product.delete()
 
-    # Redirect the user back to the previous URL or the homepage if not available.
     previous_url = request.session.get('previous_url', '/')
     return redirect(previous_url)
-
-
-
-# @login_required
-# def add_one_time_product_to_category(request, category_id):
-#     category = get_object_or_404(OneTimeProductCategory, id=category_id, user=request.user)
-
-#     if request.method == 'POST':
-#         form = OneTimeProductForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             one_time_product = form.save(commit=False)
-#             one_time_product.category = category
-#             one_time_product.save()  
-
-#             try:
-#                 stripe_product = stripe.Product.create(
-#                     name=one_time_product.title,
-#                     description=one_time_product.description,
-#                     metadata={
-#                         'django_product_id': one_time_product.id
-#                     }
-#                 )
-
-#                 stripe_price = stripe.Price.create(
-#                     product=stripe_product.id,
-#                     unit_amount=int(one_time_product.price * 100),  
-#                     currency=one_time_product.currency.lower(),
-#                     recurring=None  
-#                 )
-
-#                 one_time_product.stripe_product_id = stripe_product.id
-#                 one_time_product.stripe_price_id = stripe_price.id
-#                 one_time_product.save() 
-
-#             except stripe.error.StripeError as e:
-#                 print(f"Stripe error: {e}")
-#                 return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
-
-#             return redirect('category_detail', category_id=category.id)
-#     else:
-#         form = OneTimeProductForm()
-
-#     return render(request, 'features/products/add_product_to_category.html', {'form': form, 'category': category})
- 
-
- 
-
-# @login_required
-# def refresh_sales(request):
-#     products = UnlimitedProduct.objects.filter(user=request.user)
-
-#     for product in products:
-#         stripe_sessions = stripe.checkout.Session.list(payment_status='paid')
-#         for session in stripe_sessions:
-#             if session.metadata['product_id'] == str(product.id) and not ProductSale.objects.filter(stripe_session_id=session.id).exists():
-#                 ProductSale.objects.create(
-#                     user=request.user,
-#                     product=product,
-#                     stripe_session_id=session.id,
-#                     amount=session.amount_total / 100,  
-#                     currency=session.currency.upper(),
-#                 )
-
-#     return JsonResponse({'message': 'Sales data refreshed successfully'})

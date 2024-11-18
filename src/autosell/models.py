@@ -28,3 +28,8 @@ class AutoSellView(models.Model):
     # for easy identification in the django admin. 
     def __str__(self):
         return f"View on {self.view_date} for {self.autosell.name}"
+
+"""
+Citations:
+("Models") -> Lines 6 - 30
+"""

@@ -6,3 +6,8 @@ def landing_dashboard_page_view(request):
         return dashboard_view(request)
 
     return render(request, 'landing/main.html', {'current_page': 'home'})
+
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") -> Lines 4 - 8
+'''

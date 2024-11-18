@@ -3,6 +3,11 @@ from django.core.management.base import BaseCommand
 import helpers
 from django.conf import settings
 
+'''
+Citation:
+("Python Tutorial: Build a SaaS App") --> 20 - 40
+'''
+
 # Ensure STATICFILES_VENDOR_DIR points to the correct path
 STATICFILES_VENDOR_DIR = settings.STATICFILES_VENDOR_DIR
 

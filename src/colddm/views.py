@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from .models import ColdDM, UserColdDMStats
 from django.contrib.auth.decorators import login_required
 from django.db.models import F
+from django.contrib import messages
+from django.db import DataError
 
 @login_required 
 def cold_dm_view(request):
@@ -16,14 +18,26 @@ def cold_dm_view(request):
 
         # Make sure that both username and user_id are provided as they are required. 
         if username and user_id:  
-            # Here we create a new ColdDM entry and automatically set the logged-in user as 'saved_by'
-            ColdDM.objects.create(username=username, user_id=user_id, note=note, saved_by=request.user)
-            # We also increment the total number of Cold DMs posted by the user
-            stats, created = UserColdDMStats.objects.get_or_create(user=request.user)
-            # Use F method to increment the count directly in the database
-            stats.total_cold_dms_posted = F('total_cold_dms_posted') + 1
-            stats.save()
-
+            try:
+                # Here we create a new ColdDM entry and automatically set the logged-in user as 'saved_by'
+                ColdDM.objects.create(username=username, user_id=user_id, note=note, saved_by=request.user)
+                # We also increment the total number of Cold DMs posted by the user
+                stats, created = UserColdDMStats.objects.get_or_create(user=request.user)
+                # Use F method to increment the count directly in the database
+                stats.total_cold_dms_posted = F('total_cold_dms_posted') + 1
+                stats.save()
+                messages.success(request, "Cold DM successfully saved!")
+            except DataError:
+                if len(username) >= 151:
+                # Add an error message if the data is too long
+                    messages.error(request, "Username field should be less than 150 characters!")
+                elif len(user_id) >= 151:
+                # Add an error message if the data is too long
+                    messages.error(request, "User ID field should be less than 150 characters!")
+            except Exception as e:
+                # Generic fallback error message
+                messages.error(request, f"An unexpected error occurred: {str(e)}")
+            return JsonResponse({'success': True})
             # Return success response in JSON format
             return JsonResponse({'success': True})
         # Return error response if required fields are missing
