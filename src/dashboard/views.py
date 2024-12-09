@@ -4,8 +4,6 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum, Count
 from products.models import ProductSale
-from autoad.models import Channels
-from colddm.models import ColdDM, UserColdDMStats
 from autosell.models import AutoSellView  # Import AutoSellView for tracking views
 from django.db.models.functions import TruncDay
 import os
@@ -229,18 +227,6 @@ def dashboard_view(request):
     # Then we get the sales data grouped by day for the current week
     sales_data_by_day = get_sales_data_by_day(start_of_week, end_of_week, request.user, exchange_rates)
 
-    # Then we get the data related to Cold DMs sent during the week
-    cold_dm_data = ColdDM.objects.filter(
-        saved_by=request.user,
-        created_at__range=[start_of_week, end_of_week]
-    ).annotate(day=TruncDay('created_at')).values('day').annotate(total_dms=Count('id')).order_by('day')
-
-    # Then we get the ads sent for the week
-    ads_data = Channels.objects.filter(
-        user=request.user,
-        start_time__range=[start_of_week, end_of_week]
-    ).annotate(day=TruncDay('start_time')).values('day').annotate(total_ads=Sum('ad_count')).order_by('day')
-
     # Then we get the views sent for the week
     views_data = AutoSellView.objects.filter(
         autosell__user=request.user,
@@ -250,24 +236,14 @@ def dashboard_view(request):
     # Here we generate a list of day names (Monday to Sunday) for the current week
     days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
 
-    # Here we initialize dictionaries to store total counts for sales, ads, DMs, and views per day
+    # Here we initialize dictionaries to store total counts for sales and views per day
     total_sales_per_day = {day: 0 for day in days}
-    total_ads_per_day = {day: 0 for day in days}
-    total_dms_per_day = {day: 0 for day in days}
     total_views_per_day = {day: 0 for day in days}
 
     # Then we set the dictionaries with data gotten earlier
     for data in sales_data_by_day:
         day_name = data['day']
         total_sales_per_day[day_name] += data['total_sales']
-
-    for data in ads_data:
-        day_name = data['day'].strftime('%A')
-        total_ads_per_day[day_name] = data['total_ads']
-
-    for data in cold_dm_data:
-        day_name = data['day'].strftime('%A')
-        total_dms_per_day[day_name] = data['total_dms']
 
     for data in views_data:
         day_name = data['day'].strftime('%A')
@@ -313,8 +289,6 @@ def dashboard_view(request):
         'days': days,
         'total_sales': [float(total_sales_per_day[day]) for day in days],
         'total_clicks': [float(total_views_per_day[day]) for day in days],
-        'total_ads': [float(total_ads_per_day[day]) for day in days],
-        'total_dms': [float(total_dms_per_day[day]) for day in days],
         'recent_sales': recent_sales,
         'payout_form': payout_form,
         'user_income': formatted_income
