@@ -13,7 +13,7 @@
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
         .header {
@@ -23,7 +23,7 @@
             padding: 20px;
         }
         .header img {
-            width: 100px;
+            width: 80px;
             margin-bottom: 10px;
         }
         .content {
@@ -37,12 +37,22 @@
             font-size: 16px;
             line-height: 1.6;
         }
+        .product-details {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
         .footer {
             background-color: #eeeeee;
             text-align: center;
             padding: 10px;
             font-size: 12px;
             color: #555;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -56,15 +66,16 @@
             <h2>Hello {{ customer_name }},</h2>
             <p>We appreciate your order of <strong>{{ product_title }}</strong>.</p>
             <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
-            <p>Here is your product:</p>
-            <p style="background-color: #f4f4f4; padding: 10px; border-radius: 5px;">
-                {{ product_content }}
-            </p>
+            <div class="product-details">
+                <p>Here is your product:</p>
+                <p>{{ product_content }}</p>
+            </div>
             <p>Thank you for shopping with us!</p>
             <p>Best regards,<br>Mystorelink Team</p>
         </div>
         <div class="footer">
             <p>&copy; 2024 Mystorelink. All rights reserved.</p>
+            <p><a href="https://mystorel.ink/contact">Contact Us</a></p>
         </div>
     </div>
     
