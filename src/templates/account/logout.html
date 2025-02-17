@@ -1,15 +1,89 @@
-{% extends "account/logout.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load allauth_ui %}
+
 {% block content %}
-    {% trans "Sign Out" as heading %}
-    {% trans "Are you sure you want to sign out?" as subheading %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1e1e3f, #283593); /* Dark gradient background */
+        color: white;
+        font-family: 'Roboto', sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
+        max-width: 500px;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #c084fc;
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 1.2rem;
+        color: #b3b3ff;
+        margin-bottom: 30px;
+    }
+
+    .btn {
+        background: linear-gradient(90deg, #c084fc, #7c3aed);
+        border: none;
+        padding: 10px 20px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-top: 15px;
+        transition: background 0.3s ease;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .btn:hover {
+        background: linear-gradient(90deg, #7c3aed, #c084fc);
+    }
+
+    .btn-cancel {
+        background-color: transparent;
+        color: #b3b3ff;
+        border: 2px solid #7c3aed;
+        margin-top: 10px;
+    }
+
+    .btn-cancel:hover {
+        background-color: #7c3aed;
+        color: white;
+    }
+
+</style>
+
+<div class="container">
+    <h1>{% trans "Sign Out" as heading %}{{ heading }}</h1>
+    <p>{% trans "Are you sure you want to sign out?" as subheading %}{{ subheading }}</p>
+
     {% url 'account_logout' as action_url %}
-    {% #container heading=heading subheading=subheading %}
-    {% trans "Continue" as button_text %}
-    {% #form url=action_url button_text=heading %}
-    {% csrf_token %}
-    {{ redirect_field }}
-    {% /form %}
-    {% /container %}
+    <form action="{{ action_url }}" method="POST">
+        {% csrf_token %}
+        {{ redirect_field }}
+        <button class="btn" type="submit">{% trans "Continue" as button_text %}{{ button_text }}</button>
+    </form>
+
+    <!-- Cancel Button -->
+    <a href="{% url 'home' %}" class="btn btn-cancel">{% trans "Cancel" %}</a>
+</div>
 {% endblock content %}
