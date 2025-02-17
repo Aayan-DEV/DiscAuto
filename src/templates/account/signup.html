@@ -1,20 +1,70 @@
-{% extends "base.html" %}
+{% extends "account/base_entrance.html" %}
 {% load i18n %}
 {% load widget_tweaks %}
 
 {% block head_title %}
-    Sign Up
+  {% trans "Sign Up" %}
 {% endblock head_title %}
 
 {% block content %}
-<div class="container">
-    <h1>Create an Account</h1>
-    <!-- This is the standard django-allauth sign-up view action: -->
-    {% url 'account_signup' as signup_url %}
-    <form action="{{ signup_url }}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn">Sign Up</button>
+<!-- Full-page container with a dark gradient background -->
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e1e3f] to-[#283593]">
+  <!-- Form container with semi-transparent background -->
+  <div class="bg-black bg-opacity-70 p-8 rounded-lg shadow-lg max-w-md w-full">
+    <!-- Page Title -->
+    <h1 class="text-3xl font-bold text-purple-300 mb-4 text-center">
+      {% trans "Sign Up" %}
+    </h1>
+    <!-- Already have an account? -->
+    <p class="text-gray-300 text-center mb-6">
+      {% blocktranslate %}Already have an account? <a href="{{ login_url }}" class="text-purple-300 hover:underline">Sign In</a>{% endblocktranslate %}
+    </p>
+    <!-- Signup Form -->
+    {% url 'account_signup' as action_url %}
+    <form action="{{ action_url }}" method="post" class="space-y-6">
+      {% csrf_token %}
+      {{ redirect_field }}
+      <!-- Loop through form fields -->
+      <div class="space-y-4">
+        {% for field in form %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-200">{{ field.label }}</label>
+            <div class="mt-1">
+              {{ field|add_class:"block w-full px-4 py-2 bg-[#2c2c54] border border-transparent rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" }}
+            </div>
+            {% if field.help_text %}
+              <p class="mt-1 text-xs text-gray-400">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+              <ul class="mt-1 text-xs text-red-500">
+                {% for error in field.errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <!-- Sign Up Button -->
+      <button type="submit" class="w-full py-2 px-4 rounded-md bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-600 hover:to-purple-400 text-white font-semibold transition duration-200">
+        {% trans "Sign Up" %}
+      </button>
     </form>
+    <!-- Optional: Passkey Signup -->
+    {% if PASSKEY_SIGNUP_ENABLED %}
+      <div class="mt-6">
+        <hr class="border-gray-600">
+        <a href="{{ signup_by_passkey_url }}" class="mt-4 block w-full text-center py-2 px-4 border border-purple-400 rounded-md text-purple-300 hover:bg-purple-400 hover:text-black transition">
+          {% trans "Sign up using a passkey" %}
+        </a>
+      </div>
+    {% endif %}
+    <!-- Optional: Social Account Signup -->
+    {% if SOCIALACCOUNT_ENABLED %}
+      <div class="mt-6">
+        {% include "socialaccount/snippets/signup_social.html" with page_layout="entrance" %}
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock content %}
