@@ -94,7 +94,6 @@ INSTALLED_APPS = [
     'autosell',
     'dashboard',
     'tailwind',
-    'theme',
     # third-party-apps
     'allauth',
     'allauth.account',
