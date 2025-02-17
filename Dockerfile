@@ -88,6 +88,7 @@ ENV SUPABASE_API_KEY=${SUPABASE_API_KEY}
 # such as:
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
+RUN python manage.py compress --force
 
 # Set the Django default project name
 ARG PROJ_NAME="discbot"
