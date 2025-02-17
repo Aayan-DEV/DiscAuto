@@ -1,70 +1,159 @@
-{% extends "account/base_entrance.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 {% load widget_tweaks %}
 
 {% block head_title %}
-  {% trans "Sign Up" %}
+    Sign Up
 {% endblock head_title %}
 
 {% block content %}
-<!-- Full-page container with a dark gradient background -->
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e1e3f] to-[#283593]">
-  <!-- Form container with semi-transparent background -->
-  <div class="bg-black bg-opacity-70 p-8 rounded-lg shadow-lg max-w-md w-full">
-    <!-- Page Title -->
-    <h1 class="text-3xl font-bold text-purple-300 mb-4 text-center">
-      {% trans "Sign Up" %}
-    </h1>
+<style>
+    body {
+        background: linear-gradient(135deg, #1e1e3f, #283593); /* Dark gradient background */
+        color: white;
+        font-family: 'Roboto', sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
+        max-width: 500px;
+    }
+
+    h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #c084fc;
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        width: 100%;
+    }
+
+    input {
+        background-color: #2c2c54;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    input::placeholder {
+        color: #b3b3ff;
+    }
+
+    a.link {
+        color: #c084fc;
+        text-decoration: none;
+    }
+
+    a.link:hover {
+        text-decoration: underline;
+    }
+
+    .btn {
+        background: linear-gradient(90deg, #c084fc, #7c3aed);
+        border: none;
+        padding: 10px 20px;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        width: 100%;
+        margin-top: 15px;
+        transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+        background: linear-gradient(90deg, #7c3aed, #c084fc);
+    }
+
+    .divider {
+        border-bottom: 1px solid #7c3aed;
+        width: 100%;
+        margin: 20px 0;
+    }
+
+    .social-buttons {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+    .social-buttons a {
+        background-color: #2c2c54;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        width: 45%;
+        text-decoration: none;
+    }
+
+    .social-buttons a:hover {
+        background-color: #3a3a69;
+    }
+</style>
+
+<div class="container">
+    <h1>Sign Up</h1>
+
     <!-- Already have an account? -->
-    <p class="text-gray-300 text-center mb-6">
-      {% blocktranslate %}Already have an account? <a href="{{ login_url }}" class="text-purple-300 hover:underline">Sign In</a>{% endblocktranslate %}
-    </p>
-    <!-- Signup Form -->
+    <div class="py-3">
+        <p>If you already have an account, please
+            <a class="link" href="{{ login_url }}">sign in</a>.
+        </p>
+    </div>
+
     {% url 'account_signup' as action_url %}
-    <form action="{{ action_url }}" method="post" class="space-y-6">
-      {% csrf_token %}
-      {{ redirect_field }}
-      <!-- Loop through form fields -->
-      <div class="space-y-4">
+    <form action="{{ action_url }}" method="POST" class="form-control">
+        {% csrf_token %}
+        {{ redirect_field }}
+
+        <!-- Render each field from the signup form -->
         {% for field in form %}
-          <div>
-            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-200">{{ field.label }}</label>
-            <div class="mt-1">
-              {{ field|add_class:"block w-full px-4 py-2 bg-[#2c2c54] border border-transparent rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500" }}
-            </div>
-            {% if field.help_text %}
-              <p class="mt-1 text-xs text-gray-400">{{ field.help_text }}</p>
-            {% endif %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% render_field field class="input text-black" placeholder=field.label %}
             {% if field.errors %}
-              <ul class="mt-1 text-xs text-red-500">
-                {% for error in field.errors %}
-                  <li>{{ error }}</li>
-                {% endfor %}
-              </ul>
+                <ul style="color: #ffbaba; font-size: 0.9rem;">
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
             {% endif %}
-          </div>
         {% endfor %}
-      </div>
-      <!-- Sign Up Button -->
-      <button type="submit" class="w-full py-2 px-4 rounded-md bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-600 hover:to-purple-400 text-white font-semibold transition duration-200">
-        {% trans "Sign Up" %}
-      </button>
+
+        <!-- Sign Up Button -->
+        <button class="btn" type="submit">Sign Up</button>
     </form>
-    <!-- Optional: Passkey Signup -->
-    {% if PASSKEY_SIGNUP_ENABLED %}
-      <div class="mt-6">
-        <hr class="border-gray-600">
-        <a href="{{ signup_by_passkey_url }}" class="mt-4 block w-full text-center py-2 px-4 border border-purple-400 rounded-md text-purple-300 hover:bg-purple-400 hover:text-black transition">
-          {% trans "Sign up using a passkey" %}
-        </a>
-      </div>
+
+    <!-- Example: If you support code-based signup (similar to code-based login) -->
+    {% if SIGNUP_BY_CODE_ENABLED %}
+    <div class="divider"></div>
+    <a href="{{ request_signup_code_url }}" class="btn">Mail me a sign-up code</a>
     {% endif %}
-    <!-- Optional: Social Account Signup -->
+
+    <!-- Example: Social Signup Buttons -->
     {% if SOCIALACCOUNT_ENABLED %}
-      <div class="mt-6">
-        {% include "socialaccount/snippets/signup_social.html" with page_layout="entrance" %}
-      </div>
+    <div class="divider"></div>
+    <div class="social-buttons">
+        <!-- Adjust these URLs/providers as needed: -->
+        <a href="/accounts/google/login/?process=signup">Sign Up with Google</a>
+        <a href="/accounts/discord/login/?process=signup">Sign Up with Discord</a>
+    </div>
     {% endif %}
-  </div>
 </div>
 {% endblock content %}
