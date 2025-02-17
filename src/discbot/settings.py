@@ -138,7 +138,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'discbot.context_processors.subscription_plan',
-                'allauth.socialaccount.context_processors.socialaccount',
             ],
         },
     },
