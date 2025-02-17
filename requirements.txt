@@ -19,3 +19,4 @@ pyOpenSSL
 supabase
 pycoinpayments
 pillow
+tailwind
