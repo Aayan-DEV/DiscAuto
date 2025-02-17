@@ -1,8 +1,7 @@
 {% load i18n %}
 {% load static %}
-{% load allauth_ui %}
 <!DOCTYPE html>
-<html data-theme="{% allauth_ui_theme %}">
+<html>
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
             {% endblock head_title %}
         </title>
         {% block extra_head %}
-            <link rel="stylesheet" href="{% static 'allauth_ui/output.css' %}">
         {% endblock extra_head %}
         
         

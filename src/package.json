@@ -1,15 +1,23 @@
 {
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.4",
-    "tailwindcss": "^3.4.7"
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17"
   },
   "dependencies": {
-    "autoprefixer": "^10.4.19",
     "flowbite": "^2.4.1",
     "postcss-cli": "^11.0.0"
   },
   "scripts": {
     "build:css": "postcss static/css/input.css -o static/css/output.css",
-    "dev": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
-  }
+    "build:tailwind": "tailwindcss -i ./static/src/tailwind.css -o ./static/css/main.css --minify"
+  },
+  "name": "src",
+  "version": "1.0.0",
+  "main": "postcss.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

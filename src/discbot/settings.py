@@ -93,8 +93,9 @@ INSTALLED_APPS = [
     'auths',
     'autosell',
     'dashboard',
+    'tailwind',
+    'theme',
     # third-party-apps
-    "allauth_ui",
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
