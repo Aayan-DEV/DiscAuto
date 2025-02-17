@@ -131,7 +131,7 @@ TEMPLATES = [
         'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
-            'debug': True,
+            'debug': False,
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -272,3 +272,5 @@ LOGGING = {
         },
     },
 }
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
