@@ -76,6 +76,7 @@ if DEBUG:
     ]
 
 INSTALLED_APPS = [
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -137,6 +138,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'discbot.context_processors.subscription_plan',
+                'allauth.socialaccount.context_processors.socialaccount',
             ],
         },
     },
@@ -183,13 +185,26 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SOCIALACCOUNT_PROVIDERS = {
-    "discord": {
+    'discord': {
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'SCOPE': ['identify', 'email'],
         "VERIFIED_EMAIL": True
     },
-    "google": {
+    'google': {
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'SCOPE': ['profile', 'email'],
         "VERIFIED_EMAIL": True
     },
 }
+
+# Add these allauth settings
+ACCOUNT_ADAPTER = 'allauth.account.adapter.DefaultAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
 LANGUAGE_CODE = 'en-us'
 
@@ -203,6 +218,7 @@ STATIC_URL = '/local-cdn/'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",  
+    BASE_DIR / "static" / "allauth_ui",
 ]
  
 STATICFILES_VENDOR_DIR = BASE_DIR / "static" / "vendors"
@@ -270,4 +286,11 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+ALLAUTH_UI = {
+    'AUTHENTICATION_PROVIDERS': {
+        'discord': 'Discord',
+        'google': 'Google',
+    }
 }
