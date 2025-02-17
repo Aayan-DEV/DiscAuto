@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block head_title %}
+    Sign Up
+{% endblock head_title %}
+
+{% block content %}
+<div class="container">
+    <h1>Create an Account</h1>
+    <!-- This is the standard django-allauth sign-up view action: -->
+    {% url 'account_signup' as signup_url %}
+    <form action="{{ signup_url }}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Sign Up</button>
+    </form>
+</div>
+{% endblock content %}
