@@ -1,0 +1,24 @@
+{% extends "account/signup.html" %}
+{% load i18n %}
+{% load allauth_ui %}
+{% load widget_tweaks %}
+{% load slippers %}  {# Make sure you load the slippers library #}
+
+{% block content %}
+    {% trans "Sign Up" as heading %}
+    {% blocktranslate asvar subheading %}Already have an account? Then please <a href="{{ login_url }}" class="link">sign in</a>.{% endblocktranslate %}
+
+    {% component 'container' heading=heading subheading=subheading %}
+        {% if not SOCIALACCOUNT_ONLY %}
+            {% url 'account_signup' as action_url %}
+            {% component 'form' form=form url=action_url button_text=heading %}
+                {{ redirect_field }}
+                {% csrf_token %}
+            {% endcomponent %}
+        {% endif %}
+
+        {% if SOCIALACCOUNT_ENABLED %}
+            {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+        {% endif %}
+    {% endcomponent %}
+{% endblock %}
