@@ -18,3 +18,5 @@ django-extensions
 Werkzeug
 pyOpenSSL
 supabase
+pycoinpayments
+pillow
