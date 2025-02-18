@@ -1,6 +1,10 @@
 from django.contrib import admin
-from .models import Subscription, UserSubscription, SubscriptionPrice
+from .models import Subscription, SubscriptionPrice, UserSubscription, SubscriptionFeature
 
+class SubscriptionFeatureInline(admin.TabularInline):
+    model = SubscriptionFeature
+    extra = 1
+    
 class SubscriptionPriceInline(admin.StackedInline):
     model = SubscriptionPrice
     readonly_fields = ['stripe_id']
@@ -8,7 +12,7 @@ class SubscriptionPriceInline(admin.StackedInline):
     extra = 0
 
 class SubscriptionAdmin(admin.ModelAdmin):
-    inlines = [SubscriptionPriceInline]
+    inlines = [SubscriptionPriceInline, SubscriptionFeatureInline]
     list_display = ['name', 'active']
     readonly_fields = ['stripe_id']
 
@@ -16,5 +20,4 @@ class SubscriptionAdmin(admin.ModelAdmin):
 class UserSubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'plan_name')
 
-# Register the Subscription model
 admin.site.register(Subscription, SubscriptionAdmin)

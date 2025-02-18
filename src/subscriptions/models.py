@@ -36,7 +36,6 @@ class Subscription(models.Model):
     featured = models.BooleanField(default=True, help_text="Featured on the pricing page.")
     updated = models.DateTimeField(auto_now=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    features = models.TextField(help_text="Features for pricing, separated by new line", blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -57,11 +56,6 @@ class Subscription(models.Model):
             )
             self.stripe_id = stripe_id
         super().save(*args, **kwargs)
-    
-    def get_features_as_list(self):
-        if not self.features:
-            return []
-        return [x.strip() for x in self.features.split("\n")]
 
 
 class SubscriptionPrice(models.Model):
@@ -72,6 +66,7 @@ class SubscriptionPrice(models.Model):
     class IntervalChoices(models.TextChoices):
         MONTHLY = "month", "Monthly"
         WEEKLY = "week", "Weekly"
+        YEARLY = "year", "Annual"
 
     subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, null=True)
     stripe_id = models.CharField(max_length=120, null=True, blank=True)
@@ -89,13 +84,7 @@ class SubscriptionPrice(models.Model):
         ordering = ["subscription__order", "order", "featured", "-updated"]
 
     def get_checkout_url(self):
-        return reverse("sub-price-checkout", kwargs= {"price_id": self.id})
-
-    @property
-    def display_features_list(self):
-        if not self.subscription:
-            return []
-        return self.subscription.get_features_as_list()
+        return reverse("sub-price-checkout", kwargs={"price_id": self.id})
 
     @property
     def display_sub_name(self):
@@ -230,9 +219,6 @@ class UserSubscriptionManager(models.Manager):
     def get_queryset(self):
         return UserSubscriptionQuerySet(self.model, using=self._db)
     
-    # def by_user_ids(self, user_ids=None):
-    #     return self.get_queryset().by_user_ids(user_ids=user_ids)
-
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
@@ -269,7 +255,6 @@ class UserSubscription(models.Model):
             "status": self.status,
             "current_period_start": self.current_period_start,
             "current_period_end": self.current_period_end,
-            
         }
 
     @property
@@ -282,17 +267,13 @@ class UserSubscription(models.Model):
             return None
         return int(self.current_period_end.timestamp())
 
-
-
     def save(self, *args, **kwargs):
         if (self.original_period_start is None and self.current_period_start is not None):
             self.original_period_start = self.current_period_start
         super().save(*args, **kwargs)
-
     
     def __str__(self):
         return f"{self.user.username} - {self.plan_name}"
-
 
 def user_sub_post_save(sender, instance, *args, **kwargs):
     user_sub_instance = instance
@@ -314,5 +295,12 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
             final_group_ids = list(set(group_ids) | current_groups_set)
             user.groups.set(final_group_ids)
 
+class SubscriptionFeature(models.Model):
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name="feature_set")
+    title = models.CharField(max_length=255, help_text="Short title or name of the feature.")
+    icon = models.ImageField(upload_to="subscription_features/", null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.subscription.name} - {self.title}"
 
 post_save.connect(user_sub_post_save, sender=UserSubscription)

@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from subscriptions.models import SubscriptionPrice, UserSubscription, Subscription
+from subscriptions.models import SubscriptionPrice, UserSubscription, Subscription, SubscriptionStatus
 from django.contrib.auth.decorators import login_required
 import helpers.billing
 from django.contrib import messages
 from subscriptions import utils as subs_utils
+from django.conf import settings
+import stripe
 
 @login_required
 def user_subscription_view(request):
@@ -22,7 +24,7 @@ def user_subscription_view(request):
         return redirect(user_sub_obj.get_absolute_url())
     
     if user_sub_obj.cancel_at_period_end:
-        status_display = f"Your subscription is CANCELLED. You will lose access to all premium features on {user_sub_obj.current_period_end}."
+        status_display = f"Your subscription is CANCELLED. You will lose access to premium features on {user_sub_obj.current_period_end}."
     elif user_sub_obj.current_period_end:
         status_display = f"Your subscription is ACTIVE. You will be charged again on {user_sub_obj.current_period_end}."
     else:
@@ -56,23 +58,99 @@ def user_subscription_cancel_view(request):
         return redirect(user_sub_obj.get_absolute_url())
     return render(request, 'subscriptions/user_cancel_view.html', {"subscription": user_sub_obj})
 
-def subscription_price_view(request, interval="week"):
-    qs = SubscriptionPrice.objects.filter(featured=True)
-    inv_wk = SubscriptionPrice.IntervalChoices.WEEKLY
-    inv_mo = SubscriptionPrice.IntervalChoices.MONTHLY
-    url_path_name = "pricing_interval"
-    wk_url = reverse(url_path_name, kwargs={"interval": inv_wk})
-    mo_url = reverse(url_path_name, kwargs={"interval": inv_mo})
-    active = inv_wk
-    if interval == inv_mo:
-        active = inv_mo
-        object_list = qs.filter(interval=inv_mo)
-    else:
-        object_list = qs.filter(interval=inv_wk)
-    return render(request, 'subscriptions/pricing.html', {
-        "object_list": object_list,
-        "wk_url": wk_url,
-        "mo_url": mo_url,
-        "active": active,
-        'current_page': 'pricing',
-    })
+def pricing_view(request):
+    """
+    Renders a pricing page with:
+      - A FREE plan card.
+      - All active paid subscription plans.
+      - For each plan, if the user’s current subscription (stored in subscription_price)
+        matches both the plan and its interval:
+          * If cancelled, show a "Resubscribe to ..." button.
+          * Otherwise, show a disabled "Current Plan" button.
+      - All other intervals show the upgrade/downgrade or buy options.
+    """
+    subs_qs = Subscription.objects.filter(active=True).order_by('order')
+    plans_data = []
+    for sub in subs_qs:
+        weekly_price = None
+        monthly_price = None
+        yearly_price = None
+        for price_obj in sub.subscriptionprice_set.all():
+            if price_obj.interval == SubscriptionPrice.IntervalChoices.WEEKLY:
+                weekly_price = price_obj
+            elif price_obj.interval == SubscriptionPrice.IntervalChoices.MONTHLY:
+                monthly_price = price_obj
+            elif price_obj.interval == SubscriptionPrice.IntervalChoices.YEARLY:
+                yearly_price = price_obj
+        plans_data.append({
+            'subscription': sub,
+            'weekly_price': weekly_price,
+            'monthly_price': monthly_price,
+            'yearly_price': yearly_price,
+        })
+
+    paid_plans_exist = any(
+        pd['weekly_price'] or pd['monthly_price'] or pd['yearly_price']
+        for pd in plans_data
+    )
+
+    current_subscription = None
+    if request.user.is_authenticated:
+        try:
+            user_sub_obj = UserSubscription.objects.get(user=request.user)
+            current_subscription = user_sub_obj
+            # IMPORTANT: We assume that the purchased price is recorded in user_sub_obj.subscription_price.
+            # If present, that price's interval will be used.
+            if hasattr(user_sub_obj, "subscription_price") and user_sub_obj.subscription_price:
+                current_subscription.interval = user_sub_obj.subscription_price.interval
+                # Also store the subscription id of the purchased plan.
+                current_subscription.plan_id = user_sub_obj.subscription_price.subscription.id
+            else:
+                current_subscription.interval = None
+                current_subscription.plan_id = None
+        except UserSubscription.DoesNotExist:
+            current_subscription = None
+
+    context = {
+        'plans_data': plans_data,
+        'paid_plans_exist': paid_plans_exist,
+        'current_subscription': current_subscription,
+    }
+    return render(request, 'subscriptions/pricing.html', context)
+
+@login_required
+def user_subscription_resubscribe_view(request, price_id):
+    """
+    Resume a cancelled subscription by unscheduling the cancellation.
+    """
+    user_sub_obj, created = UserSubscription.objects.get_or_create(user=request.user)
+    price_obj = get_object_or_404(SubscriptionPrice, id=price_id)
+    
+    if not user_sub_obj.subscription or user_sub_obj.subscription.id != price_obj.subscription.id:
+        messages.error(request, "You do not have a cancelled subscription for this plan.")
+        return redirect("user_subscription")
+    
+    try:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.Subscription.modify(
+            user_sub_obj.stripe_id,
+            cancel_at_period_end=False,
+            proration_behavior="none",
+        )
+        user_sub_obj.cancel_at_period_end = False
+        user_sub_obj.user_cancelled = False
+        user_sub_obj.status = SubscriptionStatus.ACTIVE
+        user_sub_obj.save()
+        messages.success(request, "Your subscription has been resumed for free!")
+    except Exception as e:
+        messages.error(request, f"An error occurred while resuming your subscription: {str(e)}")
+    
+    return redirect("user_subscription")
+
+
+def pricing_page(request):
+    plans = Subscription.objects.filter(active=True).order_by('order')
+    context = {
+        'plans': plans,
+    }
+    return render(request, 'subscriptions/pricing.html', context)

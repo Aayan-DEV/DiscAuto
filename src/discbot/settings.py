@@ -236,7 +236,7 @@ STATICFILES_FINDERS = [
 DISCORD_ENCRYPTION_KEY = Fernet.generate_key().decode()
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://pet-genuinely-raccoon.ngrok-free.app',
+    'https://picked-lynx-one.ngrok-free.app',
 ]
 
 log_directory = BASE_DIR / 'logs'
