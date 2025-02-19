@@ -139,13 +139,6 @@
         <!-- Sign Up Button -->
         <button class="btn" type="submit">Sign Up</button>
     </form>
-
-    <!-- Example: If you support code-based signup (similar to code-based login) -->
-    {% if SIGNUP_BY_CODE_ENABLED %}
-    <div class="divider"></div>
-    <a href="{{ request_signup_code_url }}" class="btn">Mail me a sign-up code</a>
-    {% endif %}
-
     <!-- Example: Social Signup Buttons -->
     {% if SOCIALACCOUNT_ENABLED %}
     <div class="divider"></div>
