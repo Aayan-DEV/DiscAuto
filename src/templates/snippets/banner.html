@@ -1,6 +1,7 @@
 {% if messages %}
-    <div id="messages-container" class="relative bg-blue-500 text-white text-center p-4 
-        {% if not request.user.is_authenticated %}mt-16 md:mt-20{% endif %}">
+    <div id="messages-container" 
+         class="fixed left-0 w-full bg-blue-500 text-white text-center p-4"
+         style="top: 83px; z-index: 10;">
         {% for message in messages %}
             <div>
                 <span>{{ message }}</span>

@@ -1,3 +1,4 @@
+{% extends "base.html" %}
 {% load i18n %}
 {% load static %}
 <!DOCTYPE html>
@@ -11,21 +12,27 @@
         </title>
         {% block extra_head %}
         {% endblock extra_head %}
-        
-        
     </head>
     <body class="min-h-screen bg-base-200">
         {% block body %}
             {% if messages %}
-                {% for message in messages %}
-                    <div role="alert"
-                         class="text-sm md:text-base alert alert-{{ message.tags }}">
-                        <span><strong>{{ message }}</strong></span>
+                <div id="messages-container" class="fixed top-0 left-0 right-0 bg-blue-500 text-white text-center p-4 z-50 flex justify-center items-center">
+                    <div class="max-w-4xl w-full flex justify-between items-center">
+                        <div>
+                            {% for message in messages %}
+                                <div>
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button id="close-banner" class="bg-blue-700 text-white p-1 rounded hover:bg-blue-800 transition-colors">X</button>
                     </div>
-                {% endfor %}
+                </div>
             {% endif %}
+
             {% block content %}
             {% endblock content %}
+
             <div class="mx-auto [&_a]:link text-sm flex flex-col md:flex-row items-center justify-center gap-3 mt-3">
                 {% if user.is_authenticated %}
                     {% url 'account_email' as email_url %}
@@ -62,5 +69,12 @@
         {% endblock body %}
         {% block extra_body %}
         {% endblock extra_body %}
+
+        <script>
+            // Close the messages container when the close button is clicked
+            document.getElementById('close-banner')?.addEventListener('click', function() {
+                document.getElementById('messages-container').style.display = 'none';
+            });
+        </script>
     </body>
 </html>

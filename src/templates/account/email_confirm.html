@@ -1,0 +1,111 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load account %}
+{% load allauth %}
+
+{% block head_title %}
+    {% trans "Confirm Email Address" %}
+{% endblock head_title %}
+
+{% block content %}
+<style>
+    /* Custom CSS for gradient background and animations */
+    body {
+        background: linear-gradient(135deg, #1e1e3f, #283593);
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .container {
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 10px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
+        padding: 2.5rem;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #c084fc;
+        margin-bottom: 1.5rem;
+    }
+
+    p {
+        color: #fff;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    a.link {
+        color: #c084fc;
+        text-decoration: none;
+        transition: opacity 0.3s ease;
+    }
+
+    a.link:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+
+    .btn {
+        background: linear-gradient(90deg, #c084fc, #7c3aed);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .btn:hover {
+        background: linear-gradient(90deg, #7c3aed, #c084fc);
+    }
+
+    .btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.5);
+    }
+</style>
+
+<div class="container">
+    <h1>{% trans "Confirm Email Address" %}</h1>
+
+    {% if confirmation %}
+        {% user_display confirmation.email_address.user as user_display %}
+        {% if can_confirm %}
+            <p>
+                {% blocktrans with confirmation.email_address.email as email %}
+                Please confirm that <a href="mailto:{{ email }}" class="link">{{ email }}</a> is an email address for user {{ user_display }}.
+                {% endblocktrans %}
+            </p>
+            {% url 'account_confirm_email' confirmation.key as action_url %}
+            <form method="post" action="{{ action_url }}">
+                {% csrf_token %}
+                {{ redirect_field }}
+                <button type="submit" class="btn">
+                    {% trans 'Confirm' %}
+                </button>
+            </form>
+        {% else %}
+            <p>
+                {% blocktrans %}Unable to confirm {{ email }} because it is already confirmed by a different account.{% endblocktrans %}
+            </p>
+        {% endif %}
+    {% else %}
+        {% url 'account_email' as email_url %}
+        <p>
+            {% blocktrans %}This email confirmation link expired or is invalid. Please <a href="{{ email_url }}" class="link">issue a new email confirmation request</a>.{% endblocktrans %}
+        </p>
+    {% endif %}
+</div>
+{% endblock content %}
