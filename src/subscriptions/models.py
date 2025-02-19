@@ -295,12 +295,45 @@ def user_sub_post_save(sender, instance, *args, **kwargs):
             final_group_ids = list(set(group_ids) | current_groups_set)
             user.groups.set(final_group_ids)
 
+post_save.connect(user_sub_post_save, sender=UserSubscription)
+
 class SubscriptionFeature(models.Model):
-    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name="feature_set")
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.CASCADE,
+        related_name="feature_set"
+    )
     title = models.CharField(max_length=255, help_text="Short title or name of the feature.")
-    icon = models.ImageField(upload_to="subscription_features/", null=True, blank=True)
+    icon = models.ImageField(
+        upload_to="subscription_features/",
+        max_length=500,  # Increased to store longer URLs
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.subscription.name} - {self.title}"
 
-post_save.connect(user_sub_post_save, sender=UserSubscription)
+    def save(self, *args, **kwargs):
+        # If an icon is provided and it doesn't already start with 'http',
+        # upload it to Supabase and replace its value with the returned URL.
+        if self.icon and not str(self.icon).startswith("http"):
+            from helpers.supabase import upload_to_supabase
+            public_url = upload_to_supabase(self.icon, folder="subscription_features")
+            # Store the public URL instead of a local file path.
+            self.icon = public_url
+        super().save(*args, **kwargs)
+
+    @property
+    def icon_url(self):
+        """
+        Returns the icon URL:
+          - If the stored value starts with 'http', assume it’s an external URL.
+          - Otherwise, use the built-in .url attribute.
+        """
+        if self.icon:
+            icon_str = str(self.icon)
+            if icon_str.startswith("http"):
+                return icon_str
+            return self.icon.url
+        return None
