@@ -63,8 +63,7 @@ def pricing_view(request):
     Renders a pricing page with:
       - A FREE plan card.
       - All active paid subscription plans.
-      - For each plan, if the user’s current subscription (stored in subscription_price)
-        matches both the plan and its interval:
+      - For each plan, if the user’s current subscription matches both the plan and its interval:
           * If cancelled, show a "Resubscribe to ..." button.
           * Otherwise, show a disabled "Current Plan" button.
       - All other intervals show the upgrade/downgrade or buy options.
@@ -99,15 +98,27 @@ def pricing_view(request):
         try:
             user_sub_obj = UserSubscription.objects.get(user=request.user)
             current_subscription = user_sub_obj
-            # IMPORTANT: We assume that the purchased price is recorded in user_sub_obj.subscription_price.
-            # If present, that price's interval will be used.
-            if hasattr(user_sub_obj, "subscription_price") and user_sub_obj.subscription_price:
-                current_subscription.interval = user_sub_obj.subscription_price.interval
-                # Also store the subscription id of the purchased plan.
-                current_subscription.plan_id = user_sub_obj.subscription_price.subscription.id
+            # If there's a Stripe subscription, fetch the interval from Stripe
+            if user_sub_obj.stripe_id:
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                stripe_sub = stripe.Subscription.retrieve(user_sub_obj.stripe_id)
+                # Get the price ID from the Stripe subscription
+                price_id = stripe_sub['plan']['id'] if stripe_sub['plan'] else None
+                if price_id:
+                    try:
+                        price_obj = SubscriptionPrice.objects.get(stripe_id=price_id)
+                        current_subscription.interval = price_obj.interval  # e.g., 'week', 'month', 'year'
+                        current_subscription.plan_id = price_obj.subscription.id
+                    except SubscriptionPrice.DoesNotExist:
+                        current_subscription.interval = None
+                        current_subscription.plan_id = user_sub_obj.subscription.id if user_sub_obj.subscription else None
+                else:
+                    current_subscription.interval = None
+                    current_subscription.plan_id = user_sub_obj.subscription.id if user_sub_obj.subscription else None
             else:
+                # No Stripe subscription; use the linked Subscription object if it exists
                 current_subscription.interval = None
-                current_subscription.plan_id = None
+                current_subscription.plan_id = user_sub_obj.subscription.id if user_sub_obj.subscription else None
         except UserSubscription.DoesNotExist:
             current_subscription = None
 
@@ -120,9 +131,6 @@ def pricing_view(request):
 
 @login_required
 def user_subscription_resubscribe_view(request, price_id):
-    """
-    Resume a cancelled subscription by unscheduling the cancellation.
-    """
     user_sub_obj, created = UserSubscription.objects.get_or_create(user=request.user)
     price_obj = get_object_or_404(SubscriptionPrice, id=price_id)
     
@@ -146,7 +154,6 @@ def user_subscription_resubscribe_view(request, price_id):
         messages.error(request, f"An error occurred while resuming your subscription: {str(e)}")
     
     return redirect("user_subscription")
-
 
 def pricing_page(request):
     plans = Subscription.objects.filter(active=True).order_by('order')

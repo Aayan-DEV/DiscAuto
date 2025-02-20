@@ -20,38 +20,35 @@
   <div class="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
     {# --- FREE PLAN CARD --- #}
-<div class="bg-white rounded-xl shadow-lg p-8 w-80 transform transition-all duration-300 hover:scale-105">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Free Plan</h2>
-    <p class="text-3xl font-bold text-gray-900 mb-4">$0 <span class="text-lg font-normal text-gray-500">/ forever</span></p>
-    <p class="text-gray-600 mb-4">No credit card required!</p>
-    <ul class="space-y-3 mb-4">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-80 transform transition-all duration-300 hover:scale-105">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">Free Plan</h2>
+      <p class="text-3xl font-bold text-gray-900 mb-4">$0 <span class="text-lg font-normal text-gray-500">/ forever</span></p>
+      <p class="text-gray-600 mb-4">No credit card required!</p>
+      <ul class="space-y-3 mb-4">
         <li class="flex items-center">
-            <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-            <span class="text-gray-700">Basic usage</span>
+          <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
+          <span class="text-gray-700">Basic usage</span>
         </li>
         <li class="flex items-center">
-            <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-            <span class="text-gray-700">Access to some features</span>
+          <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
+          <span class="text-gray-700">Access to some features</span>
         </li>
-    </ul>
-    {% if user.is_authenticated %}
-        {% comment %}
-            If the user has no subscription, or the subscription is either free or cancelled,
-            we display a disabled "Current Plan" button.
-        {% endcomment %}
+      </ul>
+      {% if user.is_authenticated %}
         {% if not current_subscription.subscription or current_subscription.subscription.name|lower == "free" or current_subscription.subscription.name|lower == "free plan" or current_subscription.cancel_at_period_end %}
-            <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
+          <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
         {% else %}
-            <a href="{% url 'user_subscription_cancel' %}" class="block w-full bg-gray-900 text-white py-3 rounded-lg font-semibold text-center hover:bg-gray-700 transition-all duration-300">
-                Downgrade to Free
-            </a>
+          <a href="{% url 'user_subscription_cancel' %}" class="block w-full bg-gray-900 text-white py-3 rounded-lg font-semibold text-center hover:bg-gray-700 transition-all duration-300">
+            Downgrade to Free
+          </a>
         {% endif %}
-    {% else %}
+      {% else %}
         <a href="{% url 'account_login' %}?next={% url 'pricing' %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-            Start Free
+          Start Free
         </a>
-    {% endif %}
-</div>
+      {% endif %}
+    </div>
+
     {# --- PAID PLAN CARDS --- #}
     {% for plan_info in plans_data %}
       {% with sub=plan_info.subscription %}
@@ -91,24 +88,22 @@
           {# 4. Description (features list) #}
           <ul class="space-y-3 mb-4">
             {% for feat in sub.feature_set.all %}
-  <li class="flex items-center">
-    {% if feat.icon_url %}
-      <img src="{{ feat.icon_url }}" alt="icon" class="w-5 h-5 mr-2">
-    {% else %}
-      <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-    {% endif %}
-    <span class="text-gray-700">{{ feat.title }}</span>
-  </li>
-{% endfor %}
-
-
+              <li class="flex items-center">
+                {% if feat.icon_url %}
+                  <img src="{{ feat.icon_url }}" alt="icon" class="w-5 h-5 mr-2">
+                {% else %}
+                  <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
+                {% endif %}
+                <span class="text-gray-700">{{ feat.title }}</span>
+              </li>
+            {% endfor %}
           </ul>
           
           {# 5. Button (interval‑dependent) #}
           {% if plan_info.weekly_price %}
             <div class="interval-button interval-weekly" style="display: none;">
               {% if current_subscription %}
-                {% if current_subscription.subscription.id == sub.id %}
+                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'week' %}
                   {% if current_subscription.cancel_at_period_end %}
                     <a href="{% url 'user_subscription_resubscribe' plan_info.weekly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Resubscribe to {{ sub.name }}
@@ -117,11 +112,11 @@
                     <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
                   {% endif %}
                 {% else %}
-                  {% if current_subscription.subscription.order < sub.order %}
+                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
                     <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Upgrade to {{ sub.name }}
                     </a>
-                  {% elif current_subscription.subscription.order > sub.order %}
+                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
                     <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Downgrade to {{ sub.name }}
                     </a>
@@ -141,7 +136,7 @@
           {% if plan_info.monthly_price %}
             <div class="interval-button interval-monthly" style="display: none;">
               {% if current_subscription %}
-                {% if current_subscription.subscription.id == sub.id %}
+                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'month' %}
                   {% if current_subscription.cancel_at_period_end %}
                     <a href="{% url 'user_subscription_resubscribe' plan_info.monthly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Resubscribe to {{ sub.name }}
@@ -150,11 +145,11 @@
                     <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
                   {% endif %}
                 {% else %}
-                  {% if current_subscription.subscription.order < sub.order %}
+                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
                     <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Upgrade to {{ sub.name }}
                     </a>
-                  {% elif current_subscription.subscription.order > sub.order %}
+                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
                     <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Downgrade to {{ sub.name }}
                     </a>
@@ -174,7 +169,7 @@
           {% if plan_info.yearly_price %}
             <div class="interval-button interval-yearly" style="display: none;">
               {% if current_subscription %}
-                {% if current_subscription.subscription.id == sub.id %}
+                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'year' %}
                   {% if current_subscription.cancel_at_period_end %}
                     <a href="{% url 'user_subscription_resubscribe' plan_info.yearly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Resubscribe to {{ sub.name }}
@@ -183,11 +178,11 @@
                     <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
                   {% endif %}
                 {% else %}
-                  {% if current_subscription.subscription.order < sub.order %}
+                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
                     <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Upgrade to {{ sub.name }}
                     </a>
-                  {% elif current_subscription.subscription.order > sub.order %}
+                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
                     <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
                       Downgrade to {{ sub.name }}
                     </a>
