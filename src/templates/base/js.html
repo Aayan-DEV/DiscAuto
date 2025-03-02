@@ -1,7 +1,8 @@
 {% load static %}
-<script src="{% static 'vendors/flowbite.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Messages container close functionality
         var closeButton = document.getElementById('close-banner');
         if (closeButton) {
             closeButton.addEventListener('click', function() {

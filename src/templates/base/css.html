@@ -1,11 +1,17 @@
 {% load static compress %}
-<link href="{% static 'vendors/flowbite.min.css' %}" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
 {% compress css %}
 <link rel="stylesheet" href="{% static 'css/output.css' %}">
 {% endcompress %}
 <style>
+    :root {
+        --color-primary: #000000;
+        --color-secondary: #000000;
+        --color-accent: #000000;
+    }
+
     .bg-radial-gradient {
-        background: radial-gradient(circle, #2A2D5D, black);
+        background: radial-gradient(circle, var(--color-primary), black);
         background-repeat: no-repeat;
         background-attachment: fixed;
     }

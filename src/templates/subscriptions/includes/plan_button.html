@@ -1,0 +1,36 @@
+{% if current_subscription %}
+  {% if current_subscription.plan_id == sub.id and current_subscription.interval == interval %}
+    {% if current_subscription.cancel_at_period_end %}
+      <a href="{% url 'user_subscription_resubscribe' price.id %}" 
+         class="block w-full py-3.5 rounded-xl font-semibold text-center bg-gradient-to-r from-teal-400 to-teal-800 text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+        Resubscribe to {{ sub.name }}
+      </a>
+    {% else %}
+      <button class="w-full py-3.5 rounded-xl font-semibold bg-white/20 text-white/60 cursor-not-allowed">
+        Current Plan
+      </button>
+    {% endif %}
+  {% else %}
+    {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
+      <a href="{{ price.get_checkout_url }}" 
+         class="block w-full py-3.5 rounded-xl font-semibold text-center bg-gradient-to-r from-teal-400 to-teal-800 text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+        Upgrade to {{ sub.name }}
+      </a>
+    {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
+      <a href="{{ price.get_checkout_url }}" 
+         class="block w-full py-3.5 rounded-xl font-semibold text-center bg-white/20 text-white hover:bg-white/30 transition duration-300">
+        Downgrade to {{ sub.name }}
+      </a>
+    {% else %}
+      <a href="{{ price.get_checkout_url }}" 
+         class="block w-full py-3.5 rounded-xl font-semibold text-center bg-gradient-to-r from-teal-400 to-teal-800 text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+        Buy {{ sub.name }}
+      </a>
+    {% endif %}
+  {% endif %}
+{% else %}
+  <a href="{{ price.get_checkout_url }}" 
+     class="block w-full py-3.5 rounded-xl font-semibold text-center bg-gradient-to-r from-teal-400 to-teal-800 text-white hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+    Buy {{ sub.name }}
+  </a>
+{% endif %}

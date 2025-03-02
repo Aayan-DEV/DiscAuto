@@ -2,26 +2,34 @@
 
 <!DOCTYPE html>
 <html lang="en">
+<!-- In the head section -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    
     <!-- Import Google Font for Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
-    <!-- Import Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-    <style>
-        /* Add custom Tailwind class to apply the Google font */
-        .font-poppins {
-            font-family: 'Poppins', sans-serif;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow-delay': 'pulse 8s 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow-long': 'pulse 10s 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
         }
-
-        /* Custom styles for the checkmark and button */
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
         .checklist-item::before {
             content: '';
             background-image: url("{% static 'images/tick.png' %}");
@@ -31,111 +39,91 @@
             display: inline-block;
             margin-right: 10px;
         }
-
-        /* Background image styling */
-        .bg-cover {
-            background-image: url("{% static 'images/background-image.png' %}");
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            z-index: 0;
-            margin-top: -80px; /* Add negative margin to pull content up */
-            padding-top: 80px; /* Add padding to offset the negative margin */
-        }
-
-        /* Content wrapper */
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Gradient animation for the button */
-        @keyframes gradientAnimation {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        /* Update the button to have a higher z-index and gradient animation */
         .center-button {
-            position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
+            position: relative;
+            background: linear-gradient(90deg, #0F766E 0%, #064E3B 100%);
             background-size: 200% 200%;
-            animation: gradientAnimation 5s ease infinite;
-            padding: 12px 36px;
+            animation: gradientAnimation 4s ease infinite;
+            padding: 16px 48px;
             font-size: 1.25rem;
-            font-weight: bold;
-            border-radius: 10px;
+            font-weight: 600;
+            border-radius: 12px;
             color: white;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            transition: transform 0.3s ease;
-            z-index: 2; /* Ensure button appears above everything */
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-
         .center-button:hover {
-            transform: translateX(-50%) scale(1.05);
-            background-color: #9B8ADB;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
         @media (max-width: 640px) {
             .center-button {
                 font-size: 0.9rem;
                 padding: 10px 20px;
             }
         }
-
+        .heading-font {
+            font-family: 'Clash Display', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-[#1E1E2E] text-white font-poppins">
-
-    <!-- Fullscreen background image container -->
-    <div class="w-full h-screen bg-cover">
-        <!-- Content wrapper to position text over the background image -->
-        <div class="content-wrapper flex flex-col lg:flex-row w-full h-full items-center justify-center lg:justify-between p-4 md:p-8">
-
-            <!-- First section with stylized text -->
-            <div class="w-full lg:w-1/2 flex items-center justify-center text-center lg:text-left p-4 md:p-8">
-                <div>
-                    <h1 class="text-[#C4A2F5] text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
-                        L<span class="italic">ooking</span><br>
-                        For a <br>
-                        <span class="text-[#C4A2F5] italic">L</span>ink in bio & <span class="italic">S</span>elling <br>
-                        <span class="text-[#C4A2F5]">PLATFORM COMBINED??</span>
-                    </h1>
-                </div>
-            </div>
-
-            <!-- Second section with checklist -->
-            <div class="w-full lg:w-1/2 flex items-start justify-center space-y-2 md:space-y-3 p-4 md:p-8">
-                <ul class="space-y-2 md:space-y-3 text-xl md:text-2xl lg:text-4xl">
-                    <li class="checklist-item">Daily Stats</li>
-                    <li class="checklist-item">Payments Automated</li>
-                    <li class="checklist-item">Automated Selling</li>
-                    <li class="checklist-item">100% Uptime</li>
-                    <li class="checklist-item">24/7 Support</li>
-                    <li class="checklist-item">Discord Community</li>
-                </ul>
+<body class="min-h-screen">
+    <div class="fixed inset-0 w-full h-full">
+        <!-- Animated gradient background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-teal-950 via-emerald-900 to-slate-950 bg-fixed">
+            <div class="absolute inset-0 opacity-40">
+                <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(45,212,191,0.15)_0%,rgba(45,212,191,0)_50%)] animate-pulse-slow"></div>
+                <div class="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(16,185,129,0.2)_0%,rgba(16,185,129,0)_40%)] animate-pulse-slow-delay"></div>
+                <div class="fixed inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(20,184,166,0.15)_0%,rgba(20,184,166,0)_45%)] animate-pulse-slow-long"></div>
             </div>
         </div>
+    </div>
 
-        <!-- Centered Button -->
-        <a href="/accounts/login" class="center-button">
-            AUTOMATE NOW 
-            <span class="material-symbols-outlined">
-                arrow_forward
-            </span>
-        </a>
+    <!-- Content -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-20 text-center">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <!-- Beta Badge -->
+                <div class="inline-block">
+                    <div class="px-3 py-1.5 rounded-full bg-[#2d4b50]/60 backdrop-blur-sm border border-[#bce4d6]/20 text-[#bce4d6] text-sm font-medium flex items-center gap-2 animate-pulse-slow">
+                        <span class="material-symbols-outlined text-lg">rocket_launch</span>
+                        Currenty in Active Development
+                        <span class="inline-block w-2 h-2 rounded-full bg-[#bce4d6] animate-pulse"></span>
+                    </div>
+                </div>
+                
+                <!-- Existing heading -->
+                <h1 class="heading-font text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 to-teal-200">
+                        Link in Bio & Selling
+                    </span>
+                    <span class="block mt-2 text-emerald-400 tracking-wide">Platform Combined</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-emerald-100/80 max-w-2xl mx-auto mb-12">
+                    Transform your online presence with our all-in-one solution. Showcase your content, 
+                    automate your sales, and grow your business effortlessly.
+                </p>
 
+                <a href="/accounts/login" class="center-button group">
+                    Get Started Now
+                    <span class="material-symbols-outlined transition-transform group-hover:translate-x-1">
+                        arrow_forward
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

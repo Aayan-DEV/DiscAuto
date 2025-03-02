@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,127 +6,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Footer Section</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,400&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Now+Display:wght@400&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            background: radial-gradient(circle, #2A2D5D, black);
-            color: #cccccc;
-            margin: 0;
-            padding: 0;
-            background-attachment: fixed;
-            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
-        .footer-section {
-            background-color: rgba(18, 18, 18, 0);
-            padding: 40px 20px;
-            color: #FFFFFF;
-            text-align: center;
-            position: relative;
+        .heading-font {
+            font-family: 'Clash Display', sans-serif;
         }
-
-        .footer-header {
-            background: linear-gradient(135deg, #C1A1FF, #895FDB);
-            border-radius: 25px;
-            padding: 10px 20px;
-            display: inline-block;
-            margin-bottom: 20px;
+        .footer-gradient {
+            background: linear-gradient(135deg, #2d4b50 0%, #359271 100%);
         }
-
-        .footer-logo {
-            font-size: 1.5em;
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            color: #FFFFFF;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 5px;
-            text-align: left;
-            flex-wrap: wrap;
-        }
-
-        .footer-column {
-            flex: 0 0 30%;
-            box-sizing: border-box;
-        }
-
-        .footer-title {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-            color: #C1A1FF;
-        }
-
-        .footer-column ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 5px;
-        }
-
-        .footer-column ul li a {
-            color: #895FDB;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .footer-column ul li a:hover {
-            color: #C1A1FF;
-        }
-
-        .footer-bottom {
-            font-size: 1em;
-            color: #C1A1FF;
-            text-align: center;
-            margin-top: 10px;
+        .hover-teal:hover {
+            color: #bce4d6;
+            transition: all 0.3s ease;
         }
     </style>
 </head>
 
-<body>
-    <footer class="footer-section bg-transparent text-white p-8 relative border-t-2 border-purple-600">
-        <div class="footer-header bg-gradient-to-r from-purple-500 to-blue-500 rounded-full py-2 px-6 inline-block mb-4">
-            <span class="text-2xl">DiscAuto</span>
-        </div>
-        <div class="footer-content flex flex-col md:flex-row justify-between items-start space-y-8 md:space-y-0 text-left">
-            <div class="footer-column flex-1">
-                <h3 class="footer-title text-xl text-purple-400 mb-4">Description</h3>
-                <p>DiscAuto is the best platform to automate your daily Discord tasks. It offers a variety of features to enhance your Discord experience.</p>
+<body class="bg-gradient-to-br from-teal-950 via-emerald-900 to-slate-950">
+    <footer class="relative z-10 mx-4 md:mx-8 lg:mx-16 mb-8 mt-16 rounded-2xl backdrop-blur-md bg-[#2d4b50]/30 border border-[#bce4d6]/20 shadow-xl">
+        <div class="max-w-screen-xl mx-auto px-6 py-12">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <div class="inline-block p-3">
+                    <img src="{% static 'icon/logo-official.png' %}" alt="Logo" width="80" height="80" class="mx-auto">
+                </div>
             </div>
-            <div class="footer-column flex-1">
-                <h3 class="footer-title text-xl text-purple-400 mb-4">Links</h3>
-                <ul class="list-none space-y-2">
-                    <li><a href="{% url 'pricing' %}" class="text-purple-400 hover:text-purple-600">Pricing</a></li>
-                    <li><a href="{% url 'contact' %}" class="text-purple-400 hover:text-purple-600">Contact</a></li>
-                    <li><a href="{% url 'home' %}" class="text-purple-400 hover:text-purple-600">Home</a></li>
-                </ul>
+
+            <!-- Content -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+                <!-- Description -->
+                <div class="space-y-4">
+                    <h3 class="heading-font text-xl font-semibold text-[#bce4d6]">Description</h3>
+                    <p class="text-[#bce4d6]/80 leading-relaxed">
+                        DiscAuto is the best platform to automate your daily Discord tasks. It offers a variety of features to enhance your Discord experience.
+                    </p>
+                </div>
+
+                <!-- Links -->
+                <div class="space-y-4">
+                    <h3 class="heading-font text-xl font-semibold text-[#bce4d6]">Links</h3>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'pricing' %}" class="text-[#bce4d6]/80 hover-teal">Pricing</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-[#bce4d6]/80 hover-teal">Contact</a></li>
+                        <li><a href="{% url 'home' %}" class="text-[#bce4d6]/80 hover-teal">Home</a></li>
+                    </ul>
+                </div>
+
+                <!-- Socials -->
+                <div class="space-y-4">
+                    <h3 class="heading-font text-xl font-semibold text-[#bce4d6]">Socials</h3>
+                    <ul class="space-y-3">
+                        <li><a href="https://www.discord.com" class="text-[#bce4d6]/80 hover-teal">Discord</a></li>
+                        <li><a href="https://www.twitter.com" class="text-[#bce4d6]/80 hover-teal">Twitter</a></li>
+                        <li><a href="https://www.instagram.com" class="text-[#bce4d6]/80 hover-teal">Instagram</a></li>
+                    </ul>
+                </div>
             </div>
-            <div class="footer-column flex-1">
-                <h3 class="footer-title text-xl text-purple-400 mb-4">Socials</h3>
-                <ul class="list-none space-y-2">
-                    <li><a href="https://www.discord.com" class="text-purple-400 hover:text-purple-600">Discord</a></li>
-                    <li><a href="https://www.twitter.com" class="text-purple-400 hover:text-purple-600">Twitter</a></li>
-                    <li><a href="https://www.instagram.com" class="text-purple-400 hover:text-purple-600">Instagram</a></li>
-                </ul>
+
+            <!-- Legal Links -->
+            <div class="flex flex-wrap justify-center gap-6 pt-8 border-t border-[#bce4d6]/10 text-sm">
+                <a href="#" class="text-[#bce4d6]/60 hover-teal">Terms of Service</a>
+                <a href="#" class="text-[#bce4d6]/60 hover-teal">Privacy Policy</a>
+                <a href="#" class="text-[#bce4d6]/60 hover-teal">Cookie Policy</a>
+                <a href="#" class="text-[#bce4d6]/60 hover-teal">GDPR</a>
             </div>
-        </div>
-        <div class="footer-bottom mt-8 text-center text-purple-400">
-            <p>&copy; 2024 DiscAuto. All Rights Reserved!</p>
+
+            <!-- Bottom -->
+            <div class="text-center pt-6">
+                <p class="text-[#bce4d6]/60">&copy; 2024 DiscAuto. All Rights Reserved!</p>
+            </div>
         </div>
     </footer>
 </body>
-
 </html>

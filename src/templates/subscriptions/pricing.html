@@ -5,208 +5,121 @@
 
 {% block content %}
 <!-- Full-screen flex container -->
-<div class="min-h-screen flex flex-col justify-center items-center py-12">
-  <h1 class="text-4xl font-bold text-center text-white mb-8">Our Plans</h1>
+<div class="min-h-screen flex flex-col justify-center items-center p-4 sm:p-8 font-['Plus_Jakarta_Sans']">
+  <h1 class="text-4xl sm:text-5xl font-bold text-white mb-8 sm:mb-10 font-['Clash_Display']">Choose Your Plan</h1>
 
   {% if paid_plans_exist %}
-  <div class="flex justify-center space-x-4 mb-8">
-    <button class="tab-btn px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:bg-blue-600 hover:text-white" data-interval="weekly">Weekly</button>
-    <button class="tab-btn px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:bg-blue-600 hover:text-white" data-interval="monthly">Monthly</button>
-    <button class="tab-btn px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 hover:bg-blue-600 hover:text-white" data-interval="yearly">Annual</button>
+  <div class="flex justify-center space-x-4 mb-8 bg-white/10 backdrop-blur-lg rounded-full p-1.5 border border-white/10">
+    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="weekly">Weekly</button>
+    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="monthly">Monthly</button>
+    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="yearly">Annual</button>
   </div>
   {% endif %}
 
   <!-- Cards container -->
-  <div class="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    
-    {# --- FREE PLAN CARD --- #}
-    <div class="bg-white rounded-xl shadow-lg p-8 w-80 transform transition-all duration-300 hover:scale-105">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Free Plan</h2>
-      <p class="text-3xl font-bold text-gray-900 mb-4">$0 <span class="text-lg font-normal text-gray-500">/ forever</span></p>
-      <p class="text-gray-600 mb-4">No credit card required!</p>
-      <ul class="space-y-3 mb-4">
-        <li class="flex items-center">
-          <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-          <span class="text-gray-700">Basic usage</span>
-        </li>
-        <li class="flex items-center">
-          <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-          <span class="text-gray-700">Access to some features</span>
-        </li>
-      </ul>
-      {% if user.is_authenticated %}
-        {% if not current_subscription.subscription or current_subscription.subscription.name|lower == "free" or current_subscription.subscription.name|lower == "free plan" or current_subscription.cancel_at_period_end %}
-          <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
-        {% else %}
-          <a href="{% url 'user_subscription_cancel' %}" class="block w-full bg-gray-900 text-white py-3 rounded-lg font-semibold text-center hover:bg-gray-700 transition-all duration-300">
-            Downgrade to Free
-          </a>
-        {% endif %}
-      {% else %}
-        <a href="{% url 'account_login' %}?next={% url 'pricing' %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-          Start Free
-        </a>
-      {% endif %}
-    </div>
-
-    {# --- PAID PLAN CARDS --- #}
-    {% for plan_info in plans_data %}
-      {% with sub=plan_info.subscription %}
-        {% if sub.name|lower != "free" and sub.name|lower != "free plan" %}
-        <div class="bg-white rounded-xl shadow-lg p-8 w-80 transform transition-all duration-300 hover:scale-105">
-          {# 1. Plan Name #}
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ sub.name }}</h2>
-          
-          {# 2. Price (interval‑dependent) #}
-          {% if plan_info.weekly_price %}
-            <div class="interval-price interval-weekly" style="display: none;">
-              <p class="text-3xl font-bold text-gray-900 mb-4">
-                ${{ plan_info.weekly_price.price }} <span class="text-lg font-normal text-gray-500">/week</span>
-              </p>
-            </div>
-          {% endif %}
-          {% if plan_info.monthly_price %}
-            <div class="interval-price interval-monthly" style="display: none;">
-              <p class="text-3xl font-bold text-gray-900 mb-4">
-                ${{ plan_info.monthly_price.price }} <span class="text-lg font-normal text-gray-500">/month</span>
-              </p>
-            </div>
-          {% endif %}
-          {% if plan_info.yearly_price %}
-            <div class="interval-price interval-yearly" style="display: none;">
-              <p class="text-3xl font-bold text-gray-900 mb-4">
-                ${{ plan_info.yearly_price.price }} <span class="text-lg font-normal text-gray-500">/year</span>
-              </p>
-            </div>
-          {% endif %}
-
-          {# 3. Subtext (subtitle) #}
-          {% if sub.subtitle %}
-            <p class="text-gray-600 mb-4"><em>{{ sub.subtitle }}</em></p>
-          {% endif %}
-
-          {# 4. Description (features list) #}
-          <ul class="space-y-3 mb-4">
-            {% for feat in sub.feature_set.all %}
-              <li class="flex items-center">
-                {% if feat.icon_url %}
-                  <img src="{{ feat.icon_url }}" alt="icon" class="w-5 h-5 mr-2">
-                {% else %}
-                  <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-2">
-                {% endif %}
-                <span class="text-gray-700">{{ feat.title }}</span>
-              </li>
-            {% endfor %}
+  <!-- Remove hover:scale-105 and simplify card styles -->
+  <div class="flex flex-wrap justify-center gap-6 sm:gap-8 max-w-7xl mx-auto">
+      {# --- FREE PLAN CARD --- #}
+      <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-8 w-full sm:w-80">
+          <h2 class="text-2xl font-bold text-white mb-4 font-['Clash_Display']">Free Plan</h2>
+          <p class="text-3xl font-bold text-white mb-4">$0 <span class="text-lg font-normal text-white/60">/ forever</span></p>
+          <p class="text-white/70 mb-6">No credit card required!</p>
+          <ul class="space-y-4 mb-6">
+            <li class="flex items-center">
+              <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-3 opacity-80">
+              <span class="text-white/80">Basic usage</span>
+            </li>
+            <li class="flex items-center">
+              <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-3 opacity-80">
+              <span class="text-white/80">Access to some features</span>
+            </li>
           </ul>
-          
-          {# 5. Button (interval‑dependent) #}
-          {% if plan_info.weekly_price %}
-            <div class="interval-button interval-weekly" style="display: none;">
-              {% if current_subscription %}
-                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'week' %}
-                  {% if current_subscription.cancel_at_period_end %}
-                    <a href="{% url 'user_subscription_resubscribe' plan_info.weekly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Resubscribe to {{ sub.name }}
-                    </a>
-                  {% else %}
-                    <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
-                  {% endif %}
-                {% else %}
-                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
-                    <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Upgrade to {{ sub.name }}
-                    </a>
-                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
-                    <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Downgrade to {{ sub.name }}
-                    </a>
-                  {% else %}
-                    <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Buy {{ sub.name }}
-                    </a>
-                  {% endif %}
-                {% endif %}
-              {% else %}
-                <a href="{{ plan_info.weekly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                  Buy {{ sub.name }}
-                </a>
-              {% endif %}
-            </div>
+          {% if user.is_authenticated %}
+            {% if not current_subscription.subscription or current_subscription.subscription.name|lower == "free" or current_subscription.subscription.name|lower == "free plan" or current_subscription.cancel_at_period_end %}
+              <button class="w-full py-3.5 rounded-xl font-semibold bg-white/20 text-white/60 cursor-not-allowed">Current Plan</button>
+            {% else %}
+              <a href="{% url 'user_subscription_cancel' %}" class="block w-full py-3.5 rounded-xl font-semibold text-center bg-white/20 text-white hover:bg-white/30 transition duration-300">
+                Downgrade to Free
+              </a>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'account_login' %}?next={% url 'pricing' %}" 
+               class="block w-full py-3 sm:py-4 px-4 text-sm sm:text-base bg-gradient-to-r from-teal-400 to-teal-800 text-white font-semibold rounded-xl transition duration-300">
+              Start Free
+            </a>
           {% endif %}
-          {% if plan_info.monthly_price %}
-            <div class="interval-button interval-monthly" style="display: none;">
-              {% if current_subscription %}
-                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'month' %}
-                  {% if current_subscription.cancel_at_period_end %}
-                    <a href="{% url 'user_subscription_resubscribe' plan_info.monthly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Resubscribe to {{ sub.name }}
-                    </a>
+      </div>
+  
+      {# --- PAID PLAN CARDS --- #}
+      {% for plan_info in plans_data %}
+        {% with sub=plan_info.subscription %}
+          {% if sub.name|lower != "free" and sub.name|lower != "free plan" %}
+          <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-8 w-full sm:w-80">
+            <h2 class="text-2xl font-bold text-white mb-4 font-['Clash_Display']">{{ sub.name }}</h2>
+            
+            {% if plan_info.weekly_price %}
+              <div class="interval-price interval-weekly" style="display: none;">
+                <p class="text-3xl font-bold text-white mb-4">
+                  ${{ plan_info.weekly_price.price }} <span class="text-lg font-normal text-white/60">/week</span>
+                </p>
+              </div>
+            {% endif %}
+            {% if plan_info.monthly_price %}
+              <div class="interval-price interval-monthly" style="display: none;">
+                <p class="text-3xl font-bold text-white mb-4">
+                  ${{ plan_info.monthly_price.price }} <span class="text-lg font-normal text-white/60">/month</span>
+                </p>
+              </div>
+            {% endif %}
+            {% if plan_info.yearly_price %}
+              <div class="interval-price interval-yearly" style="display: none;">
+                <p class="text-3xl font-bold text-white mb-4">
+                  ${{ plan_info.yearly_price.price }} <span class="text-lg font-normal text-white/60">/year</span>
+                </p>
+              </div>
+            {% endif %}
+  
+            {% if sub.subtitle %}
+              <p class="text-white/70 mb-6"><em>{{ sub.subtitle }}</em></p>
+            {% endif %}
+  
+            <ul class="space-y-4 mb-6">
+              {% for feat in sub.feature_set.all %}
+                <li class="flex items-center">
+                  {% if feat.icon_url %}
+                    <img src="{{ feat.icon_url }}" alt="icon" class="w-5 h-5 mr-3 opacity-80">
                   {% else %}
-                    <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
+                    <img src="{% static 'images/tick.png' %}" alt="tick" class="w-5 h-5 mr-3 opacity-80">
                   {% endif %}
-                {% else %}
-                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
-                    <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Upgrade to {{ sub.name }}
-                    </a>
-                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
-                    <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Downgrade to {{ sub.name }}
-                    </a>
-                  {% else %}
-                    <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Buy {{ sub.name }}
-                    </a>
-                  {% endif %}
-                {% endif %}
-              {% else %}
-                <a href="{{ plan_info.monthly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                  Buy {{ sub.name }}
-                </a>
-              {% endif %}
-            </div>
+                  <span class="text-white/80">{{ feat.title }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+  
+            <!-- Keep the existing button logic but update styling -->
+            {% if plan_info.weekly_price %}
+              <div class="interval-button interval-weekly" style="display: none;">
+                {% include "subscriptions/includes/plan_button.html" with price=plan_info.weekly_price interval="week" %}
+              </div>
+            {% endif %}
+            {% if plan_info.monthly_price %}
+              <div class="interval-button interval-monthly" style="display: none;">
+                {% include "subscriptions/includes/plan_button.html" with price=plan_info.monthly_price interval="month" %}
+              </div>
+            {% endif %}
+            {% if plan_info.yearly_price %}
+              <div class="interval-button interval-yearly" style="display: none;">
+                {% include "subscriptions/includes/plan_button.html" with price=plan_info.yearly_price interval="year" %}
+              </div>
+            {% endif %}
+          </div>
           {% endif %}
-          {% if plan_info.yearly_price %}
-            <div class="interval-button interval-yearly" style="display: none;">
-              {% if current_subscription %}
-                {% if current_subscription.plan_id == sub.id and current_subscription.interval == 'year' %}
-                  {% if current_subscription.cancel_at_period_end %}
-                    <a href="{% url 'user_subscription_resubscribe' plan_info.yearly_price.id %}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Resubscribe to {{ sub.name }}
-                    </a>
-                  {% else %}
-                    <button class="w-full bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold cursor-not-allowed">Current Plan</button>
-                  {% endif %}
-                {% else %}
-                  {% if current_subscription.plan_id and current_subscription.subscription.order < sub.order %}
-                    <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Upgrade to {{ sub.name }}
-                    </a>
-                  {% elif current_subscription.plan_id and current_subscription.subscription.order > sub.order %}
-                    <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Downgrade to {{ sub.name }}
-                    </a>
-                  {% else %}
-                    <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                      Buy {{ sub.name }}
-                    </a>
-                  {% endif %}
-                {% endif %}
-              {% else %}
-                <a href="{{ plan_info.yearly_price.get_checkout_url }}" class="block w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-center hover:bg-blue-700 transition-all duration-300">
-                  Buy {{ sub.name }}
-                </a>
-              {% endif %}
-            </div>
-          {% endif %}
-        </div>
-        {% endif %}
-      {% endwith %}
-    {% endfor %}
+        {% endwith %}
+      {% endfor %}
   </div>
 </div>
 
-<!-- Updated JavaScript to toggle both price and button sections -->
+<!-- Replace the JavaScript with a simpler version without animations -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   const tabButtons = document.querySelectorAll('.tab-btn');
@@ -216,24 +129,30 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     return;
   }
+  
   tabButtons.forEach(function(btn) {
     btn.addEventListener('click', function() {
+      // Update button styles
       tabButtons.forEach(function(b) {
-        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.remove('bg-gradient-to-r', 'from-teal-400', 'to-teal-800', 'text-white');
       });
-      btn.classList.add('bg-blue-600', 'text-white');
+      btn.classList.add('bg-gradient-to-r', 'from-teal-400', 'to-teal-800', 'text-white');
+      
+      // Get interval and update visibility immediately
       const interval = btn.getAttribute('data-interval');
-      // Hide all interval-dependent blocks
       document.querySelectorAll('.interval-price, .interval-button').forEach(function(el) {
         el.style.display = 'none';
       });
-      // Show blocks matching the selected interval
       document.querySelectorAll('.interval-' + interval).forEach(function(el) {
         el.style.display = 'block';
       });
     });
   });
+  
+  // Trigger click on first button
   tabButtons[0].click();
 });
 </script>
+
+{% include 'landing/footer.html' %}
 {% endblock content %}

@@ -2,239 +2,246 @@
 
 <!DOCTYPE html>
 <html lang="en">
+<!-- In the head section, add these fonts -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Import Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'fade-in-right': 'fadeInRight 0.8s ease-out forwards',
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        /* Add custom Tailwind class to apply the Google font */
-        .font-poppins {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        /* Gradient animation */
-        @keyframes gradientAnimation {
-            0% {
-                background-position: 0% 50%;
+        /* Keep all existing styles but remove scroll-related ones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        .line-below-features {
-            background: linear-gradient(90deg, #C4A2F5, #895FDB, #6A4DDB, #C4A2F5); /* Gradient colors */
-            background-size: 300% 300%; /* Larger background to create a smoother animation */
-            animation: gradientAnimation 5s ease infinite; /* Infinite animation with a smooth transition */
-        }
-
-
-        /* Custom styles for the checkmark and button */
-        .checklist-item::before {
-            content: '';
-            background-image: url("{% static 'images/tick.png' %}");
-            background-size: contain;
-            width: 35px; /* Increased size */
-            height: 35px; /* Increased size */
-            display: inline-block;
-            margin-right: 12px; /* Increased margin */
-            margin-bottom: -7px;
-        }
-
-        /* Gradient glow animation */
-        @keyframes glowAnimation {
-            0% {
-                background-position: 0% 50%;
-                text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
             }
-            50% {
-                background-position: 100% 50%;
-                text-shadow: 0 0 20px #ff66ff, 0 0 40px #ff66ff, 0 0 50px #ff66ff;
-            }
-            100% {
-                background-position: 0% 50%;
-                text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+            to {
+                opacity: 1;
+                transform: translateX(0);
             }
         }
 
-        /* Default span styling */
-        .f-main span, .f-eature span {
-            display: inline-block;
-            transition: all 0.3s ease-in-out;
+        /* Modified feature card styles - initially hidden */
+        .feature-card {
+            opacity: 0;
+            backdrop-filter: blur(12px);
+            background: rgba(15, 118, 110, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.2);
         }
 
-        /* Hover effect for individual characters */
-        .f-main span:hover, .f-eature span:hover {
-            animation: glowAnimation 1s ease-in-out infinite;
-            background: linear-gradient(90deg, #ff00ff, #ff66ff, #ff00ff);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 5px #ff00ff;
+        /* Animation classes that will be added by JavaScript */
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out forwards;
         }
 
-        .content-wrapper-feature {
-            position: relative;
+        /* Remove the automatic animation delays */
+        /* .feature-card:nth-child(1) { animation-delay: 0.2s; } */
+        /* These will be handled by JavaScript */
+
+        /* Initially hide title and subtitle */
+        .feature-title, .feature-subtitle {
+            opacity: 0;
         }
 
-        .center-button-feature {
-            position: absolute;
-            background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
+        .feature-button {
+            background: linear-gradient(90deg, #0F766E 0%, #064E3B 100%);
             background-size: 200% 200%;
-            animation: gradientAnimation 5s ease infinite;
-            padding: 12px 36px;
-            font-size: 1.25rem;
-            font-weight: bold;
-            border-radius: 10px;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: transform 0.3s ease;
-            z-index: 2; /* Ensure button appears above everything */
-            margin-top: -10;
+            animation: gradientAnimation 4s ease infinite;
         }
 
-        .center-button-feature:hover {
-            transform: scale(1.05);
-            background-color: #9B8ADB;
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
-
-        /* Arrow styles */
-        .arrow {
-            position: absolute;
-            top: 15%;
-            left: 45%;
-            transform: translate(-40%, -20%); /* Adjust based on where the arrow should be */
-            width: 500px; /* Adjust the width based on the size of your arrow */
-            height: auto;
-            z-index: -1; /* Ensure arrow is behind text */
-        }
-
-        /* Hide arrow on mobile devices */
-        @media (max-width: 640px) {
-            .arrow {
-                display: none;
-            }
-        }
-
-        /* Responsive styles for button */
-        @media (max-width: 640px) {
-            .center-button-feature {
-                bottom: 20px;
-                font-size: 1.5rem; /* Mobile button font size */
-                padding: 15px 30px; /* Mobile button padding */
-            }
-        }
-
-        /* Large text size adjustment */
-        .f-main {
-            font-size: 21rem; /* Decreased size for better fit */
-            font-family: "Times New Roman", Times, serif;
-        }
-
-        /* Adjust feature margin for larger screens */
-        .f-eature {
-            margin-left: -100px; /* Margin for larger screens */
-            font-size: 10rem; /* Large size for 'Features' */
-            z-index: 2; /* Ensure text stays on top of arrow */
-        }
-
-        .feature-eature {
-            font-size: 3.5rem;
-        }
-
-        /* Mobile font size adjustment */
-        @media (max-width: 640px) {
-            .f-main {
-                font-size: 8rem; /* Smaller font for mobile */
-            }
-            .f-eature {
-                margin-left: 0;
-                font-size: 3rem; /* Adjusted for smaller screens */
-                margin-left: -40px; /* Margin for larger screens */
-            }
-
-            h1.text-6xl {
-                font-size: 2.5rem; /* Mobile font size adjustment */
-            }
-            .line-below-features {
-                margin-top: -24rem;
-                padding: 0.3rem;
-            }
-            .feature-heading {
-                margin-bottom: 22rem;
-            }
-            .feature-eature {
-                font-size: 2rem;
-            }
-
-            .checklist-item::before {
-                width: 30px; /* Increased size */
-                height: 30px; /* Increased size */
-                margin-bottom: -7px;
-            }
-
-            .features-all {
-                font-size: 1.3rem;
-            }
-        }
-
     </style>
 </head>
-<body class="min-h-screen bg-[#1E1E2E] text-white font-poppins">
-
-    <div class="content-wrapper-feature flex flex-col lg:flex-row w-full h-full items-center justify-center lg:justify-between ">
-
-        <!-- First section with stylized text -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center text-center lg:text-left relative">
-            <div>
-                <h1 class="feature-heading">
-                    <span class="f-main">
-                        <span>1</span>
-                    </span>
-                    <span class="text-[#C4A2F5] text-5xl md:text-7xl lg:text-9xl leading-tight f-eature italic">
-                        <span>P</span><span>l</span><span>a</span><span>t</span><span>f</span><span>o</span><span>r</span><span>m</span>
-                    </span>
-                </h1>
-                <!-- Adjust hr margins to bring the line up -->
-                <hr class="h-2 bg-purple-600 border-0 rounded-full -mt-16 p-4 line-below-features"> 
-                <!-- Apply negative margin to move the text up -->
-                <h1 class="italic mt-4 feature-eature"> 
-                    For Selling Digital Products <br> + Link In Bio
-                </h1>
+<body class="min-h-screen bg-[#1E1E2E] font-inter text-white overflow-x-hidden">
+    <div class="fixed inset-0 w-full h-full">
+        <!-- Animated gradient background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-teal-950 via-emerald-900 to-slate-950 bg-fixed">
+            <div class="absolute inset-0 opacity-40">
+                <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(45,212,191,0.15)_0%,rgba(45,212,191,0)_50%)] animate-pulse-slow"></div>
+                <div class="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(16,185,129,0.2)_0%,rgba(16,185,129,0)_40%)] animate-pulse-slow"></div>
             </div>
-
-            
-        </div>        
-        <!-- Add arrow image -->
-        <img src="{% static 'images/arrow.png' %}" class="arrow" alt="Arrow pointing to the right">
-
-        <!-- Second section with checklist -->
-        <div class="w-full lg:w-1/2 flex items-start justify-center space-y-4 md:space-y-5 p-4 md:p-8">
-            <ul class="space-y-4 lg:text-4xl features-all">
-                <li class="checklist-item">Ad reminder</li>
-                <li class="checklist-item">Add Digital Products</li>
-                <li class="checklist-item">Sell Digital Products</li>
-                <li class="checklist-item">Get a "mystorel.ink" link!</li>
-                <li class="checklist-item">Request Custom Features</li>
-                <a href="/accounts/login" class="center-button-feature">
-                    GET STARTED 
-                    <span class="material-symbols-outlined">
-                        arrow_forward
-                    </span>
-                </a>
-            </ul>
         </div>
     </div>
+
+    <!-- Content -->
+    <div class="relative z-10 container mx-auto px-4 py-20">
+        <!-- Header Section -->
+        <div class="text-center mb-16">
+            <!-- Update the heading classes -->
+            <h1 class="feature-title heading-font text-6xl md:text-7xl lg:text-8xl font-bold mb-6">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-teal-200 to-emerald-300">
+                    Platform Features
+                </span>
+            </h1>
+            <p class="feature-subtitle text-lg md:text-xl text-emerald-100/80 max-w-2xl mx-auto">
+                Everything you need to grow your online presence and automate your business
+            </p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <!-- Feature Cards -->
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">analytics</span>
+                    </div>
+                    <!-- Update feature card headings -->
+                    <h3 class="heading-font text-xl font-semibold text-emerald-200">Daily Stats</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    Track your performance with real-time analytics and detailed insights
+                </p>
+            </div>
+
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">payments</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-emerald-200">Automated Payments</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    Seamless payment processing and instant delivery system
+                </p>
+            </div>
+
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">shopping_cart</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-emerald-200">Digital Products</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    Sell your digital products with automated delivery
+                </p>
+            </div>
+
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">link</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-emerald-200">Custom Link</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    Get your personalized mystorel.ink domain
+                </p>
+            </div>
+
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">support_agent</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-emerald-200">24/7 Support</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    Get help anytime with our dedicated support team
+                </p>
+            </div>
+
+            <div class="feature-card rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-300 group">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mr-4">
+                        <span class="material-symbols-outlined text-emerald-300">paid</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-emerald-200">Low Fees</h3>
+                </div>
+                <p class="text-emerald-100/70 group-hover:text-emerald-100/90 transition-colors">
+                    0.5% Transaction fee and 0% Deposit Fee - Stripe fees excluded.
+                </p>
+            </div>
+        </div>
+
+        <!-- CTA Button -->
+        <div class="text-center">
+            <a href="/accounts/login" class="feature-button inline-flex items-center px-8 py-4 rounded-lg text-white font-semibold text-lg transition-all hover:scale-105 hover:shadow-lg">
+                Start Using Features
+                <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                </span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Add Intersection Observer script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements to observe
+            const featureTitle = document.querySelector('.feature-title');
+            const featureSubtitle = document.querySelector('.feature-subtitle');
+            const featureCards = document.querySelectorAll('.feature-card');
+            
+            // Create observer for title and subtitle
+            const headerObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.classList.contains('feature-title')) {
+                            entry.target.style.animation = 'fadeInUp 1s ease-out forwards';
+                        } else if (entry.target.classList.contains('feature-subtitle')) {
+                            entry.target.style.animation = 'fadeInUp 1.2s ease-out forwards';
+                        }
+                        headerObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            // Observe header elements
+            headerObserver.observe(featureTitle);
+            headerObserver.observe(featureSubtitle);
+            
+            // Create observer for feature cards with staggered animation
+            const cardObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        // Calculate delay based on the card's position
+                        const delay = 0.2 * (Array.from(featureCards).indexOf(entry.target) % 6);
+                        entry.target.style.animation = `fadeInUp 0.6s ease-out ${delay}s forwards`;
+                        cardObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+            
+            // Observe each feature card
+            featureCards.forEach(card => {
+                cardObserver.observe(card);
+            });
+        });
+    </script>
 </body>
 </html>

@@ -7,164 +7,57 @@
 {% endblock head_title %}
 
 {% block content %}
-<style>
-    body {
-        background: linear-gradient(135deg, #1e1e3f, #283593); /* Dark gradient background */
-        color: white;
-        font-family: 'Roboto', sans-serif;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-    }
-
-    .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background-color: rgba(0, 0, 0, 0.7);
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
-        max-width: 500px;
-    }
-
-    h1 {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #c084fc;
-        margin-bottom: 20px;
-    }
-
-    .form-control {
-        width: 100%;
-    }
-
-    input {
-        background-color: #2c2c54;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        width: 100%;
-    }
-
-    input::placeholder {
-        color: #b3b3ff;
-    }
-
-    .checkbox-accent {
-        color: #b3b3ff;
-    }
-
-    a.link {
-        color: #c084fc;
-        text-decoration: none;
-    }
-
-    a.link:hover {
-        text-decoration: underline;
-    }
-
-    .btn {
-        background: linear-gradient(90deg, #c084fc, #7c3aed);
-        border: none;
-        padding: 10px 20px;
-        color: white;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 8px;
-        width: 100%;
-        margin-top: 15px;
-        transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-        background: linear-gradient(90deg, #7c3aed, #c084fc);
-    }
-
-    .divider {
-        border-bottom: 1px solid #7c3aed;
-        width: 100%;
-        margin: 20px 0;
-    }
-
-    .social-buttons {
-        display: flex;
-        justify-content: space-around;
-        width: 100%;
-    }
-
-    .social-buttons a {
-        background-color: #2c2c54;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        text-align: center;
-        width: 45%;
-        text-decoration: none;
-    }
-
-    .social-buttons a:hover {
-        background-color: #3a3a69;
-    }
-
-    .remember-me {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #fff;
-    }
-</style>
-
-<div class="container">
-    <h1>Login</h1>
-
-    {% if not SOCIALACCOUNT_ONLY %}
-    <div class="py-3">
-        <p>If you have not created an account yet, then please <a class="link" href="{{ signup_url }}">sign up</a> first.</p>
-    </div>
-
-    {% url 'account_login' as action_url %}
-    <form action="{{ action_url }}" method="POST" class="form-control">
-        {% csrf_token %}
-        {{ redirect_field }}
-
-        <!-- Email and Password Fields -->
-        <label for="id_login">Email</label>
-        {% render_field form.login placeholder="Email" class="input text-black" %}
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-8 font-['Plus_Jakarta_Sans']">
+    <div class="w-full max-w-[550px] bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-10 shadow-lg">
+        <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 font-['Clash_Display'] text-center">Welcome Back</h1>
         
-        <label for="id_password">Password</label>
-        {% render_field form.password placeholder="Password" class="input text-black" %}
+        {% if not SOCIALACCOUNT_ONLY %}
+        <form action="{% url 'account_login' %}" method="POST">
+            {% csrf_token %}
+            {{ redirect_field }}
 
-        <!-- Remember Me Checkbox -->
-        <div class="remember-me">
-            {% render_field form.remember class="checkbox checkbox-accent" %}
-            <label for="remember">Remember me</label>
+            <div class="mb-4 sm:mb-6">
+                <label for="id_login" class="block mb-2 text-gray-200 font-medium text-xs sm:text-sm">Email</label>
+                {{ form.login|add_class:"w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"|attr:"placeholder:Enter your email" }}
+            </div>
+
+            <div class="mb-4 sm:mb-6">
+                <label for="id_password" class="block mb-2 text-gray-200 font-medium text-xs sm:text-sm">Password</label>
+                {{ form.password|add_class:"w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"|attr:"placeholder:Enter your password" }}
+            </div>
+
+            <div class="flex items-center gap-2 mb-4 sm:mb-6 text-gray-200">
+                {{ form.remember|add_class:"appearance-none w-[16px] sm:w-[18px] h-[16px] sm:h-[18px] border border-white/20 rounded bg-white/5 cursor-pointer relative checked:bg-teal-400 checked:border-teal-400 focus:border-teal-400 focus:outline-none after:content-['✓'] after:hidden checked:after:block after:absolute after:top-1/2 after:left-1/2 after:-translate-x-1/2 after:-translate-y-1/2 after:text-white after:text-xs sm:after:text-sm" }}
+                <label for="id_remember" class="text-sm sm:text-base">Remember me</label>
+            </div>
+
+            <button type="submit" class="w-full py-3 sm:py-4 px-4 text-sm sm:text-base bg-gradient-to-r from-teal-400 to-teal-800 text-white font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+                Sign In
+            </button>
+        </form>
+        {% endif %}
+
+        {% if SOCIALACCOUNT_ENABLED %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
+            <a href="/accounts/google/login/?process=login" 
+               class="py-3 sm:py-3.5 px-4 text-sm sm:text-base rounded-xl text-center bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:-translate-y-0.5 transition duration-300">
+                Sign in with Google
+            </a>
+            <a href="/accounts/discord/login/?process=login"
+               class="py-3 sm:py-3.5 px-4 text-sm sm:text-base rounded-xl text-center bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:-translate-y-0.5 transition duration-300">
+                Sign in with Discord
+            </a>
         </div>
+        {% endif %}
 
-        <!-- Forgot Password Link -->
-        <a class="link self-end text-sm" href="{% url 'account_reset_password' %}">Forgot password?</a>
-
-        <!-- Sign In Button -->
-        <button class="btn" type="submit">Sign In</button>
-    </form>
-    {% endif %}
-
-    {% if LOGIN_BY_CODE_ENABLED %}
-    <div class="divider"></div>
-    <a href="{{ request_login_code_url }}" class="btn">Mail me a sign-in code</a>
-    {% endif %}
-
-    {% if SOCIALACCOUNT_ENABLED %}
-    <!-- Social Login Buttons -->
-    <div class="divider"></div>
-    <div class="social-buttons">
-        <a href="/accounts/google/login/?process=login" class="social-btn">Login with Google</a>
-        <a href="/accounts/discord/login/?process=login" class="social-btn">Login with Discord</a>
+        <div class="text-center mt-4 sm:mt-6 text-gray-200">
+            <p class="text-sm sm:text-base">
+                Don't have an account? 
+                <a href="{{ signup_url }}" class="text-teal-400 hover:underline font-medium">Sign up</a>
+            </p>
+        </div>
     </div>
-    {% endif %}
 </div>
+
+{% include 'landing/footer.html' %}
 {% endblock content %}

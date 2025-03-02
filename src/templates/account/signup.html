@@ -7,146 +7,56 @@
 {% endblock head_title %}
 
 {% block content %}
-<style>
-    body {
-        background: linear-gradient(135deg, #1e1e3f, #283593); /* Dark gradient background */
-        color: white;
-        font-family: 'Roboto', sans-serif;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-    }
+<div class="min-h-screen flex items-center justify-center p-4 sm:p-8 font-['Plus_Jakarta_Sans']">
+    <div class="w-full max-w-[550px] bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-10 shadow-lg">
+        <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 font-['Clash_Display'] text-center">Create Account</h1>
 
-    .container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background-color: rgba(0, 0, 0, 0.7);
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
-        max-width: 500px;
-    }
+        <div class="text-center text-gray-200 mb-4 sm:mb-6">
+            <p class="text-sm sm:text-base">If you already have an account, please
+                <a href="{{ login_url }}" class="text-teal-400 hover:underline font-medium">sign in</a>.
+            </p>
+        </div>
 
-    h1 {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #c084fc;
-        margin-bottom: 20px;
-    }
+        {% url 'account_signup' as action_url %}
+        <form action="{{ action_url }}" method="POST">
+            {% csrf_token %}
+            {{ redirect_field }}
 
-    .form-control {
-        width: 100%;
-    }
+            {% for field in form %}
+            <div class="mb-4 sm:mb-6">
+                <label for="{{ field.id_for_label }}" class="block mb-2 text-gray-200 font-medium text-xs sm:text-sm">
+                    {{ field.label }}
+                </label>
+                {% render_field field class="w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300" placeholder=field.label %}
+                {% if field.errors %}
+                    <ul class="text-red-200 text-xs sm:text-sm mt-2">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
 
-    input {
-        background-color: #2c2c54;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        width: 100%;
-    }
+            <button type="submit" class="w-full py-3 sm:py-4 px-4 text-sm sm:text-base bg-gradient-to-r from-teal-400 to-teal-800 text-white font-semibold rounded-xl hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+                Sign Up
+            </button>
+        </form>
 
-    input::placeholder {
-        color: #b3b3ff;
-    }
-
-    a.link {
-        color: #c084fc;
-        text-decoration: none;
-    }
-
-    a.link:hover {
-        text-decoration: underline;
-    }
-
-    .btn {
-        background: linear-gradient(90deg, #c084fc, #7c3aed);
-        border: none;
-        padding: 10px 20px;
-        color: white;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 8px;
-        width: 100%;
-        margin-top: 15px;
-        transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-        background: linear-gradient(90deg, #7c3aed, #c084fc);
-    }
-
-    .divider {
-        border-bottom: 1px solid #7c3aed;
-        width: 100%;
-        margin: 20px 0;
-    }
-
-    .social-buttons {
-        display: flex;
-        justify-content: space-around;
-        width: 100%;
-    }
-
-    .social-buttons a {
-        background-color: #2c2c54;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        text-align: center;
-        width: 45%;
-        text-decoration: none;
-    }
-
-    .social-buttons a:hover {
-        background-color: #3a3a69;
-    }
-</style>
-
-<div class="container">
-    <h1>Sign Up</h1>
-
-    <!-- Already have an account? -->
-    <div class="py-3">
-        <p>If you already have an account, please
-            <a class="link" href="{{ login_url }}">sign in</a>.
-        </p>
+        {% if SOCIALACCOUNT_ENABLED %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
+            <a href="/accounts/google/login/?process=signup" 
+               class="py-3 sm:py-3.5 px-4 text-sm sm:text-base rounded-xl text-center bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:-translate-y-0.5 transition duration-300">
+                Sign up with Google
+            </a>
+            <a href="/accounts/discord/login/?process=signup"
+               class="py-3 sm:py-3.5 px-4 text-sm sm:text-base rounded-xl text-center bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:-translate-y-0.5 transition duration-300">
+                Sign up with Discord
+            </a>
+        </div>
+        {% endif %}
     </div>
-
-    {% url 'account_signup' as action_url %}
-    <form action="{{ action_url }}" method="POST" class="form-control">
-        {% csrf_token %}
-        {{ redirect_field }}
-
-        <!-- Render each field from the signup form -->
-        {% for field in form %}
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {% render_field field class="input text-black" placeholder=field.label %}
-            {% if field.errors %}
-                <ul style="color: #ffbaba; font-size: 0.9rem;">
-                    {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        {% endfor %}
-
-        <!-- Sign Up Button -->
-        <button class="btn" type="submit">Sign Up</button>
-    </form>
-    <!-- Example: Social Signup Buttons -->
-    {% if SOCIALACCOUNT_ENABLED %}
-    <div class="divider"></div>
-    <div class="social-buttons">
-        <!-- Adjust these URLs/providers as needed: -->
-        <a href="/accounts/google/login/?process=signup">Sign Up with Google</a>
-        <a href="/accounts/discord/login/?process=signup">Sign Up with Discord</a>
-    </div>
-    {% endif %}
 </div>
+
+{% include 'landing/footer.html' %}
 {% endblock content %}

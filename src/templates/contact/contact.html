@@ -3,191 +3,80 @@
 {% block head_title %} Contact - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
+<div class="min-h-screen flex items-center justify-center p-3 sm:p-4 md:p-8 pt-20 sm:pt-24 md:pt-28 font-['Plus_Jakarta_Sans']">
+    <div class="w-full max-w-[1000px] bg-white/10 backdrop-blur-lg border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-10 shadow-lg">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4 md:mb-8 font-['Clash_Display'] text-center">How Can We Help You?</h1>
 
-<style>
-    .contact-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 100vh;
-        padding: 2rem;
-        background: radial-gradient(circle at center, #2A2D5D, black);
-        background-size: cover;
-        background-attachment: fixed;
-    }
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+            <!-- Contact Form Section -->
+            <div class="space-y-4 sm:space-y-6">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-4 font-['Clash_Display']">Email Us</h2>
+                
+                <form method="post" action="{% url 'contact' %}" class="space-y-3 sm:space-y-4">
+                    {% csrf_token %}
+                    <div class="space-y-1.5 sm:space-y-2">
+                        <label for="id_email" class="block text-gray-200 font-medium text-xs sm:text-sm">Your Email</label>
+                        <input type="email" id="id_email" name="email" 
+                               class="w-full px-2.5 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-3.5 text-xs sm:text-sm md:text-base rounded-lg sm:rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"
+                               required>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="id_name" class="block text-gray-200 font-medium text-xs sm:text-sm">Your Name</label>
+                        <input type="text" id="id_name" name="name" 
+                               class="w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"
+                               required>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="id_subject" class="block text-gray-200 font-medium text-xs sm:text-sm">Subject</label>
+                        <input type="text" id="id_subject" name="subject" 
+                               class="w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"
+                               required>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="id_message" class="block text-gray-200 font-medium text-xs sm:text-sm">Your Message</label>
+                        <textarea id="id_message" name="message" rows="5" 
+                                  class="w-full px-3 sm:px-4 py-3 sm:py-3.5 text-sm sm:text-base rounded-xl border border-white/20 bg-white/5 text-white placeholder-white/50 focus:border-teal-400 focus:outline-none focus:bg-white/10 transition duration-300"
+                                  required></textarea>
+                    </div>
+                    <button type="submit" 
+                            class="w-full py-2.5 sm:py-3 md:py-4 px-3 sm:px-4 text-xs sm:text-sm md:text-base bg-gradient-to-r from-teal-400 to-teal-800 text-white font-semibold rounded-lg sm:rounded-xl hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(45,212,191,0.3)] transition duration-300">
+                        Send Message
+                    </button>
+                </form>
+            </div>
 
-    .contact-info {
-        flex: 1;
-        color: #ffffff;
-        text-align: center;
-        padding: 2rem;
-        font-size: 3rem;
-        align-items: center;
-    }
+            <!-- Contact Information Section -->
+            <div class="space-y-4 sm:space-y-6 flex flex-col justify-start lg:justify-center mt-4 lg:mt-0">
+                <h2 class="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-4 font-['Clash_Display']">Get in Touch</h2>
+                
+                <div class="space-y-4 sm:space-y-6 md:space-y-8">
+                    <div class="space-y-1.5 sm:space-y-2">
+                        <h3 class="text-lg sm:text-xl text-teal-400 font-semibold">Call Us</h3>
+                        <p class="text-gray-200 text-xs sm:text-sm md:text-base">
+                            +1 (555) 123-4567<br>
+                            Monday - Friday: 9:00 AM - 6:00 PM
+                        </p>
+                    </div>
 
-    .contact-info p {
-        font-size: 1.125rem;
-        margin-bottom: 1.5rem;
-    }
+                    <div class="space-y-1.5 sm:space-y-2">
+                        <h3 class="text-lg sm:text-xl text-teal-400 font-semibold">Visit Us</h3>
+                        <p class="text-gray-200 text-xs sm:text-sm md:text-base">
+                            123 Business Avenue<br>
+                            Suite 456<br>
+                            New York, NY 10001<br>
+                            United States
+                        </p>
+                    </div>
 
-    .contact-form {
-        flex: 1;
-        padding: 2rem;
-    }
-
-    .form-label {
-        color: #7952c4;
-        font-size: 1.5rem;
-    }
-
-    .form-input, .form-input-main {
-        background-color: #2f283e;
-        color: #ffffff;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        width: 100%;
-        border: none;
-        border-radius: 1rem;
-    }
-
-    .submit-button {
-        background: linear-gradient(90deg, rgba(56, 39, 89, 1) 0%, rgba(119, 132, 190, 1) 100%);
-        background-size: 200% 200%;
-        animation: gradientAnimation 5s ease infinite;
-        padding: 12px 36px;
-        font-size: 1.25rem;
-        font-weight: bold;
-        border-radius: 10px;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: transform 0.3s ease;
-    }
-
-    .submit-button:hover {
-        background-color: #9B8ADB;
-        box-shadow: 0 5px 15px rgba(56, 39, 89, 2);
-    }
-
-    .contact-subtext {
-        font-size: 1em;
-        font-family: 'Red Hat Display', sans-serif;
-        color: #895FDB;
-    }
-
-    .contact-letter {
-        font-size: 5em;
-        color: #C1A1FF;
-        font-family: 'MADECoachellaRegular', sans-serif;
-        line-height: 1;
-    }
-
-    @media (max-width: 1024px) {
-        .contact-info {
-            font-size: 2.5rem;
-        }
-
-        .form-label {
-            font-size: 1.25rem;
-        }
-
-        .contact-letter {
-            font-size: 4em;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .contact-container {
-            flex-direction: column;
-            padding: 1rem;
-            height: auto;
-        }
-
-        .contact-info,
-        .contact-form {
-            width: 100%;
-            padding: 1rem;
-        }
-
-        .contact-info {
-            font-size: 2rem;
-        }
-
-        .contact-letter {
-            font-size: 3em;
-        }
-
-        .form-label {
-            font-size: 1.125rem;
-        }
-
-        .submit-button {
-            font-size: 1rem;
-            padding: 10px 24px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .contact-info {
-            padding-top: 4rem;
-            font-size: 1.75rem;
-        }
-
-        .contact-letter {
-            font-size: 2.5em;
-        }
-
-        .form-label {
-            font-size: 1rem;
-        }
-
-        .submit-button {
-            font-size: 0.875rem;
-            padding: 8px 20px;
-        }
-    }
-</style>
-
-
-<section class="contact-container border-b-2 border-purple-600">
-    <!-- Contact Information Section -->
-    <div class="contact-info">
-        <div>
-            <span class="contact-letter">C</span>
-            <span class="contact-subtext">ontact</span>
-        </div>
-        <div style="margin-top: 20px;">
-            <span class="contact-letter">U</span>
-            <span class="contact-subtext">S</span>
+                    <div class="p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl bg-white/5 border border-white/10">
+                        <p class="text-gray-200 text-xs sm:text-sm md:text-base italic">
+                            "We're here to help! Send us a message or give us a call, and we'll get back to you as soon as possible."
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Contact Form Section -->
-    <div class="contact-form">
-        <form method="post" action="{% url 'contact' %}" class="space-y-6">
-            {% csrf_token %}
-            <div class="space-y-2">
-                <label for="id_email" class="form-label">Your Email</label>
-                <input type="email" id="id_email" name="email" class="form-input" required>
-            </div>
-            <div class="space-y-2">
-                <label for="id_name" class="form-label">Your Name</label>
-                <input type="text" id="id_name" name="name" class="form-input" required>
-            </div>
-            <div class="space-y-2">
-                <label for="id_subject" class="form-label">Subject</label>
-                <input type="text" id="id_subject" name="subject" class="form-input" required>
-            </div>
-            <div class="space-y-2">
-                <label for="id_message" class="form-label">Your Message</label>
-                <textarea id="id_message" name="message" rows="7" class="form-input-main border-r-2" required></textarea>
-            </div>
-            <div>
-                <button type="submit" class="submit-button">Send Message</button>
-            </div>
-        </form>
-    </div>
-</section>
+</div>
 {% include 'landing/footer.html' %}
 {% endblock content %}

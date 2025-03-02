@@ -1,229 +1,125 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FAQ Section</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'teal-dark': '#2d4b50',
+                        'teal-medium': '#359271',
+                        'teal-light': '#bce4d6',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-slow-delay': 'pulse 8s 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Now+Display:wght@400&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            background: radial-gradient(circle, #2A2D5D, black);
-            color: #cccccc;
-            margin: 0;
-            padding: 0;
-            background-attachment: fixed;
-            position: relative;
-            height: 100%;
-            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
-
-        .faq-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 50px 20px;
-            color: #FFFFFF;
-            overflow-y: auto;
+        .heading-font {
+            font-family: 'Clash Display', sans-serif;
+            letter-spacing: -0.02em;
         }
-
-        .faq-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .faq-letter {
-            font-size: 10em;
-            color: #C1A1FF;
-            font-family: 'MADECoachellaRegular', sans-serif;
-            line-height: 1;
-        }
-
-        .faq-subtext {
-            font-size: 1.8em;
-            font-family: 'Red Hat Display', sans-serif;
-            color: #895FDB;
-        }
-
-        .curly-bracket {
-            flex: 0 0 auto;
-            width: 400px; /* Adjust the width as per your design */
-            margin: 0 100px; /* Space between the text and questions */
-        }
-
-        .faq-right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .faq-item {
-            width: 100%;
-        }
-
-        .faq-question {
-            background: transparent;
-            border: none;
-            font-size: 1.7em;
-            font-family: 'Red Hat Display', sans-serif;
-            color: #895FDB;
-            text-align: left;
-            width: 100%;
-            cursor: pointer;
-            padding: 10px 0;
-            position: relative;
-            
-            padding-right: 10px;
-        }
-
-        .faq-question::after {
-            content: '▼'; /* Default arrow */
-            position: absolute;
-            right: -20px;
-            font-size: 0.8em;
-            transition: transform 0.3s ease; /* Smooth transition for the rotation */
-        }
-
-        .faq-question.active::after {
-            transform: rotate(180deg); /* Rotate the arrow 180 degrees when active */
-        }
-
-        .faq-answer {
-            display: none;
-            font-size: 1.2em;
-            font-family: 'HelveticaNowDisplayRegIta', sans-serif;
-            color: #cccccc;
-            margin-top: 10px;
-            padding-left: 10px;
-            border-left: 2px solid #895FDB;
-            align-items: left;
-            opacity: 0;
-            height: 0;
-            transition: opacity 0.3s ease, height 0.3s ease; /* Add transition for height and opacity */
-        }
-
-        .faq-answer.show {
-            display: block;
-            opacity: 1;
-            height: auto;
-        }
-
-        /* Ensure the FAQ section fills the entire screen */
-        @media (max-width: 768px) {
-            .faq-section {
-                flex-direction: column;
-                align-items: center;
-                padding: 20px;
-            }
-
-            .faq-left,
-            .faq-right {
-                width: 100%;
-            }
-
-            .curly-bracket {
-                display: none; /* Hide the bracket on smaller screens */
-            }
-
-            .faq-right {
-                margin-top: 20px;
-                font-size: 0.8rem;
-            }
-
-            .faq-left {
-                font-size: 0.6rem;
-                text-align: center;
-                align-items: center;
-            }
-
-            .curly-bracket {
-                display: none;
-            }
-            .faq-question::after {
-                content: '▼'; /* Default arrow */
-                position: absolute;
-                right: -15px;
-                font-size: 0.8em;
-                transition: transform 0.3s ease; /* Smooth transition for the rotation */
-            }
-        }
-
-        /* Ensure no overflow on smaller screens */
-        html, body {
-            height: 100%;
+        .faq-gradient {
+            background: linear-gradient(135deg, #2d4b50 0%, #359271 100%);
         }
     </style>
 </head>
 
-<body>
-    <section class="faq-section">
-        <div class="faq-left">
-            <div>
-                <span class="faq-letter">F</span><br>
-                <span class="faq-subtext">requently</span>
-            </div>
-            <div style="margin-top: 20px;">
-                <span class="faq-letter">A</span><br>
-                <span class="faq-subtext">sked</span>
-            </div>
-            <div style="margin-top: 20px;">
-                <span class="faq-letter">Q</span><br>
-                <span class="faq-subtext">uestions</span>
-            </div>
+<body class="bg-gradient-to-br from-teal-950 via-emerald-900 to-slate-950 text-gray-300 min-h-screen overflow-x-hidden">
+    <!-- Background effects -->
+    <div class="fixed inset-0 w-full h-full">
+        <div class="absolute inset-0 opacity-40">
+            <div class="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(188,228,214,0.15)_0%,rgba(188,228,214,0)_50%)] animate-pulse-slow"></div>
+            <div class="fixed inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(53,146,113,0.2)_0%,rgba(53,146,113,0)_40%)] animate-pulse-slow-delay"></div>
+        </div>
+    </div>
+
+    <section class="relative z-10 flex flex-col max-w-4xl mx-auto p-6 md:p-12 text-white">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="heading-font text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-teal-light to-emerald-200">Frequently Asked Questions</h1>
+            <p class="text-lg text-teal-light/80">Everything you need to know about our platform</p>
         </div>
 
-        <!-- Image of the curly bracket -->
-        <img src="{% static 'images/paranthesis.png' %}" alt="Curly Bracket" class="curly-bracket">
-
-        <div class="faq-right">
-            <div class="faq-item">
-                <button class="faq-question">What are the fees?</button>
-                <div class="faq-answer">
+        <!-- FAQ Items -->
+        <div class="w-full space-y-4">
+            <div class="w-full bg-white/5 backdrop-blur-sm rounded-lg border border-teal-light/20 hover:border-teal-light/30 transition-all duration-300 shadow-lg">
+                <button class="w-full text-left p-6 text-lg md:text-xl font-medium text-teal-light relative pr-16 group">
+                    What are the fees?
+                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-sm transition-transform duration-300 group-[.active]:rotate-180 text-teal-light">▼</span>
+                </button>
+                <div class="hidden opacity-0 transition-all duration-300 px-6 pb-6 text-base md:text-lg answer-panel text-gray-200">
                     <p>5% fee per sale for Free plan. 1% on Pro plan. 2.5% fee when requesting payout.</p>
                 </div>
             </div>
-            <div class="faq-item">
-                <button class="faq-question">How many stores can i open for Free?</button>
-                <div class="faq-answer">
-                    <p>You can open upto 20 free stores, and unlimited stores on pro plan!</p>
+
+            <div class="w-full bg-white/5 backdrop-blur-sm rounded-lg border border-teal-light/20 hover:border-teal-light/30 transition-all duration-300 shadow-lg">
+                <button class="w-full text-left p-6 text-lg md:text-xl font-medium text-teal-light relative pr-16 group">
+                    How many stores can I open for Free?
+                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-sm transition-transform duration-300 group-[.active]:rotate-180 text-teal-light">▼</span>
+                </button>
+                <div class="hidden opacity-0 transition-all duration-300 px-6 pb-6 text-base md:text-lg answer-panel text-gray-200">
+                    <p>You can open up to 20 free stores, and unlimited stores on pro plan!</p>
                 </div>
             </div>
-            <div class="faq-item">
-                <button class="faq-question">How much can i customise my store?</button>
-                <div class="faq-answer">
-                    <p>Customization features have not been implemented! For now check an example at: <a href="mystorel.ink/premium-crafts" class="text-white underline font-bold"> here </a></p>
+
+            <div class="w-full bg-white/5 backdrop-blur-sm rounded-lg border border-teal-light/20 hover:border-teal-light/30 transition-all duration-300 shadow-lg">
+                <button class="w-full text-left p-6 text-lg md:text-xl font-medium text-teal-light relative pr-16 group">
+                    How much can I customize my store?
+                    <span class="absolute right-6 top-1/2 -translate-y-1/2 text-sm transition-transform duration-300 group-[.active]:rotate-180 text-teal-light">▼</span>
+                </button>
+                <div class="hidden opacity-0 transition-all duration-300 px-6 pb-6 text-base md:text-lg answer-panel text-gray-200">
+                    <p>Customization features have not been implemented! For now check an example at: 
+                        <a href="mystorel.ink/premium-crafts" class="text-teal-medium hover:text-teal-light underline font-medium">here</a>
+                    </p>
                 </div>
             </div>
         </div>
     </section>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const faqQuestions = document.querySelectorAll('.faq-question');
-            faqQuestions.forEach(question => {
-                question.addEventListener('click', function () {
+            const faqButtons = document.querySelectorAll('button');
+            faqButtons.forEach(button => {
+                button.addEventListener('click', function () {
                     const answer = this.nextElementSibling;
-                    answer.classList.toggle('show');
-                    this.classList.toggle('active');  // Toggle the active class for arrow rotation
+                    const isOpen = this.classList.contains('active');
+                    
+                    // Close all answers
+                    document.querySelectorAll('.answer-panel').forEach(panel => {
+                        panel.classList.add('hidden');
+                        panel.classList.remove('block');
+                        panel.style.opacity = '0';
+                    });
+                    document.querySelectorAll('button').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+
+                    // Open clicked answer if it was closed
+                    if (!isOpen) {
+                        answer.classList.remove('hidden');
+                        answer.classList.add('block');
+                        setTimeout(() => {
+                            answer.style.opacity = '1';
+                        }, 10);
+                        this.classList.add('active');
+                    }
                 });
             });
         });
     </script>
 </body>
-
 </html>
