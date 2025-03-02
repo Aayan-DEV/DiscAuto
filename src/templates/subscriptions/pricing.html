@@ -5,22 +5,21 @@
 
 {% block content %}
 <!-- Full-screen flex container -->
-<div class="min-h-screen flex flex-col justify-center items-center p-4 sm:p-8 font-['Plus_Jakarta_Sans']">
-  <h1 class="text-4xl sm:text-5xl font-bold text-white mb-8 sm:mb-10 font-['Clash_Display']">Choose Your Plan</h1>
+<div class="min-h-[calc(100vh-4rem)] flex flex-col justify-start items-center p-4 sm:p-8 font-['Plus_Jakarta_Sans'] mt-16 sm:mt-20 lg:mt-24">
+  <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 sm:mb-8 md:mb-10 text-center font-['Clash_Display']">Choose Your Plan</h1>
 
   {% if paid_plans_exist %}
-  <div class="flex justify-center space-x-4 mb-8 bg-white/10 backdrop-blur-lg rounded-full p-1.5 border border-white/10">
-    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="weekly">Weekly</button>
-    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="monthly">Monthly</button>
-    <button class="tab-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="yearly">Annual</button>
+  <div class="flex flex-wrap justify-center space-x-2 sm:space-x-4 mb-6 sm:mb-8 bg-white/10 backdrop-blur-lg rounded-full p-1.5 border border-white/10 w-full max-w-sm sm:max-w-md">
+    <button class="tab-btn flex-1 px-3 sm:px-6 py-2 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="weekly">Weekly</button>
+    <button class="tab-btn flex-1 px-3 sm:px-6 py-2 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="monthly">Monthly</button>
+    <button class="tab-btn flex-1 px-3 sm:px-6 py-2 sm:py-2.5 rounded-full font-semibold text-xs sm:text-sm transition-all duration-300 text-white/80 hover:text-white" data-interval="yearly">Annual</button>
   </div>
   {% endif %}
 
   <!-- Cards container -->
-  <!-- Remove hover:scale-105 and simplify card styles -->
-  <div class="flex flex-wrap justify-center gap-6 sm:gap-8 max-w-7xl mx-auto">
+  <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6 md:gap-8 w-full max-w-7xl mx-auto px-4 sm:px-6">
       {# --- FREE PLAN CARD --- #}
-      <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-8 w-full sm:w-80">
+      <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 w-full sm:w-[calc(50%-1rem)] lg:w-80">
           <h2 class="text-2xl font-bold text-white mb-4 font-['Clash_Display']">Free Plan</h2>
           <p class="text-3xl font-bold text-white mb-4">$0 <span class="text-lg font-normal text-white/60">/ forever</span></p>
           <p class="text-white/70 mb-6">No credit card required!</p>
@@ -54,7 +53,7 @@
       {% for plan_info in plans_data %}
         {% with sub=plan_info.subscription %}
           {% if sub.name|lower != "free" and sub.name|lower != "free plan" %}
-          <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 sm:p-8 w-full sm:w-80">
+          <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-5 sm:p-6 md:p-8 w-full sm:w-[calc(50%-1rem)] lg:w-80">
             <h2 class="text-2xl font-bold text-white mb-4 font-['Clash_Display']">{{ sub.name }}</h2>
             
             {% if plan_info.weekly_price %}
