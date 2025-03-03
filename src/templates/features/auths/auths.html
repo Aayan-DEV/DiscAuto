@@ -1,35 +1,223 @@
 {% extends "dashboard/base.html" %}
 
-{% block head_title %} Homepage - {{ block.super }} {% endblock head_title%}
+{% block extra_head %}
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+    }
+  </style>
+{% endblock extra_head %}
+
+{% block head_title %} Homepage - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
-
-<form method="POST" action="{% url 'auths' %}" class="flex flex-col space-y-4">
-    {% csrf_token %}
-    
-    <!-- Notifications Section -->
-    <p class="text-blue-500 font-bold text-lg">Notifications :</p>
-    <input 
-        type="text" 
-        name="pushover_user_key" 
-        class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" 
-        placeholder="Enter Pushover User Key"
-        value="{{ profile.pushover_user_key }}">
-    
-    <!-- Payment Methods Section -->
-    <p class="text-blue-500 font-bold text-lg">Payment Methods :</p>
-    <input type="email" name="paypal_email" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="PayPal Email" value="{{ profile.paypal_email }}">
-    <input type="text" name="btc_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="BTC Wallet" value="{{ profile.btc_wallet }}">
-    <input type="text" name="ltc_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="LTC Wallet" value="{{ profile.ltc_wallet }}">
-    <input type="text" name="sol_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="SOL Wallet" value="{{ profile.sol_wallet }}">
-    <input type="text" name="eth_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="ETH Wallet" value="{{ profile.eth_wallet }}">
-    <input type="text" name="usdt_bep20_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="USDT Wallet (BEP20)" value="{{ profile.usdt_bep20_wallet }}">
-    <input type="text" name="usdt_erc20_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="USDT Wallet (ERC20)" value="{{ profile.usdt_erc20_wallet }}">
-    <input type="text" name="usdt_prc20_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="USDT Wallet (PRC20)" value="{{ profile.usdt_prc20_wallet }}">
-    <input type="text" name="usdt_sol_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="USDT Wallet (SOL)" value="{{ profile.usdt_sol_wallet }}">
-    <input type="text" name="usdt_trc20_wallet" class="border-2 border-gray-300 p-2 w-full max-w-sm rounded focus:outline-none focus:border-blue-500" placeholder="USDT Wallet (TRC20)" value="{{ profile.usdt_trc20_wallet }}">
-    
-    <!-- Save Button -->
-    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white p-2 mt-4 rounded w-full max-w-sm">Save</button>
-</form>
+<div class="min-h-screen flex items-start justify-start p-4">
+  <!-- Responsive Form Container on the Left Side -->
+  <div class="w-full sm:w-1/2 md:w-1/3">
+    <h1 class="text-2xl font-bold text-[#bce4d6]">Account Settings</h1>
+    <form method="POST" action="{% url 'auths' %}" class="space-y-6">
+      {% csrf_token %}
+      
+      <!-- Notifications Section with Tooltip -->
+      <div class="flex flex-col">
+        <div class="relative inline-block group">
+          <label for="pushover_user_key" class="text-lg font-semibold text-[#359271] inline-flex items-center">
+            Notifications:
+            <span class="ml-2 material-icons text-base text-gray-600 cursor-pointer">info</span>
+          </label>
+          <div class="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+            Download pushover from the app/play store, signup and copy paste your user key here to get notifications!
+          </div>
+        </div>
+        <input 
+          type="text" 
+          name="pushover_user_key" 
+          id="pushover_user_key"
+          class="mt-2 border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" 
+          placeholder="Enter Pushover User Key"
+          value="{{ profile.pushover_user_key|default:'' }}">
+      </div>
+      
+      <!-- Payment Methods Section with Tooltip -->
+      <div>
+        <div class="relative inline-block group">
+          <p class="text-lg font-semibold text-[#359271] mb-2 inline-flex items-center">
+            Payment Methods:
+            <span class="ml-2 material-icons text-base text-gray-600 cursor-pointer">info</span>
+          </p>
+          <div class="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+            You can put your payment method emails and addresses here!
+          </div>
+        </div>
+        <div class="space-y-4">
+          <!-- PayPal -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">PayPal</span>
+              <div class="flex items-center gap-2">
+                {% if profile.paypal_email %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="email" name="paypal_email" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="PayPal Email" value="{{ profile.paypal_email|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- BTC Wallet -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">BTC Wallet</span>
+              <div class="flex items-center gap-2">
+                {% if profile.btc_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="btc_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="BTC Wallet" value="{{ profile.btc_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- LTC Wallet -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">LTC Wallet</span>
+              <div class="flex items-center gap-2">
+                {% if profile.ltc_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="ltc_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="LTC Wallet" value="{{ profile.ltc_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- SOL Wallet -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">SOL Wallet</span>
+              <div class="flex items-center gap-2">
+                {% if profile.sol_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="sol_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="SOL Wallet" value="{{ profile.sol_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- ETH Wallet -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">ETH Wallet</span>
+              <div class="flex items-center gap-2">
+                {% if profile.eth_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="eth_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="ETH Wallet" value="{{ profile.eth_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- USDT Wallet (BEP20) -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">USDT Wallet (BEP20)</span>
+              <div class="flex items-center gap-2">
+                {% if profile.usdt_bep20_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="usdt_bep20_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="USDT Wallet (BEP20)" value="{{ profile.usdt_bep20_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- USDT Wallet (ERC20) -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">USDT Wallet (ERC20)</span>
+              <div class="flex items-center gap-2">
+                {% if profile.usdt_erc20_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="usdt_erc20_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="USDT Wallet (ERC20)" value="{{ profile.usdt_erc20_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- USDT Wallet (PRC20) -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">USDT Wallet (PRC20)</span>
+              <div class="flex items-center gap-2">
+                {% if profile.usdt_prc20_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="usdt_prc20_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="USDT Wallet (PRC20)" value="{{ profile.usdt_prc20_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- USDT Wallet (SOL) -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">USDT Wallet (SOL)</span>
+              <div class="flex items-center gap-2">
+                {% if profile.usdt_sol_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="usdt_sol_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="USDT Wallet (SOL)" value="{{ profile.usdt_sol_wallet|default:'' }}">
+            </div>
+          </details>
+          
+          <!-- USDT Wallet (TRC20) -->
+          <details class="border border-[#359271] rounded">
+            <summary class="cursor-pointer p-2 flex justify-between items-center">
+              <span class="text-white">USDT Wallet (TRC20)</span>
+              <div class="flex items-center gap-2">
+                {% if profile.usdt_trc20_wallet %}
+                  <i class="material-icons text-green-500">check</i>
+                {% endif %}
+                <i class="material-icons text-[#2d4b50]">expand_more</i>
+              </div>
+            </summary>
+            <div class="p-2">
+              <input type="text" name="usdt_trc20_wallet" class="border border-[#359271] p-2 w-full rounded focus:outline-none focus:border-[#359271]" placeholder="USDT Wallet (TRC20)" value="{{ profile.usdt_trc20_wallet|default:'' }}">
+            </div>
+          </details>
+        </div>
+      </div>
+      
+      <!-- Save Button -->
+      <div class="flex justify-start">
+        <button type="submit" class="py-2 px-6 border border-[#359271] text-[#359271] font-semibold rounded hover:bg-[#359271] hover:text-white transition duration-200">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock content %}
