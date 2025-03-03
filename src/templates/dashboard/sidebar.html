@@ -1,55 +1,71 @@
-<aside class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-transparent md:translate-x-0 dark:bg-gray-800" aria-label="Sidenav" id="drawer-navigation">
-  <div class="overflow-y-auto pt-10 px-3 h-full bg-transparent dark:bg-gray-800">
-    <ul class="dark:border-gray-700">
-      <!-- These are visible to everyone -->
-      <li>
-        <a href="{% url 'home' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-          <span class="ml-3">Dashboard</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'products' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-          <span class="ml-3">Products</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'auto_sell' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-          <span class="ml-3">Auto Sell</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'auths' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-          <span class="ml-3">Auths</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'user_subscription' %}" class="text-custom-pink-color bg-gradient-to-r from-custom-purple to-custom-blue border-4 border-custom-pink-color mb-2 flex items-center justify-center p-2 text-base font-medium rounded-full transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group">
-          <span class="ml-3">Account Settings</span>
-        </a>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Line separator -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sidebar with Gradient Background & Material Icons</title>
+  <!-- Google Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    #drawer-navigation::before {
-      content: '';
-      position: absolute;
-      top: 50%; /* Position from the top */
-      left: 100%; /* Center the line horizontally */
-      transform: translate(-50%, -50%); /* Adjust position to center */
-      width: 3px; /* Adjust the width of the vertical line here */
-      height: 80%; /* Adjust the height of the vertical line here */
-      background: linear-gradient(to right, #382759, #7784BE);
-      border-radius: 20px;
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    /* Optional gradient animation (not applied by default) */
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 20%; }
+      50% { background-position: 50% 100%; }
+      100% { background-position: 1000% 50%; }
     }
   </style>
-</aside>
-
-
-<!--
-
-Citations:
-(“Tailwind CSS Application") -> 1 - 57
-
--->
+</head>
+<body class="bg-[#bce4d6]">
+  <aside class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full md:translate-x-0 bg-gradient-to-r from-[#359271] to-[#2d4b50] shadow-lg" aria-label="Sidenav" id="drawer-navigation">
+    <div class="flex flex-col h-full justify-between">
+      <!-- Top Navigation Links -->
+      <div class="overflow-y-auto pt-10 px-3">
+        <ul>
+          <li>
+            <a href="{% url 'home' %}" class="flex items-center p-2 text-white border border-[#359271] mb-2 text-base font-medium rounded-md transition duration-75 hover:bg-[#359271] hover:text-white group">
+              <i class="material-icons mr-3">dashboard</i>
+              <span>Dashboard</span>
+              <i class="material-icons ml-auto">chevron_right</i>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'products' %}" class="flex items-center p-2 text-white border border-[#359271] mb-2 text-base font-medium rounded-md transition duration-75 hover:bg-[#359271] hover:text-white group">
+              <i class="material-icons mr-3">shopping_cart</i>
+              <span>Products</span>
+              <i class="material-icons ml-auto">chevron_right</i>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'auto_sell' %}" class="flex items-center p-2 text-white border border-[#359271] mb-2 text-base font-medium rounded-md transition duration-75 hover:bg-[#359271] hover:text-white group">
+              <i class="material-icons mr-3">directions_car</i>
+              <span>Auto Sell</span>
+              <i class="material-icons ml-auto">chevron_right</i>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'auths' %}" class="flex items-center p-2 text-white border border-[#359271] mb-2 text-base font-medium rounded-md transition duration-75 hover:bg-[#359271] hover:text-white group">
+              <i class="material-icons mr-3">lock</i>
+              <span>Auths</span>
+              <i class="material-icons ml-auto">chevron_right</i>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <!-- Settings Button Anchored at the Bottom -->
+      <div class="px-3 pb-4">
+        <hr class="mb-4 border-[#359271]" />
+        <a href="{% url 'user_subscription' %}" class="flex items-center p-2 text-white border border-[#359271] text-base font-medium rounded-md transition duration-75 hover:bg-[#359271] hover:text-white group">
+          <i class="material-icons mr-3">settings</i>
+          <span>Account Settings</span>
+          <i class="material-icons ml-auto">chevron_right</i>
+        </a>
+      </div>
+    </div>
+  </aside>
+</body>
+</html>

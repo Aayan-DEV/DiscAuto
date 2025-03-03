@@ -13,13 +13,14 @@
 
 <body class="bg-radial-gradient">
     
-    <div class="antialiased dark:bg-gray-900">
+    <div>
         {% include 'dashboard/nav.html' %}
-        {% include 'dashboard/sidebar.html' %}
 
         <main class="p-4 md:ml-64 h-auto pt-20">
             
         {% include 'snippets/banner.html' %}
+        
+        {% include 'dashboard/sidebar.html' %}
 
         <div>
         {% block content %}

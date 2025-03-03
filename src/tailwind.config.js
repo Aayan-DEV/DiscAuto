@@ -15,6 +15,10 @@ module.exports = {
         'custom-pink-color': '#d7c2ff',
         'custom-purple': '#2A2D5D',
         'custom-purple-2': '#7952c4',
+        'custom-green-light': '#bce4d6',
+        'custom-green-light2': '#72fdcc',
+        'custom-green-dark': '#359271',
+        'custom-green-dark2': '#2d4b50',
         primary: {
           "50": "#eff6ff",
           "100": "#dbeafe",

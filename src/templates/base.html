@@ -18,21 +18,7 @@
     {% compress css %}
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
     {% endcompress %}
-    
-    <!-- Base Styles -->
-    <style>
-        :root {
-            --color-primary: #2d4b50;
-            --color-secondary: #359271;
-            --color-accent: #bce4d6;
-        }
-
-        .bg-radial-gradient {
-            background: radial-gradient(circle, var(--color-primary), black);
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-    </style>
+    {% include 'base/css.html' %}
 </head>
 
 <body class="bg-radial-gradient">
