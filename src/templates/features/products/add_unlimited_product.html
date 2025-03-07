@@ -1,141 +1,226 @@
 {% extends "dashboard/base.html" %}
 {% block head_title %}Add Unlimited Product{% endblock head_title %}
 {% block content %}
-<div class="pt-10 px-4 md:px-0 text-center relative">
-    <h1 class="text-4xl font-extrabold text-white">Add Unlimited Product</h1>
-    <div class="mt-10 max-w-lg mx-auto">
-        <form method="post" enctype="multipart/form-data" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
-            {% csrf_token %}
-            <div class="text-left space-y-6">
-                {{ form.non_field_errors }}
-                
-                <!-- Title -->
-                <div>
-                    {{ form.title.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label>
-                    {{ form.title }}
-                </div>
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-                <!-- Price -->
-                <div>
-                    {{ form.price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label>
-                    {{ form.price }}
-                </div>
-
-                <!-- Sale Price -->
-                <div>
-                    {{ form.sale_price.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sale_price.label_tag }}</label> 
-                    {{ form.sale_price }}
-                </div>
-                
-                <!-- Discount -->
-                <div>
-                    {{ form.discount_percentage.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
-                    {{ form.discount_percentage }}
-                </div>
-
-                <!-- Currency -->
-                <div>
-                    {{ form.currency.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label>
-                    {{ form.currency }}
-                </div>
-
-                <!-- Ltc price -->
-                <div>
-                    {{ form.ltc_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.ltc_price.label_tag }}</label>
-                    {{ form.ltc_price }}
-                </div>
-
-                <!-- Btc price -->
-                <div>
-                    {{ form.btc_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.btc_price.label_tag }}</label>
-                    {{ form.btc_price }}
-                </div>
-
-                <!-- Eth price -->
-                <div>
-                    {{ form.eth_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.eth_price.label_tag }}</label>
-                    {{ form.eth_price }}
-                </div>
-
-                <!-- Usdt price -->
-                <div>
-                    {{ form.usdt_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.usdt_price.label_tag }}</label>
-                    {{ form.usdt_price }}
-                </div>
-
-                <!-- Sol price -->
-                <div>
-                    {{ form.sol_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sol_price.label_tag }}</label>
-                    {{ form.sol_price }}
-                </div>
-
-                <!-- Test price -->
-                <div>
-                    {{ form.test_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.test_price.label_tag }}</label>
-                    {{ form.test_price }}
-                </div>
-
-                <!-- SKU -->
-                <div>
-                    {{ form.sku.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sku.label_tag }}</label>
-                    {{ form.sku }}
-                </div>
-
-                <!-- Quantity -->
-                <div>
-                    {{ form.quantity.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.quantity.label_tag }}</label>
-                    {{ form.quantity }} (-1 is Unlimited)
-                </div>
-
-                <!-- Product Link -->
-                <div>
-                    {{ form.link.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.link.label_tag }}</label>
-                    {{ form.link }} (Product Link)
-                </div>
-
-                <!-- Description -->
-                <div>
-                    {{ form.description.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label>
-                    {{ form.description }}
-                </div>
-
-                <!-- Product Image -->
-                <div>
-                    {{ form.product_image.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.product_image.label_tag }}</label>
-                    {{ form.product_image }} (Product Image)
-                </div>
-
-                <!-- Show on Custom Landing Page -->
-                <div class="flex items-center">
-                    {{ form.show_on_custom_lander.errors }}
-                    <input id="show_on_custom_lander" type="checkbox" name="show_on_custom_lander" class="form-checkbox h-5 w-5 text-indigo-600 transition duration-150 ease-in-out" {% if form.show_on_custom_lander.value %}checked{% endif %}>
-                    <label for="show_on_custom_lander" class="ml-2 block text-sm font-medium text-gray-700">
-                        Show this product on the custom landing page?
-                    </label>
-                </div>
+<div class="min-h-screen p-4 sm:p-6 lg:p-12">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 sm:justify-between">
+                <a href="{% url 'products' %}" 
+                   class="w-full sm:w-auto bg-gray-700/50 hover:bg-gray-700/70 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </a>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-[#359271] flex items-center gap-2 text-center">
+                    <span class="material-icons">all_inclusive</span>
+                    Add Unlimited Product
+                </h1>
             </div>
+        </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Save Product
-            </button>
-        </form>
+        <!-- Form Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div class="space-y-2">
+                        {{ form.title.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.title.label_tag }}</label>
+                        <input type="text" name="{{ form.title.name }}" 
+                               class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                               {% if form.title.value %}value="{{ form.title.value }}"{% endif %}
+                               placeholder="Enter product title">
+                    </div>
+
+                    <!-- Currency Selector -->
+                    <div class="space-y-2">
+                        {{ form.currency.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.currency.label_tag }}</label>
+                        <select name="{{ form.currency.name }}" 
+                                class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base">
+                            {% for value, label in form.currency.field.choices %}
+                                <option value="{{ value }}" {% if form.currency.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <h3 class="text-[#359271] font-medium flex items-center gap-2 text-sm sm:text-base">
+                        <span class="material-icons text-base sm:text-lg">payments</span>
+                        Pricing Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Regular Pricing -->
+                        <div class="space-y-3 sm:space-y-4">
+                            <!-- Price inputs with consistent styling -->
+                            {% for field in form %}
+                                {% if field.name in 'price,sale_price,discount_percentage' %}
+                                <div class="space-y-2">
+                                    {{ field.errors }}
+                                    <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>
+                                    <input type="number" 
+                                           name="{{ field.name }}" 
+                                           step="0.01"
+                                           class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                           {% if field.value %}value="{{ field.value }}"{% endif %}>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Crypto Pricing -->
+                        <div class="space-y-3 sm:space-y-4">
+                            {% for field in form %}
+                                {% if field.name in 'ltc_price,btc_price,eth_price,usdt_price,sol_price,test_price' %}
+                                <div class="space-y-2">
+                                    {{ field.errors }}
+                                    <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>
+                                    <input type="number" 
+                                           name="{{ field.name }}" 
+                                           step="0.00000001"
+                                           class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                           {% if field.value %}value="{{ field.value }}"{% endif %}>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Details -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <h3 class="text-[#359271] font-medium flex items-center gap-2 text-sm sm:text-base">
+                        <span class="material-icons text-base sm:text-lg">inventory_2</span>
+                        Product Details
+                    </h3>
+                    
+                    <!-- Product Image -->
+                    <div class="space-y-2">
+                        {{ form.product_image.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">Product Image</label>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                            <label class="w-full sm:w-auto cursor-pointer bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 hover:border-[#359271] transition-colors">
+                                <div class="flex items-center justify-center gap-2">
+                                    <span class="material-icons text-base sm:text-lg">upload_file</span>
+                                    <span class="text-sm sm:text-base">Choose Image</span>
+                                </div>
+                                <input type="file" name="{{ form.product_image.name }}" class="hidden" accept="image/*" id="productImageInput">
+                            </label>
+                            <span class="text-gray-400 text-sm w-full sm:w-auto text-center sm:text-left" id="selectedFileName">No file chosen</span>
+                        </div>
+                    </div>
+
+                    <!-- Other Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- SKU and Quantity -->
+                        <div class="space-y-2">
+                            {{ form.sku.errors }}
+                            <label class="block text-white font-medium text-sm sm:text-base">{{ form.sku.label_tag }}</label>
+                            <input type="text" name="{{ form.sku.name }}"
+                                   class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                   {% if form.sku.value %}value="{{ form.sku.value }}"{% endif %}
+                                   placeholder="Enter SKU">
+                        </div>
+
+                        <div class="space-y-2">
+                            {{ form.quantity.errors }}
+                            <label class="block text-white font-medium text-sm sm:text-base">{{ form.quantity.label_tag }}</label>
+                            <input type="number" name="{{ form.quantity.name }}"
+                                   class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                   {% if form.quantity.value %}value="{{ form.quantity.value }}"{% endif %}
+                                   placeholder="-1 for unlimited">
+                        </div>
+                    </div>
+
+                    <!-- Link and Description -->
+                    <div class="space-y-3">
+                        <div class="space-y-2">
+                            {{ form.link.errors }}
+                            <label class="block text-white font-medium text-sm sm:text-base">{{ form.link.label_tag }}</label>
+                            <input type="url" name="{{ form.link.name }}"
+                                   class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                   {% if form.link.value %}value="{{ form.link.value }}"{% endif %}
+                                   placeholder="Enter product link">
+                        </div>
+
+                        <div class="space-y-2">
+                            {{ form.description.errors }}
+                            <label class="block text-white font-medium text-sm sm:text-base">{{ form.description.label_tag }}</label>
+                            <textarea name="{{ form.description.name }}" rows="4"
+                                     class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                     placeholder="Enter product description">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                    <div class="flex items-start sm:items-center gap-3">
+                        <input type="checkbox" id="show_on_custom_lander" name="show_on_custom_lander" 
+                               class="w-4 h-4 sm:w-5 sm:h-5 mt-1 sm:mt-0 rounded border-[#359271]/20 text-[#359271] focus:ring-[#359271]"
+                               {% if form.show_on_custom_lander.value %}checked{% endif %}>
+                        <label for="show_on_custom_lander" class="text-white text-sm sm:text-base">
+                            Show this product on the custom landing page?
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    <span class="material-icons text-base sm:text-lg">save</span>
+                    <span class="text-sm sm:text-base">Save Product</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
+<style>
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+</style>
+
+<script>
+    document.getElementById('productImageInput').addEventListener('change', function() {
+        const fileName = this.files[0] ? this.files[0].name : 'No file chosen';
+        document.getElementById('selectedFileName').textContent = fileName;
+    });
+</script>
 {% endblock content %}

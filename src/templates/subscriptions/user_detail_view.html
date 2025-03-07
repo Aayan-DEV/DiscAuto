@@ -2,121 +2,135 @@
 {% block head_title %} Your Subscription - {{ block.super }} {% endblock head_title %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <!-- Header Section -->
-        <div class="px-6 py-5 border-b border-gray-200">
-            <h1 class="text-2xl font-semibold text-gray-900">Subscription Details</h1>
-            <p class="mt-1 text-sm text-gray-500">Manage your subscription settings and view billing information</p>
-        </div>
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Clash+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-        <!-- Main Content -->
-        <div class="px-6 py-6 space-y-6">
-            <!-- User Email -->
-            <div class="flex items-center justify-between py-2">
-                <dt class="text-sm font-medium text-gray-500">Account Email</dt>
-                <dd class="text-sm text-gray-900">{{ user.email }}</dd>
+<div class="min-h-[calc(100vh-4rem)] flex flex-col justify-start items-center p-4 sm:p-8 font-['Plus_Jakarta_Sans'] mt-4 sm:mt-4">
+    <div class="w-full max-w-4xl">
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-[#359271]/20 overflow-hidden">
+            <!-- Header Section -->
+            <div class="px-6 py-5 border-b border-[#359271]/20">
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2 font-['Plus_Jakarta_Sans']">
+                    <span class="material-icons text-[#359271]">card_membership</span>
+                    Subscription Details
+                </h1>
+                <p class="mt-1 text-gray-400 font-['Plus_Jakarta_Sans']">Manage your subscription settings and view billing information</p>
             </div>
 
-            <!-- Current Plan -->
-            <div class="flex items-center justify-between py-2">
-                <dt class="text-sm font-medium text-gray-500">Current Plan</dt>
-                <dd class="text-sm text-gray-900">
+            <!-- Main Content -->
+            <div class="px-6 py-6 space-y-6">
+                <!-- User Email -->
+                <div class="flex items-center justify-between py-2">
+                    <dt class="text-sm font-medium text-gray-400">Account Email</dt>
+                    <dd class="text-sm text-white">{{ user.email }}</dd>
+                </div>
+
+                <!-- Current Plan -->
+                <div class="flex items-center justify-between py-2">
+                    <dt class="text-sm font-medium text-gray-400">Current Plan</dt>
+                    <dd class="text-sm text-white">
+                        {% if subscription %}
+                            {{ subscription.plan_name }}
+                        {% else %}
+                            <span class="text-gray-500">No Active Plan</span>
+                        {% endif %}
+                    </dd>
+                </div>
+
+                <!-- Subscription Status -->
+                <div class="bg-gray-900/30 p-4 rounded-xl border border-[#359271]/20">
+                    <h3 class="text-sm font-medium text-white mb-2 flex items-center gap-2">
+                        <span class="material-icons text-[#359271]">info</span>
+                        Subscription Status
+                    </h3>
                     {% if subscription %}
-                        {{ subscription.plan_name }}
-                    {% else %}
-                        <span class="text-gray-400">No Active Plan</span>
-                    {% endif %}
-                </dd>
-            </div>
-
-            <!-- Subscription Status -->
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <h3 class="text-sm font-medium text-gray-700 mb-2">Subscription Status</h3>
-                {% if subscription %}
-                    {% if subscription.cancel_at_period_end %}
-                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <!-- Heroicon name: exclamation -->
-                                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-yellow-700">
+                        {% if subscription.cancel_at_period_end %}
+                            <div class="bg-yellow-900/20 border-l-4 border-yellow-600 p-4 rounded-r">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-icons text-yellow-500">warning</span>
+                                    <p class="text-sm text-yellow-500">
                                         Subscription Cancelled • Access ends {{ subscription.current_period_end|date:"F j, Y" }}
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        {% else %}
+                            {% if subscription.current_period_end %}
+                                <p class="text-sm text-[#359271] flex items-center gap-2">
+                                    <span class="inline-block h-2 w-2 rounded-full bg-[#359271]"></span>
+                                    Active • Renews {{ subscription.current_period_end|date:"F j, Y" }}
+                                </p>
+                            {% else %}
+                                <p class="text-sm text-gray-400">No active subscription</p>
+                            {% endif %}
+                        {% endif %}
                     {% else %}
-                        {% if subscription.current_period_end %}
-                            <p class="text-sm text-green-600 font-medium">
-                                <span class="inline-block h-2 w-2 rounded-full bg-green-400 mr-2"></span>
-                                Active • Renews {{ subscription.current_period_end|date:"F j, Y" }}
-                            </p>
-                        {% else %}
-                            <p class="text-sm text-gray-600">No active subscription</p>
-                        {% endif %}
+                        <p class="text-sm text-gray-400">No subscription found</p>
                     {% endif %}
-                {% else %}
-                    <p class="text-sm text-gray-600">No subscription found</p>
-                {% endif %}
-            </div>
-
-            <!-- Billing Details Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex items-center justify-between py-2">
-                    <dt class="text-sm font-medium text-gray-500">Membership Age</dt>
-                    <dd class="text-sm text-gray-900">
-                        {% if subscription and subscription.original_period_start %}
-                            {{ subscription.original_period_start|timesince }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </dd>
                 </div>
 
-                <div class="flex items-center justify-between py-2">
-                    <dt class="text-sm font-medium text-gray-500">Billing Cycle Start</dt>
-                    <dd class="text-sm text-gray-900">
-                        {% if subscription and subscription.current_period_start %}
-                            {{ subscription.current_period_start|date:"F j, Y" }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </dd>
+                <!-- Billing Details Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-900/30 p-4 rounded-xl border border-[#359271]/20">
+                        <dt class="text-sm font-medium text-gray-400 mb-1">Membership Age</dt>
+                        <dd class="text-sm text-white">
+                            {% if subscription and subscription.original_period_start %}
+                                {{ subscription.original_period_start|timesince }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div class="bg-gray-900/30 p-4 rounded-xl border border-[#359271]/20">
+                        <dt class="text-sm font-medium text-gray-400 mb-1">Billing Cycle Start</dt>
+                        <dd class="text-sm text-white">
+                            {% if subscription and subscription.current_period_start %}
+                                {{ subscription.current_period_start|date:"F j, Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div class="bg-gray-900/30 p-4 rounded-xl border border-[#359271]/20 md:col-span-2">
+                        <dt class="text-sm font-medium text-gray-400 mb-1">Billing Cycle End</dt>
+                        <dd class="text-sm text-white">
+                            {% if subscription and subscription.current_period_end %}
+                                {{ subscription.current_period_end|date:"F j, Y" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </dd>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between py-2">
-                    <dt class="text-sm font-medium text-gray-500">Billing Cycle End</dt>
-                    <dd class="text-sm text-gray-900">
-                        {% if subscription and subscription.current_period_end %}
-                            {{ subscription.current_period_end|date:"F j, Y" }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </dd>
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-[#359271]/20">
+                    <form action="" method="POST" class="w-full sm:w-auto">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl font-medium bg-gray-700 hover:bg-gray-600 text-white transition-colors flex items-center justify-center gap-2">
+                            <span class="material-icons">refresh</span>
+                            Refresh Status
+                        </button>
+                    </form>
+
+                    {% if subscription and not subscription.cancel_at_period_end and subscription.plan_name != "No Plan" %}
+                        <a href="{{ subscription.get_cancel_url }}" class="w-full sm:w-auto px-6 py-3 rounded-xl font-medium bg-red-900/50 hover:bg-red-900/70 text-white transition-colors flex items-center justify-center gap-2">
+                            <span class="material-icons">cancel</span>
+                            Cancel Membership
+                        </a>
+                    {% endif %}
                 </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Refresh Status
-                    </button>
-                </form>
-
-                {% if subscription and not subscription.cancel_at_period_end and subscription.plan_name != "No Plan" %}
-                    <a href="{{ subscription.get_cancel_url }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                        Cancel Membership
-                    </a>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+    }
+</style>
+
 {% endblock content %}

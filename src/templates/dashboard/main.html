@@ -1,340 +1,321 @@
 {% extends "dashboard/base.html" %}
 {% block head_title %} Dashboard - {{ block.super }} {% endblock head_title %}
 {% block content %}
+{% load widget_tweaks %}
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<div class="pt-5 text-pink-400">
-    
-    <h1 class="text-xl font-semibold text-center">Weekly Activity Summary</h1>
-
+<div class="pt-5 text-[#359271]">
+    <h1 class="text-2xl font-bold text-center flex items-center justify-center gap-2">
+        <span class="material-icons">dashboard</span>
+        Weekly Activity Summary
+    </h1>
 </div>
 
-<div class="pt-10">
-
-    <!-- This is a Ccontainer for the 4 data Charts -->
-    <div class="grid grid-cols-2 gap-6 justify-center items-center responsive-grid">
-        
-        <!-- Sales Chart --> 
-        <div class="chart-container">
-            <h3 class="text-sm font-medium text-white text-center">Sales (in USD)</h3>
-            <canvas id="salesChart"></canvas>
-        </div>
-
-        <!-- Views Chart -->
-        <div class="chart-container">
-            <h3 class="text-sm font-medium text-white text-center">Views</h3>
-            <canvas id="viewsChart"></canvas>
-        </div>
-    
+<!-- Chart Controls -->
+<div class="flex flex-wrap gap-4 justify-center mt-6 px-4">
+    <div class="flex items-center gap-2">
+        <label class="text-white text-sm">Date Range:</label>
+        <select id="dateRange" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+        </select>
+    </div>
+    <div class="flex items-center gap-2">
+        <label class="text-white text-sm">Chart Type:</label>
+        <select id="chartType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
+            <option value="line">Line</option>
+            <option value="bar">Bar</option>
+            <option value="area">Area</option>
+        </select>
     </div>
 </div>
 
-<div class="pt-5 text-pink-400">
-    
-    <h1 class="text-xl font-semibold mb-2">Recent Sales</h1> 
+<div class="pt-10">
+    <!-- Chart Container with Responsive Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+        <!-- Sales Chart --> 
+        <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
+            <h3 class="text-lg font-medium text-white text-center mb-4 flex items-center justify-center gap-2">
+                <span class="material-icons">trending_up</span>
+                Sales (in USD)
+            </h3>
+            <div class="relative h-[300px]">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
 
+        <!-- Views Chart -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
+            <h3 class="text-lg font-medium text-white text-center mb-4 flex items-center justify-center gap-2">
+                <span class="material-icons">visibility</span>
+                Views
+            </h3>
+            <div class="relative h-[300px]">
+                <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- This is a nice scrollable container so that people can use a great UI to see all their recent sales. -->
-<div class="overflow-y-scroll max-h-96 px-4 py-2 border rounded-lg bg-gray-800">
-    
-    <ul>
-        
-        {% for sale in recent_sales %}
-        <li class="border-b border-gray-600 py-2">
-            
-            <p class="text-sm text-white"><strong>Customer:</strong> {{ sale.customer_name }} ({{ sale.customer_email }})</p>
-            <p class="text-sm text-white">
-                <strong>Bought:</strong> 
-                {% if sale.product %}
-                    {{ sale.product.title }}
-                {% else %}
-                    {{ sale.unlimited_product.title }} (Unlimited)
-                {% endif %}
-            </p>
-            
-            <p class="text-sm text-white">
-                <strong>Amount Spent:</strong> 
-                {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% else %}{% endif %}
-                {{ sale.amount }} ({{ sale.currency }})
-            </p>            
+<!-- Recent Sales Section -->
+<div class="pt-8 px-4">
+    <div class="text-[#359271] mb-4">
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+            <span class="material-icons">receipt_long</span>
+            Recent Sales
+        </h2>
+    </div>
 
-        </li>
+    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-[#359271]/20 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-white">
+                <thead class="bg-[#359271]/20">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Customer</th>
+                        <th class="px-4 py-3 text-left">Product</th>
+                        <th class="px-4 py-3 text-left">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#359271]/10">
+                    {% for sale in recent_sales %}
+                    <tr class="hover:bg-[#359271]/10 transition-colors">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2">
+                                <span class="material-icons text-[#359271]">person</span>
+                                {{ sale.customer_name }}
+                            </div>
+                            <div class="text-gray-400 text-xs">{{ sale.customer_email }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if sale.product %}
+                                {{ sale.product.title }}
+                            {% else %}
+                                {{ sale.unlimited_product.title }} (Unlimited)
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% endif %}
+                            {{ sale.amount }} {{ sale.currency }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Account Balances Section -->
+<div class="pt-8 px-4">
+    <div class="text-[#359271] mb-4">
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+            <span class="material-icons">account_balance_wallet</span>
+            Account Balances
+        </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for currency, amount in user_income.items %}
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex justify-between items-center">
+                <span class="text-white font-medium">{{ currency|upper|cut:"_TOTAL" }}</span>
+                <span class="text-lg font-bold text-[#359271]">{{ amount }}</span>
+            </div>
+        </div>
         {% endfor %}
-
-    </ul>
-
-    
+    </div>
 </div>
 
-<div class="pt-5 text-pink-400">
-    <h1 class="text-2xl font-bold mb-4">Your Account Balances</h1>
+<!-- Payout Request Form -->
+<div class="pt-8 px-4 pb-8">
+    <div class="text-[#359271] mb-4">
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+            <span class="material-icons">payments</span>
+            Request Payout
+        </h2>
+    </div>
+
+    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in payout_form %}
+            <div class="space-y-2">
+                <label class="block text-white">{{ field.label }}</label>
+                {% render_field field class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" %}
+            </div>
+            {% endfor %}
+            <button type="submit" name="payout_form" class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                <span class="material-icons">send</span>
+                Request Payout
+            </button>
+        </form>
+    </div>
 </div>
-
-<ul class="space-y-2 px-4">
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USD</span>
-        <span class="text-lg font-bold">${{ user_income.usd_total }}</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">GBP</span>
-        <span class="text-lg font-bold">£{{ user_income.gbp_total }}</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">EUR</span>
-        <span class="text-lg font-bold">€{{ user_income.eur_total }}</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">LTC</span>
-        <span class="text-lg font-bold">{{ user_income.ltc_total }} LTC</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">SOL</span>
-        <span class="text-lg font-bold">{{ user_income.sol_total }} SOL</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">ETH</span>
-        <span class="text-lg font-bold">{{ user_income.eth_total }} ETH</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USDT (BEP20)</span>
-        <span class="text-lg font-bold">{{ user_income.usdt_bep20_total }} USDT</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USDT (ERC20)</span>
-        <span class="text-lg font-bold">{{ user_income.usdt_erc20_total }} USDT</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USDT (PRC20)</span>
-        <span class="text-lg font-bold">{{ user_income.usdt_prc20_total }} USDT</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USDT (TRC20)</span>
-        <span class="text-lg font-bold">{{ user_income.usdt_trc20_total }} USDT</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">USDT (SOL)</span>
-        <span class="text-lg font-bold">{{ user_income.usdt_sol_total }} USDT</span>
-    </li>
-    <li class="flex justify-between items-center border-b pb-2">
-        <span class="text-sm font-semibold">LTCT</span>
-        <span class="text-lg font-bold">{{ user_income.ltct_total }} LTCT</span>
-    </li>
-</ul>
-
-<div class="pt-5 text-pink-400">
-    <h1 class="text-xl font-semibold text-center mb-2">Request Deposit</h1>
-</div>
-
-<div class="pt-5 bg-gray-800 p-6 rounded-lg">
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-4 text-black">
-            {{ payout_form.amount.label_tag }} {{ payout_form.amount }}
-        </div>
-        <div class="mb-4 text-black">
-            {{ payout_form.currency.label_tag }} {{ payout_form.currency }}
-        </div>
-        <div class="mb-4 text-black">
-            {{ payout_form.payment_method.label_tag }} {{ payout_form.payment_method }}
-        </div> 
-        <div class="mb-4 text-black">
-            {{ payout_form.contact_method.label_tag }} {{ payout_form.contact_method }}
-        </div>
-        <div class="mb-4 text-black">
-            {{ payout_form.contact_info.label_tag }} {{ payout_form.contact_info }}
-        </div>
-        <button type="submit" name="payout_form" class="bg-green-500 text-white px-4 py-2 rounded">Request Payout</button>
-    </form>
-</div>
-
-
-<!-- Script to Render Each Chart -->
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-
-    // 'days', 'total_sales' and 'total_clicks', are passed from the Django view.
-    // {{ days|safe }} makes sure that the data is rendered safely into JavaScript. 
-    const days = {{ days|safe }};
-    const totalSales = {{ total_sales|safe }};
-    const totalClicks = {{ total_clicks|safe }};
-
-    // This variable (chartOptions) holds the default options for the charts.
-    // These options will be reused again and again, for all the charts.
-    const chartOptions = {
-        // All charts will be line charts.
-        type: 'line', 
-        options: {
-            scales: {
-                y: { 
-                    // Makes sure that the Y-axis starts at zero.
-                    beginAtZero: true, 
-                    // This sets the tick color to white because the background is dark purple.
-                    ticks: { color: 'white' }, 
-                    // Here we label the Y-axis and style it. 
-                    title: { display: true, text: 'Amount', color: 'white' } 
-                },
-                x: { 
-                    // It sets the X-axis tick color to white for visibility.
-                    ticks: { color: 'white' }, 
-                    // Here we label the X-axis and style it.
-                    title: { display: true, text: 'Days of the Week', color: 'white' } 
-                }
-            },
-            // This makes sure that the chart is responsive to different screen sizes. Very helpful than to manualy do it. 
-            responsive: true, 
-            // This allows the chart to stretch or shrink without maintaining aspect ratio. This is so that on smaller screens,
-            // if there is low amount of data, or no data, the graph take less space. 
-            maintainAspectRatio: false, 
-            plugins: {
-                // Makes sure that the legend labels are white.
-                legend: { labels: { color: 'white' } }, 
-                // Tooltips will have white text for visibility.
-                tooltip: { titleColor: 'white', bodyColor: 'white' } 
-            }
-        }
-    };
-
-    // Sales Chart: This chart displays the weekly sales data (in USD).
-    new Chart(document.getElementById('salesChart').getContext('2d'), {
-        // Spread operator to inherit the default chart options.
-        ...chartOptions, 
-        options: {
-            ...chartOptions.options, 
-            plugins: {
-                ...chartOptions.options.plugins,
-                title: { 
-                    display: true, 
-                    // Custom title for the sales chart.
-                    text: 'Weekly Sales (in USD)',  
-                    // Title color is white, as background is very dark.
-                    color: 'white' 
-                }
-            }
-        },
-        data: {
-            // X-axis labels, it's passed from the backend (days of the week).
-            labels: days, 
-            datasets: [{
-                // The aataset label for the legend.
-                label: 'Sales (in USD)', 
-                // Y-axis data for sales, it is passed from the backend.
-                data: totalSales, 
-                // Line color (blue - looks good).
-                borderColor: 'rgba(54, 162, 235, 1)', 
-                // Light blue fill under the line.
-                backgroundColor: 'rgba(54, 162, 235, 0.2)', 
-                // Enables the filling of the area under the line.
-                fill: true 
-            }]
-        }
-    });
-
-    // ALL OTHER ARE SAME! 
-
-    new Chart(document.getElementById('viewsChart').getContext('2d'), {
-        ...chartOptions, 
-        options: {
-            ...chartOptions.options,
-            plugins: {
-                ...chartOptions.options.plugins,
-                title: { 
-                    display: true, 
-                    text: 'Weekly Views', 
-                    color: 'white'
-                }
-            }
-        },
-        data: {
-            labels: days, 
-            datasets: [{
-                label: 'Views', 
-                data: totalClicks, 
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)', 
-                fill: true 
-            }]
-        }
-    });
-</script>
-
-
 
 <style>
-    /* Global Styles */
     body {
-        font-family: 'Arial', sans-serif;
-        color: white;
+        font-family: 'DM Sans', sans-serif;
     }
 
-    .chart-container { 
-        width: 100%; 
-        max-width: 650px; 
-        height: 300px; 
-        margin: auto; 
-    }
-
-    /* Responsive grid system */
-    .grid { 
-        display: grid; 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 80px; 
-        justify-content: center; 
-        align-items: center; 
-    }
-
-    /* Mobile responsive adjustments */
-    @media (max-width: 1024px) {
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
         .grid {
-            grid-template-columns: 1fr; /* Single column layout */
+            grid-template-columns: 1fr;
         }
-        .chart-container { 
-            max-width: 500px; 
+        .chart-container {
             height: 250px;
         }
     }
 
-    @media (max-width: 768px) {
-        .chart-container {
-            max-width: 300px; 
-            height: 200px;
-        }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
     }
 
-    .max-h-96 {
-        max-height: 20.375rem; /* 96 in Tailwind's scale */
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
     }
-    .border {
-        border: 1px solid;
-    }
-    .rounded-lg {
-        border-radius: 0.5rem;
-    }
-    .text-white {
-        color: white;
-    }
-    /* Additional responsive styles for the total sales by currency */
-@media (max-width: 1024px) {
-    .grid-cols-8 {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
 
-@media (max-width: 768px) {
-    .grid-cols-8 {
-        grid-template-columns: repeat(2, 1fr);
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
     }
-}
 
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const days = {{ days|safe }};
+    const totalSales = {{ total_sales|safe }};
+    const totalClicks = {{ total_clicks|safe }};
+
+    // Chart configuration factory
+    function createChartConfig(type, labels, data, label, color) {
+        // Convert 'area' type to 'line' with fill
+        const chartType = type === 'area' ? 'line' : type;
+        
+        return {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: type === 'area' ? `${color}33` : (type === 'bar' ? `${color}99` : `${color}33`),
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: type === 'area' ? true : false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: '#359271',
+                        borderWidth: 1,
+                        padding: 10,
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(53, 146, 113, 0.1)'
+                        },
+                        ticks: { color: 'white' }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(53, 146, 113, 0.1)'
+                        },
+                        ticks: { color: 'white' }
+                    }
+                }
+            }
+        };
+    }
+
+    // Initialize charts
+    let salesChart = new Chart(
+        document.getElementById('salesChart'),
+        createChartConfig('line', days, totalSales, 'Sales (USD)', '#359271')
+    );
+
+    let viewsChart = new Chart(
+        document.getElementById('viewsChart'),
+        createChartConfig('line', days, totalClicks, 'Views', '#2d4b50')
+    );
+
+    // Handle chart type changes
+    document.getElementById('chartType').addEventListener('change', (e) => {
+        const type = e.target.value;
+        
+        // Create new charts without destroying old ones first
+        const newSalesChart = new Chart(
+            document.getElementById('salesChart'),
+            createChartConfig(type, days, totalSales, 'Sales (USD)', '#359271')
+        );
+        
+        const newViewsChart = new Chart(
+            document.getElementById('viewsChart'),
+            createChartConfig(type, days, totalClicks, 'Views', '#2d4b50')
+        );
+
+        // Only destroy old charts after new ones are created
+        salesChart.destroy();
+        viewsChart.destroy();
+        
+        salesChart = newSalesChart;
+        viewsChart = newViewsChart;
+    });
+
+    // Date range filter with AJAX
+    document.getElementById('dateRange').addEventListener('change', async (e) => {
+        const daysRange = parseInt(e.target.value);
+        
+        try {
+            // Update the URL to match the new path
+            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            
+            // Update charts with new data
+            salesChart.data.labels = data.days;
+            salesChart.data.datasets[0].data = data.total_sales;
+            salesChart.update();
+            
+            viewsChart.data.labels = data.days;
+            viewsChart.data.datasets[0].data = data.total_clicks;
+            viewsChart.update();
+            
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+        }
+    });
+</script>
+
 {% endblock content %}
-
-
-<!--
-
-Citations:
-(“Tailwind CSS Application") -> 1 - 403
-
--->

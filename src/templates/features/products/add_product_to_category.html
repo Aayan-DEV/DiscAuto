@@ -1,101 +1,175 @@
 {% extends "dashboard/base.html" %}
 {% block head_title %}Add Product to {{ category.name }}{% endblock head_title %}
 {% block content %}
-<div class="pt-10 px-4 md:px-0 text-center relative">
-    <h1 class="text-4xl font-extrabold text-white">Add Product to {{ category.name }}</h1>
-    <div class="mt-10 max-w-lg mx-auto">
-        <form method="post" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
-            {% csrf_token %}
-            <div class="text-left space-y-6">
-                {{ form.non_field_errors }}
-                <div>
-                    {{ form.title.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.title.label_tag }}</label>
-                    {{ form.title }}
-                </div>
-                
-                <div>
-                    {{ form.price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.price.label_tag }}</label>
-                    {{ form.price }}
-                </div>
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-                <div>
-                    {{ form.sale_price.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sale_price.label_tag }}</label> 
-                    {{ form.sale_price }}
-                </div>
-
-                <div>
-                    {{ form.discount_percentage.errors }} 
-                    <label class="block text-sm font-medium text-gray-700">{{ form.discount_percentage.label_tag }}</label> 
-                    {{ form.discount_percentage }}
-                </div>
-
-                <div>
-                    {{ form.currency.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.currency.label_tag }}</label>
-                    {{ form.currency }}
-                </div>
-
-                <!-- Ltc price -->
-                <div>
-                    {{ form.ltc_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.ltc_price.label_tag }}</label>
-                    {{ form.ltc_price }}
-                </div>
-
-                <!-- Btc price -->
-                <div>
-                    {{ form.btc_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.btc_price.label_tag }}</label>
-                    {{ form.btc_price }}
-                </div>
-
-                <!-- Eth price -->
-                <div>
-                    {{ form.eth_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.eth_price.label_tag }}</label>
-                    {{ form.eth_price }}
-                </div>
-
-                <!-- Usdt price -->
-                <div>
-                    {{ form.usdt_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.usdt_price.label_tag }}</label>
-                    {{ form.usdt_price }}
-                </div>
-
-                <!-- Sol price -->
-                <div>
-                    {{ form.sol_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.sol_price.label_tag }}</label>
-                    {{ form.sol_price }}
-                </div>
-
-                <!-- Test price -->
-                <div>
-                    {{ form.test_price.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.test_price.label_tag }}</label>
-                    {{ form.test_price }}
-                </div>
-
-                <div>
-                    {{ form.description.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.description.label_tag }}</label>
-                    {{ form.description }}
-                </div>
-
-                <div>
-                    {{ form.product_content.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.product_content.label_tag }}</label>
-                    {{ form.product_content }}
-                </div>
+<div class="min-h-screen p-4 sm:p-6 lg:p-12">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex flex-col items-center gap-4">
+                <a href="{% url 'category_detail' category.id %}" 
+                   class="w-full sm:w-auto bg-gray-700/50 hover:bg-gray-700/70 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2">
+                    <span class="material-icons">arrow_back</span>
+                    Back to Category
+                </a>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-[#359271] flex items-center text-center gap-2">
+                    <span class="material-icons">add_shopping_cart</span>
+                    Add Product to {{ category.name }}
+                </h1>
             </div>
-            <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Save Product
-            </button>
-        </form>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6">
+            <form method="post" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <!-- Basic Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div class="space-y-2">
+                        {{ form.title.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.title.label_tag }}</label>
+                        <input type="text" name="{{ form.title.name }}" 
+                               class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                               {% if form.title.value %}value="{{ form.title.value }}"{% endif %}
+                               placeholder="Enter product title">
+                    </div>
+
+                    <div class="space-y-2">
+                        {{ form.currency.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.currency.label_tag }}</label>
+                        <select name="{{ form.currency.name }}" 
+                                class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base">
+                            {% for value, label in form.currency.field.choices %}
+                                <option value="{{ value }}" {% if form.currency.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <h3 class="text-[#359271] font-medium flex items-center gap-2 text-sm sm:text-base">
+                        <span class="material-icons text-base sm:text-lg">payments</span>
+                        Pricing Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Regular Pricing -->
+                        <div class="space-y-3 sm:space-y-4">
+                            {% for field in form %}
+                                {% if field.name in 'price,sale_price,discount_percentage' %}
+                                <div class="space-y-2">
+                                    {{ field.errors }}
+                                    <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>
+                                    <input type="number" 
+                                           name="{{ field.name }}" 
+                                           step="0.01"
+                                           class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                           {% if field.value %}value="{{ field.value }}"{% endif %}>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Crypto Pricing -->
+                        <div class="space-y-3 sm:space-y-4">
+                            {% for field in form %}
+                                {% if field.name in 'ltc_price,btc_price,eth_price,usdt_price,sol_price,test_price' %}
+                                <div class="space-y-2">
+                                    {{ field.errors }}
+                                    <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>
+                                    <input type="number" 
+                                           name="{{ field.name }}" 
+                                           step="0.00000001"
+                                           class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                           {% if field.value %}value="{{ field.value }}"{% endif %}>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Section -->
+                <div class="space-y-3 sm:space-y-4">
+                    <div class="space-y-2">
+                        {{ form.description.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.description.label_tag }}</label>
+                        <textarea name="{{ form.description.name }}" rows="4"
+                                  class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                  placeholder="Enter product description">{% if form.description.value %}{{ form.description.value }}{% endif %}</textarea>
+                    </div>
+
+                    <div class="space-y-2">
+                        {{ form.product_content.errors }}
+                        <label class="block text-white font-medium text-sm sm:text-base">{{ form.product_content.label_tag }}</label>
+                        <textarea name="{{ form.product_content.name }}" rows="6"
+                                  class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                                  placeholder="Enter product content">{% if form.product_content.value %}{{ form.product_content.value }}{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    <span class="material-icons text-base sm:text-lg">save</span>
+                    <span class="text-sm sm:text-base">Save Product</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
+<style>
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+
+    /* Additional responsive styles */
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents zoom on mobile */
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
+    }
+</style>
 {% endblock content %}

@@ -1,46 +1,132 @@
 {% extends "dashboard/base.html" %}
 {% block head_title %}Add Category{% endblock head_title %}
 {% block content %}
-<div class="pt-10 px-4 md:px-0 relative">
-    <div class="flex items-center justify-center mb-6 relative">
-        <a href="{% url 'add_product_options' %}" class="absolute left-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
-            ← Back
-        </a>
-        <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white">Add Product Category</h1>
-    </div>
-    <div class="mt-10 max-w-lg mx-auto">
-        <form method="post" enctype="multipart/form-data" class="bg-white p-8 pt-2 rounded-xl shadow-lg space-y-6">
-            {% csrf_token %}
-            <div class="text-left space-y-6">
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<div class="min-h-screen p-4 sm:p-6 lg:p-12">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 sm:justify-between">
+                <a href="{% url 'add_product_options' %}" 
+                   class="w-full sm:w-auto bg-gray-700/50 hover:bg-gray-700/70 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </a>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-[#359271] flex items-center gap-2 text-center sm:text-left">
+                    <span class="material-icons">category</span>
+                    Add Product Category
+                </h1>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6">
+            <form method="post" enctype="multipart/form-data" class="space-y-4 sm:space-y-6">
+                {% csrf_token %}
                 {{ form.non_field_errors }}
 
                 <!-- Category Name -->
-                <div>
+                <div class="space-y-2">
                     {{ form.name.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.name.label_tag }}</label>
-                    {{ form.name }}
+                    <label class="block text-white font-medium text-sm sm:text-base">{{ form.name.label_tag }}</label>
+                    <input type="text" name="{{ form.name.name }}" 
+                           class="w-full bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none text-sm sm:text-base"
+                           {% if form.name.value %}value="{{ form.name.value }}"{% endif %}
+                           placeholder="Enter category name">
                 </div>
 
                 <!-- Category Image -->
-                <div>
+                <div class="space-y-2">
                     {{ form.category_image.errors }}
-                    <label class="block text-sm font-medium text-gray-700">{{ form.category_image.label_tag }}</label>
-                    {{ form.category_image }} (Category Image)
+                    <label class="block text-white font-medium text-sm sm:text-base">Upload Category Image</label>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
+                        <label class="flex-1 cursor-pointer bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 hover:border-[#359271] transition-colors">
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="material-icons text-base sm:text-lg">upload_file</span>
+                                <span class="text-sm sm:text-base">Choose Image</span>
+                            </div>
+                            <input type="file" name="{{ form.category_image.name }}" class="hidden" accept="image/*">
+                        </label>
+                        <span class="text-gray-400 text-sm text-center sm:text-left" id="selectedFileName">No file chosen</span>
+                    </div>
                 </div>
 
                 <!-- Show on Landing Page Checkbox -->
-                <div class="flex items-center">
-                    <input type="checkbox" id="show_on_custom_lander" name="show_on_custom_lander" class="form-checkbox h-5 w-5 text-indigo-600 transition duration-150 ease-in-out" {% if form.show_on_custom_lander.value %}checked{% endif %}>
-                    <label for="show_on_custom_lander" class="ml-2 block text-sm font-medium text-gray-700">
+                <div class="flex items-start sm:items-center gap-3 bg-gray-700/50 p-3 sm:p-4 rounded-lg border border-[#359271]/20">
+                    <input type="checkbox" id="show_on_custom_lander" name="show_on_custom_lander" 
+                           class="w-4 h-4 sm:w-5 sm:h-5 mt-1 sm:mt-0 rounded border-[#359271]/20 text-[#359271] focus:ring-[#359271]"
+                           {% if form.show_on_custom_lander.value %}checked{% endif %}>
+                    <label for="show_on_custom_lander" class="text-white text-sm sm:text-base">
                         Show this category on the custom landing page?
                     </label>
                 </div>
-            </div>
 
-            <button type="submit" class="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Save Category
-            </button>
-        </form>
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    <span class="material-icons text-base sm:text-lg">save</span>
+                    <span class="text-sm sm:text-base">Save Category</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
+<style>
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+
+    /* Additional responsive styles */
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents zoom on mobile */
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
+    }
+</style>
+
+<script>
+    // Display selected filename
+    document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'No file chosen';
+        document.getElementById('selectedFileName').textContent = fileName;
+    });
+</script>
 {% endblock content %}

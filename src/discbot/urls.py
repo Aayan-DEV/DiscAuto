@@ -9,6 +9,7 @@ from auths import views as auths_views
 from autosell import views as autosell_views
 from django.conf import settings
 from django.conf.urls.static import static
+from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
@@ -16,6 +17,7 @@ urlpatterns = [
     path('profiles/', include('profiles.urls')),
     path("hello-world/", home_view),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),  
+    path('dashboard/get-chart-data/', dashboard_views.get_chart_data, name='get_chart_data'),  # Updated path
     path("", home_view, name="home"),
     path("contact/", contact, name="contact"),
     path('admin/', admin.site.urls),

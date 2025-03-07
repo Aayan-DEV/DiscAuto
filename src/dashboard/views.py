@@ -13,6 +13,7 @@ from decimal import Decimal
 from .forms import PayoutRequestForm
 from django.contrib import messages
 from products.models import UserIncome
+from django.http import JsonResponse
 
 # Your API key from the ExchangeRate-API service
 # Gets the API key from environment variables for security purpose.
@@ -163,28 +164,84 @@ def format_decimal(value):
     # Here we return the value without trailing zeros if it's a whole number
     return value.quantize(Decimal(1)) if value == value.to_integral() else value.normalize()
 
+# Add this import at the top
+from django.http import JsonResponse
+@login_required
+def get_chart_data(request):
+    days_range = int(request.GET.get('days', 7))
+    today = timezone.now()
+    start_date = today - timedelta(days=days_range)
+    
+    # Get exchange rates
+    exchange_rates = get_exchange_rates()
+    
+    # Get sales data
+    sales_data_by_day = get_sales_data_by_day(start_date, today, request.user, exchange_rates)
+    
+    # Get views data
+    views_data = AutoSellView.objects.filter(
+        autosell__user=request.user,
+        view_date__range=[start_date, today]
+    ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
+    
+    # Generate days list with appropriate formatting
+    if days_range <= 7:
+        # For 7 days or less, show full day names
+        days = [(start_date + timedelta(days=i)).strftime('%A') for i in range(days_range)]
+    elif days_range <= 30:
+        # For 30 days, show every other day with abbreviated month and day
+        days = []
+        for i in range(0, days_range, 2):
+            current_date = start_date + timedelta(days=i)
+            days.append(current_date.strftime('%b %d'))
+    else:
+        # For 90 days, show every third day
+        days = []
+        for i in range(0, days_range, 3):
+            current_date = start_date + timedelta(days=i)
+            days.append(current_date.strftime('%b %d'))
+    
+    # Initialize data dictionaries with the new date format
+    total_sales_per_day = {day: 0 for day in days}
+    total_views_per_day = {day: 0 for day in days}
+    
+    # Fill in the data
+    for data in sales_data_by_day:
+        if days_range <= 7:
+            day_name = data['day'].strftime('%A')
+        else:
+            day_name = data['day'].strftime('%b %d')
+        if day_name in total_sales_per_day:
+            total_sales_per_day[day_name] += data['total_sales']
+    
+    for data in views_data:
+        if days_range <= 7:
+            day_name = data['day'].strftime('%A')
+        else:
+            day_name = data['day'].strftime('%b %d')
+        if day_name in total_views_per_day:
+            total_views_per_day[day_name] = data['total_views']
+    
+    return JsonResponse({
+        'days': days,
+        'total_sales': [float(total_sales_per_day[day]) for day in days],
+        'total_clicks': [float(total_views_per_day[day]) for day in days]
+    })
+# Update the dashboard_view to include more days in initial data
 @login_required
 def dashboard_view(request):
     # First we get the current time and store it in "today"
     today = timezone.now()
-
-    # Then we calculate the start of the week (Monday) for filtering data
-    start_of_week = today - timedelta(days=today.weekday())
-
-    # Then we set the end of the week to today
+    start_of_week = today - timedelta(days=90)
     end_of_week = today
-
-    # Then we get the latest exchange rates for currency conversion
     exchange_rates = get_exchange_rates()
 
     try:
-        # Here we try to get the user's income data from the database
         user_income = UserIncome.objects.get(user=request.user)
     except ObjectDoesNotExist:
-        # If no income data exists for the user, we just set the user_income to none.
         user_income = None
 
-    # Here we format the user's income data so that it can be displayed in the dashboard.
+    # Format income data
     if user_income:
         formatted_income = {
             'usd_total': format_decimal(user_income.usd_total),
@@ -202,7 +259,6 @@ def dashboard_view(request):
             'ltct_total': format_decimal(user_income.ltct_total)
         }
     else:
-        # If no income data exists, we put all values to 0
         formatted_income = {
             'usd_total': format_decimal(0),
             'gbp_total': format_decimal(0),
@@ -219,28 +275,20 @@ def dashboard_view(request):
             'ltct_total': format_decimal(0)
         }
 
-    # Here we get the user's recent sales to display on the dashboard.
     recent_sales = ProductSale.objects.filter(
         user=request.user
     ).select_related('user', 'product', 'unlimited_product').order_by('-created_at')
 
-    # Then we get the sales data grouped by day for the current week
     sales_data_by_day = get_sales_data_by_day(start_of_week, end_of_week, request.user, exchange_rates)
-
-    # Then we get the views sent for the week
     views_data = AutoSellView.objects.filter(
         autosell__user=request.user,
         view_date__range=[start_of_week, end_of_week]
     ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
 
-    # Here we generate a list of day names (Monday to Sunday) for the current week
     days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
-
-    # Here we initialize dictionaries to store total counts for sales and views per day
     total_sales_per_day = {day: 0 for day in days}
     total_views_per_day = {day: 0 for day in days}
 
-    # Then we set the dictionaries with data gotten earlier
     for data in sales_data_by_day:
         day_name = data['day']
         total_sales_per_day[day_name] += data['total_sales']
@@ -249,42 +297,31 @@ def dashboard_view(request):
         day_name = data['day'].strftime('%A')
         total_views_per_day[day_name] = data['total_views']
 
-    # Here we handle the payout form submissions from the dashboard
+    # Handle payout form
     if request.method == 'POST' and 'payout_form' in request.POST:
         payout_form = PayoutRequestForm(request.POST, user=request.user)
         if payout_form.is_valid():
-            # We save the payout request and update the user's income
             payout_request = payout_form.save(commit=False)
             payout_request.user = request.user
-
-            # We get the requested currency and amount for payout
+            
             currency = payout_request.currency
             amount = Decimal(payout_request.amount)
-
-            # We also get the user's balance for the selected currency
             currency_attribute = f"{currency.lower().replace('.', '_')}_total"
             user_income_balance = getattr(user_income, currency_attribute, None)
-
+            
             if user_income_balance is not None and amount <= user_income_balance:
-                # If the user has enough balance, we minus the requested amount from the user's balance
                 setattr(user_income, currency_attribute, user_income_balance - amount)
                 user_income.save()
-
-                # Then we save the payout request and show a success message
                 payout_request.save()
                 messages.success(request, 'Your payout request has been received. You will receive your funds within 24 hours.')
                 return redirect('dashboard')
             else:
-                # Here we show an error message if the user has insufficient funds, meaning less than what was requested.
                 messages.error(request, 'Insufficient funds for the requested payout.')
         else:
-            # We also show an error message if the form is invalid
             messages.error(request, 'Invalid payout request form.')
     else:
-        # If there was no submission, we initialize an empty payout form!
         payout_form = PayoutRequestForm(user=request.user)
 
-    # Finally we render the dashboard template with all the collected data
     return render(request, 'dashboard/main.html', {
         'days': days,
         'total_sales': [float(total_sales_per_day[day]) for day in days],

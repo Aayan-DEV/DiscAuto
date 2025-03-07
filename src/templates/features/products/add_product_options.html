@@ -1,20 +1,105 @@
 {% extends "dashboard/base.html" %}
 {% block head_title %}Add Product Options{% endblock head_title %}
 {% block content %}
-<div class="pt-10 px-4 md:px-0 relative">
-    <div class="flex items-center justify-center mb-6 relative">
-        <a href="{% url 'products' %}" class="absolute left-0 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-md shadow-md transition duration-300">
-            ← Back
-        </a>
-        <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white">Add Product Options</h1>
-    </div>
-    <div class="mt-10 max-w-lg mx-auto">
-        <div class="bg-white p-8 rounded-xl shadow-lg space-y-6">
-            <div class="text-left space-y-4">
-                <a href="{% url 'add_category' %}" class="block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md shadow-md transition duration-300 text-center">Add One-Time Use Product Category</a>
-                <a href="{% url 'add_unlimited_product' %}" class="block bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md shadow-md transition duration-300 text-center">Add Unlimited Product</a>
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<div class="min-h-screen p-4 sm:p-6 lg:p-12">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-0 sm:justify-between">
+                <a href="{% url 'products' %}" 
+                   class="w-full sm:w-auto bg-gray-700/50 hover:bg-gray-700/70 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2">
+                    <span class="material-icons">arrow_back</span>
+                    Back
+                </a>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-[#359271] flex items-center gap-2 text-center sm:text-left">
+                    <span class="material-icons">add_box</span>
+                    Add Product Options
+                </h1>
+            </div>
+        </div>
+
+        <!-- Options Cards -->
+        <div class="grid grid-cols-1 gap-4 sm:gap-6">
+            <!-- One-Time Use Product Category -->
+            <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 hover:border-[#359271]/40 transition-colors">
+                <a href="{% url 'add_category' %}" class="block">
+                    <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 mb-4">
+                        <span class="material-icons text-2xl sm:text-3xl text-[#359271]">category</span>
+                        <h2 class="text-lg sm:text-xl font-bold text-white">Add One-Time Use Product Category</h2>
+                    </div>
+                    <p class="text-gray-400 mb-6 text-center sm:text-left text-sm sm:text-base">Create a new category for one-time use products with custom settings and organization.</p>
+                    <div class="bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                        <span class="material-icons text-base sm:text-lg">add_circle</span>
+                        <span class="text-sm sm:text-base">Create Category</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Unlimited Product -->
+            <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 hover:border-[#359271]/40 transition-colors">
+                <a href="{% url 'add_unlimited_product' %}" class="block">
+                    <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 mb-4">
+                        <span class="material-icons text-2xl sm:text-3xl text-[#359271]">all_inclusive</span>
+                        <h2 class="text-lg sm:text-xl font-bold text-white">Add Unlimited Product</h2>
+                    </div>
+                    <p class="text-gray-400 mb-6 text-center sm:text-left text-sm sm:text-base">Create a new unlimited use product that can be sold multiple times.</p>
+                    <div class="bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                        <span class="material-icons text-base sm:text-lg">add_circle</span>
+                        <span class="text-sm sm:text-base">Create Product</span>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+    /* Additional responsive styles */
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
+    }
+</style>
 {% endblock content %}

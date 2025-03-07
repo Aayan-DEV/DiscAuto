@@ -1,12 +1,32 @@
 {% if messages %}
     <div id="messages-container" 
-         class="fixed left-0 w-full bg-blue-500 text-white text-center p-4"
-         style="top: 83px; z-index: 10;">
+         class="fixed left-1/2 transform -translate-x-1/2 max-w-2xl w-[95%] bg-gray-800/90 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 flex items-center justify-between gap-4"
+         style="top: 90px; z-index: 50;">
         {% for message in messages %}
-            <div>
-                <span>{{ message }}</span>
+            <div class="flex-1 text-center">
+                <span class="text-[#359271] font-medium">{{ message }}</span>
             </div>
         {% endfor %}
-        <button id="close-banner" class="absolute top-0 right-0 m-2 bg-blue-700 text-white p-2 rounded">X</button>
+        <button id="close-banner" 
+                class="flex-shrink-0 bg-gray-700/50 hover:bg-gray-700/70 text-white w-8 h-8 rounded-lg flex items-center justify-center transition-colors">
+            <span class="material-icons text-sm">close</span>
+        </button>
     </div>
+
+    <style>
+        #messages-container {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+    </style>
 {% endif %}

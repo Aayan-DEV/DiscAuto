@@ -3,94 +3,198 @@
 {% block head_title %}Products{% endblock head_title %}
 
 {% block content %}
-<div class="pt-10 px-4 sm:px-6 md:px-8 lg:px-0">
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<div class="min-h-screen p-6 lg:p-12">
     <!-- Header Section with 3 Columns -->
-    <div class="flex flex-col md:flex-row items-center justify-between mb-6">
-        <!-- Search Bar -->
-        <div class="w-full md:w-1/3 mb-4 md:mb-0">
-            <input type="text" id="productSearch" placeholder="🔍 | Search for products..." class="w-full p-2 rounded text-gray-800">
-        </div>
-        
-        <!-- Product Title -->
-        <div class="w-full md:w-1/3 text-center mb-4 md:mb-0">
-            <h1 class="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white">Products</h1>
-        </div>
-        
-        <!-- Add Product Button -->
-        <div class="w-full md:w-1/3 text-right md:text-right">
-            <a href="{% url 'add_product_options' %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 sm:px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105 text-base md:text-lg">
-                Add Product
-            </a>
+    <div class="max-w-7xl mx-auto bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Search Bar -->
+            <div class="w-full md:w-1/3">
+                <div class="relative">
+                    <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-[#359271]">search</span>
+                    <input type="text" id="productSearch" placeholder="Search for products..." 
+                           class="w-full pl-10 pr-4 py-3 bg-gray-700 text-white rounded-lg border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none">
+                </div>
+            </div>
+            
+            <!-- Product Title -->
+            <div class="w-full md:w-1/3 text-center">
+                <h1 class="text-2xl md:text-3xl font-bold text-[#359271] flex items-center justify-center gap-2">
+                    <span class="material-icons">inventory_2</span>
+                    Products
+                </h1>
+            </div>
+            
+            <!-- Add Product Button -->
+            <div class="w-full md:w-1/3 text-right">
+                <a href="{% url 'add_product_options' %}" 
+                   class="inline-block bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                    <span class="material-icons">add_circle</span>
+                    Add Product
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Products Section -->
-    <div id="productsContainer">
+    <div id="productsContainer" class="max-w-7xl mx-auto mt-8">
         <!-- Categories Section -->
-        <div class="mt-12 pb-5">
-            <h2 class="text-2xl font-semibold text-white">Categories</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 mb-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-[#359271] flex items-center gap-2 mb-4 sm:mb-6">
+                <span class="material-icons">category</span>
+                Categories
+            </h2>
+            <div class="space-y-4">
                 {% for category in categories %}
-                <div class="bg-gray-800 p-4 rounded-lg shadow-md product-item flex-grow flex flex-col">
-                    <div class="flex-grow">
-                        <h3 class="text-lg font-bold text-white truncate">{{ category.name }}</h3>
-                        {% if category.category_image_url %}
-                            <img src="{{ category.category_image_url }}" alt="{{ category.name }}" class="w-full object-cover rounded-md mt-4" style="aspect-ratio: 1140 / 869;">
-                        {% else %}
-                            <p class="text-gray-400">No image available</p>
-                        {% endif %}
-                    </div>
-                    <div class="mt-4 flex space-x-2">
-                        <a href="{% url 'category_detail' category.id %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-md transition duration-300">
-                            View
-                        </a>
-                        <a href="{% url 'delete_category' category.id %}" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md transition duration-300">
-                            Delete
-                        </a>
-                        <a href="{% url 'edit_category' category.id %}" class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-3 rounded-md transition duration-300">
-                            Edit
-                        </a>
+                <div class="bg-gray-700/50 rounded-xl border border-[#359271]/20 p-3 sm:p-4 product-item">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <!-- Image Section -->
+                        <div class="flex-shrink-0 w-full sm:w-24 h-32 sm:h-24">
+                            {% if category.category_image_url %}
+                                <img src="{{ category.category_image_url }}" alt="{{ category.name }}" 
+                                     class="w-full h-full object-cover rounded-lg border border-[#359271]/20">
+                            {% else %}
+                                <div class="w-full h-full bg-gray-800 rounded-lg border border-[#359271]/20 flex items-center justify-center">
+                                    <span class="material-icons text-2xl text-gray-600">image_not_available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Content Section -->
+                        <div class="flex-grow w-full sm:w-auto">
+                            <h3 class="text-lg font-bold text-white truncate">{{ category.name }}</h3>
+                        </div>
+                        
+                        <!-- Buttons Section -->
+                        <div class="flex-shrink-0 flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                            <a href="{% url 'category_detail' category.id %}" 
+                               class="flex-1 sm:flex-initial bg-[#359271] hover:bg-[#359271]/80 text-white font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <span class="material-icons text-sm">visibility</span>
+                                <span class="sm:hidden md:inline">View</span>
+                            </a>
+                            <a href="{% url 'edit_category' category.id %}" 
+                               class="flex-1 sm:flex-initial bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-500 font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <span class="material-icons text-sm">edit</span>
+                                <span class="sm:hidden md:inline">Edit</span>
+                            </a>
+                            <a href="{% url 'delete_category' category.id %}" 
+                               class="flex-1 sm:flex-initial bg-red-500/20 hover:bg-red-500/30 text-red-500 font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <span class="material-icons text-sm">delete</span>
+                                <span class="sm:hidden md:inline">Delete</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-gray-400">No categories available.</p>
+                <div class="text-center py-8">
+                    <span class="material-icons text-4xl text-gray-600 mb-2">category_off</span>
+                    <p class="text-gray-400">No categories available.</p>
+                </div>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Unlimited Use Products Section -->
-        <h2 class="text-2xl font-semibold text-white mt-12">Unlimited Use Products</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-6">
-            {% for product in unlimited_products %}
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md product-item flex-grow flex flex-col">
-                <div class="flex-grow">
-                    {% if product.product_image_url %}
-                        <img src="{{ product.product_image_url }}" alt="{{ product.title }}" class="product-image w-full object-cover rounded-md mt-4" style="aspect-ratio: 1140 / 869;">
-                    {% else %}
-                        <p class="text-gray-400">No image available</p>
-                    {% endif %}
-                    <h3 class="text-lg font-bold text-white mt-4 truncate">{{ product.title }}</h3>
-                    <p class="text-gray-400">Price: {{ product.price }} {{ product.currency }}</p>
-                    <p class="text-gray-400">SKU: {{ product.sku }}</p>
-                    <p class="text-gray-400">Quantity: {% if product.quantity == -1 %} Unlimited {% else %}{{ product.quantity }} {% endif %}</p>
+        <div class="bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-[#359271] flex items-center gap-2 mb-4 sm:mb-6">
+                <span class="material-icons">all_inclusive</span>
+                Unlimited Use Products
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {% for product in unlimited_products %}
+                <div class="bg-gray-700/50 rounded-xl border border-[#359271]/20 p-3 sm:p-4 product-item">
+                    <div class="flex flex-col h-full">
+                        <div class="relative w-full pt-[75%]">
+                            {% if product.product_image_url %}
+                                <img src="{{ product.product_image_url }}" alt="{{ product.title }}" 
+                                     class="absolute inset-0 w-full h-full object-cover rounded-lg border border-[#359271]/20">
+                            {% else %}
+                                <div class="absolute inset-0 bg-gray-800 rounded-lg border border-[#359271]/20 flex items-center justify-center">
+                                    <span class="material-icons text-4xl text-gray-600">image_not_available</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow mt-3">
+                            <h3 class="text-lg font-bold text-white truncate">{{ product.title }}</h3>
+                            <div class="mt-2 space-y-1">
+                                <p class="text-[#359271] font-medium">{{ product.price }} {{ product.currency }}</p>
+                                <p class="text-gray-400 text-sm">SKU: {{ product.sku }}</p>
+                                <p class="text-gray-400 text-sm">Quantity: {% if product.quantity == -1 %}Unlimited{% else %}{{ product.quantity }}{% endif %}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex gap-2">
+                            <a href="{% url 'edit_unlimited_product' product.pk %}" 
+                               class="flex-1 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-500 font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <span class="material-icons text-sm">edit</span>
+                                <span>Edit</span>
+                            </a>
+                            <a href="{% url 'delete_unlimited_product' product.pk %}" 
+                               class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-500 font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <span class="material-icons text-sm">delete</span>
+                                <span>Delete</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="mt-4 flex space-x-2">
-                    <a href="{% url 'edit_unlimited_product' product.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-3 rounded-md transition duration-300">
-                        Edit
-                    </a>
-                    <a href="{% url 'delete_unlimited_product' product.pk %}" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-3 rounded-md transition duration-300">
-                        Delete
-                    </a>
+                {% empty %}
+                <div class="col-span-full text-center py-8">
+                    <span class="material-icons text-4xl text-gray-600 mb-2">inventory_2_off</span>
+                    <p class="text-gray-400">No unlimited products available.</p>
                 </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <p class="text-gray-400">No unlimited products available.</p>
-            {% endfor %}
         </div>
     </div>
 </div>
 
-<!-- JavaScript for Search Functionality -->
+<style>
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
+
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+</style>
+
 <script>
     document.getElementById('productSearch').addEventListener('input', function() {
         let filter = this.value.toLowerCase();
@@ -106,11 +210,4 @@
         });
     });
 </script>
-
-<style>
-    .product-image {
-        height: auto;
-        width: 100%;
-    }    
-</style>
 {% endblock content %}
