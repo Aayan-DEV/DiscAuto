@@ -4,9 +4,9 @@
 {% block content %}
 <style>
     body {
-        background: linear-gradient(135deg, #1e1e3f, #283593); /* Dark gradient background */
+        font-family: 'DM Sans', sans-serif;
+        background: linear-gradient(135deg, #1f2937, #111827);
         color: white;
-        font-family: 'Roboto', sans-serif;
         min-height: 100vh;
         display: flex;
         justify-content: center;
@@ -18,71 +18,97 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px);
         padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
         max-width: 500px;
+        width: 90%; /* Added for mobile responsiveness */
         text-align: center;
+        margin: 20px; /* Added for mobile spacing */
     }
 
     h1 {
-        font-size: 2.5rem;
+        font-size: clamp(1.8rem, 5vw, 2.5rem); /* Responsive font size */
         font-weight: bold;
-        color: #c084fc;
+        color: white;
         margin-bottom: 20px;
+        font-family: 'Clash Display', sans-serif;
     }
 
     p {
-        font-size: 1.2rem;
-        color: #b3b3ff;
+        font-size: clamp(1rem, 3vw, 1.2rem); /* Responsive font size */
+        color: rgba(255, 255, 255, 0.7);
         margin-bottom: 30px;
     }
 
-    .btn {
-        background: linear-gradient(90deg, #c084fc, #7c3aed);
-        border: none;
-        padding: 10px 20px;
-        color: white;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 8px;
-        margin-top: 15px;
-        transition: background 0.3s ease;
+    .buttons-container {
+        display: flex;
+        gap: 10px;
         width: 100%;
-        max-width: 200px;
+        justify-content: center;
+        flex-wrap: wrap; /* For very small screens */
     }
 
-    .btn:hover {
-        background: linear-gradient(90deg, #7c3aed, #c084fc);
+    .btn {
+        background: linear-gradient(90deg, #2dd4bf, #0f766e);
+        border: none;
+        padding: 14px 24px;
+        color: white;
+        font-size: clamp(0.875rem, 2vw, 1rem); /* Responsive font size */
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        width: auto; /* Changed from 100% */
+        min-width: 120px; /* Added minimum width */
     }
 
     .btn-cancel {
-        background-color: transparent;
-        color: #b3b3ff;
-        border: 2px solid #7c3aed;
-        margin-top: 10px;
-    }
-
-    .btn-cancel:hover {
-        background-color: #7c3aed;
+        background: linear-gradient(90deg, #ef4444, #b91c1c); /* Red gradient */
+        border: none;
         color: white;
     }
 
+    .btn-cancel:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 480px) {
+        .container {
+            padding: 20px;
+            margin: 10px;
+        }
+
+        .buttons-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
 </style>
+
+<!-- Add Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 
 <div class="container">
     <h1>{% trans "Sign Out" as heading %}{{ heading }}</h1>
     <p>{% trans "Are you sure you want to sign out?" as subheading %}{{ subheading }}</p>
 
+    <!-- Update the buttons section -->
     {% url 'account_logout' as action_url %}
-    <form action="{{ action_url }}" method="POST">
-        {% csrf_token %}
-        {{ redirect_field }}
-        <button class="btn" type="submit">{% trans "Continue" as button_text %}{{ button_text }}</button>
-    </form>
-
-    <!-- Cancel Button -->
-    <a href="{% url 'home' %}" class="btn btn-cancel">{% trans "Cancel" %}</a>
+    <div class="buttons-container">
+        <form action="{{ action_url }}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            {{ redirect_field }}
+            <button class="btn" type="submit">{% trans "Continue" as button_text %}{{ button_text }}</button>
+        </form>
+        <a href="{% url 'home' %}" class="btn btn-cancel">{% trans "Cancel" %}</a>
+    </div>
 </div>
 {% endblock content %}
