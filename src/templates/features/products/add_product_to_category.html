@@ -63,7 +63,7 @@
                         <!-- Regular Pricing -->
                         <div class="space-y-3 sm:space-y-4">
                             {% for field in form %}
-                                {% if field.name in 'price,sale_price,discount_percentage' %}
+                                {% if field.name == 'price' or field.name == 'sale_price' or field.name == 'discount_percentage' %}
                                 <div class="space-y-2">
                                     {{ field.errors }}
                                     <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>
@@ -80,7 +80,7 @@
                         <!-- Crypto Pricing -->
                         <div class="space-y-3 sm:space-y-4">
                             {% for field in form %}
-                                {% if field.name in 'ltc_price,btc_price,eth_price,usdt_price,sol_price,test_price' %}
+                                {% if field.name == 'ltc_price' or field.name == 'btc_price' or field.name == 'eth_price' or field.name == 'usdt_price' or field.name == 'sol_price' or field.name == 'test_price' %}
                                 <div class="space-y-2">
                                     {{ field.errors }}
                                     <label class="block text-white font-medium text-sm sm:text-base">{{ field.label_tag }}</label>

@@ -53,7 +53,7 @@ class OneTimeProductCategoryForm(forms.ModelForm):
 class UnlimitedProductForm(forms.ModelForm):
     class Meta:
         model = UnlimitedProduct
-        fields = [
+        fields = [ 
             'title', 'price', 'sale_price', 'ltc_price', 'btc_price', 'eth_price', 'usdt_price',
             'sol_price', 'test_price', 'discount_percentage', 'currency', 'sku', 'quantity', 'link',
             'description', 'product_image', 'show_on_custom_lander'

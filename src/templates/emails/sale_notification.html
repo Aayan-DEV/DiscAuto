@@ -3,72 +3,115 @@
 <head>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
+            font-family: 'DM Sans', Arial, sans-serif;
+            background-color: #f5f7f7;
+            color: #2d4b50;
             padding: 20px;
+            margin: 0;
+            line-height: 1.6;
         }
         .email-container {
             max-width: 600px;
             margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(45, 75, 80, 0.12);
             overflow: hidden;
         }
         .header {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #359271, #2d4b50);
             color: #ffffff;
             text-align: center;
-            padding: 20px;
+            padding: 32px 20px;
         }
         .header img {
-            width: 100px;
-            margin-bottom: 10px;
+            width: 120px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .content {
-            padding: 20px;
+            padding: 32px 24px;
         }
         .content h2 {
-            color: #4CAF50;
-            margin-top: 0;
+            color: #359271;
+            margin: 0 0 24px 0;
+            font-size: 24px;
+            font-weight: 700;
         }
         .content p {
             font-size: 16px;
-            line-height: 1.6;
-        }
-        .footer {
-            background-color: #eeeeee;
-            text-align: center;
-            padding: 10px;
-            font-size: 12px;
-            color: #555;
+            line-height: 1.7;
+            color: #4a5568;
+            margin: 0 0 16px 0;
         }
         .order-details {
-            background-color: #f2f2f2;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 10px; 
+            background-color: #f8fafb;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #bce4d6;
+            margin: 24px 0;
+        }
+        .order-details h3 {
+            color: #2d4b50;
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .order-details p {
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .order-details strong {
+            color: #2d4b50;
+        }
+        .footer {
+            background-color: #f8fafb;
+            text-align: center;
+            padding: 16px;
+            font-size: 13px;
+            color: #718096;
+            border-top: 1px solid #bce4d6;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #359271, #2d4b50);
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 24px 0;
         }
     </style>
 </head>
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo">
             <h1>New Sale Notification</h1>
         </div>
         <div class="content">
-            <h2>Congratulations, {{ username }}!</h2>
-            <p>You have successfully sold <strong>{{ product_title }}</strong>.</p>
+            <h2>Congratulations, {{ username }}! 🎉</h2>
+            <p>Great news! You've just made a successful sale of <strong>{{ product_title }}</strong>.</p>
+            
             <div class="order-details">
-                <h3>Order Details</h3>
+                <h3>📦 Order Details</h3>
                 <p><strong>Product:</strong> {{ product_title }}</p>
                 <p><strong>Customer:</strong> {{ customer_name }}</p>
                 <p><strong>Customer Email:</strong> {{ customer_email }}</p>
                 <p><strong>Amount:</strong> {{ amount }} {{ currency }}</p>
             </div>
-            <p>Keep up the great work, and thank you for partnering with Mystorelink!</p>
+
+            <p>This is a testament to the quality of your products and services. Keep up the excellent work!</p>
+            
+            <a href="https://mystorel.ink/dashboard" class="cta-button">View in Dashboard</a>
+            
+            <p>Thank you for being a valued partner of Mystorelink. We're here to support your success!</p>
         </div>
         <div class="footer">
             <p>&copy; 2024 Mystorelink. All rights reserved.</p>

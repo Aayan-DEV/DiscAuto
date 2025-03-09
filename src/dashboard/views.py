@@ -169,64 +169,65 @@ from django.http import JsonResponse
 @login_required
 def get_chart_data(request):
     days_range = int(request.GET.get('days', 7))
-    today = timezone.now()
-    start_date = today - timedelta(days=days_range)
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days_range)
     
-    # Get exchange rates
-    exchange_rates = get_exchange_rates()
+    # Get all sales within the date range using ProductSale
+    sales_data = ProductSale.objects.filter(
+        created_at__gte=start_date,
+        created_at__lte=end_date
+    ).values('created_at').annotate(
+        total=Sum('amount')
+    ).order_by('created_at')
+
+    # Get all clicks/views within the date range using AutoSellView
+    clicks_data = AutoSellView.objects.filter(
+        view_date__gte=start_date,
+        view_date__lte=end_date
+    ).values('view_date').annotate(
+        total=Count('id')
+    ).order_by('view_date')
+
+    # Convert to dictionaries for easier lookup
+    sales_dict = {item['created_at'].date(): item['total'] for item in sales_data}
+    clicks_dict = {item['view_date']: item['total'] for item in clicks_data}
+
+    # Generate all dates in range
+    date_list = []
+    sales_list = []
+    clicks_list = []
     
-    # Get sales data
-    sales_data_by_day = get_sales_data_by_day(start_date, today, request.user, exchange_rates)
-    
-    # Get views data
-    views_data = AutoSellView.objects.filter(
-        autosell__user=request.user,
-        view_date__range=[start_date, today]
-    ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
-    
-    # Generate days list with appropriate formatting
+    current_date = start_date.date()
+    while current_date <= end_date.date():
+        date_list.append(current_date)
+        sales_list.append(float(sales_dict.get(current_date, 0)))
+        clicks_list.append(clicks_dict.get(current_date, 0))
+        current_date += timedelta(days=1)
+
+    # Format dates based on range
     if days_range <= 7:
-        # For 7 days or less, show full day names
-        days = [(start_date + timedelta(days=i)).strftime('%A') for i in range(days_range)]
+        formatted_dates = [d.strftime('%b %d') for d in date_list]
     elif days_range <= 30:
-        # For 30 days, show every other day with abbreviated month and day
-        days = []
-        for i in range(0, days_range, 2):
-            current_date = start_date + timedelta(days=i)
-            days.append(current_date.strftime('%b %d'))
+        formatted_dates = []
+        for i, date in enumerate(date_list):
+            if sales_dict.get(date, 0) > 0 or i % 3 == 0:
+                formatted_dates.append(date.strftime('%b %d'))
+            else:
+                formatted_dates.append('')
     else:
-        # For 90 days, show every third day
-        days = []
-        for i in range(0, days_range, 3):
-            current_date = start_date + timedelta(days=i)
-            days.append(current_date.strftime('%b %d'))
-    
-    # Initialize data dictionaries with the new date format
-    total_sales_per_day = {day: 0 for day in days}
-    total_views_per_day = {day: 0 for day in days}
-    
-    # Fill in the data
-    for data in sales_data_by_day:
-        if days_range <= 7:
-            day_name = data['day'].strftime('%A')
-        else:
-            day_name = data['day'].strftime('%b %d')
-        if day_name in total_sales_per_day:
-            total_sales_per_day[day_name] += data['total_sales']
-    
-    for data in views_data:
-        if days_range <= 7:
-            day_name = data['day'].strftime('%A')
-        else:
-            day_name = data['day'].strftime('%b %d')
-        if day_name in total_views_per_day:
-            total_views_per_day[day_name] = data['total_views']
-    
+        formatted_dates = []
+        for i, date in enumerate(date_list):
+            if sales_dict.get(date, 0) > 0 or i % 5 == 0:
+                formatted_dates.append(date.strftime('%b %d'))
+            else:
+                formatted_dates.append('')
+
     return JsonResponse({
-        'days': days,
-        'total_sales': [float(total_sales_per_day[day]) for day in days],
-        'total_clicks': [float(total_views_per_day[day]) for day in days]
+        'days': formatted_dates,
+        'total_sales': sales_list,
+        'total_clicks': clicks_list
     })
+
 # Update the dashboard_view to include more days in initial data
 @login_required
 def dashboard_view(request):

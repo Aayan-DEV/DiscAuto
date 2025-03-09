@@ -943,76 +943,131 @@ def product_detail(request, product_id):
         'product': product,
         'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY 
     })
-
+    
 @csrf_exempt
 def create_checkout_session(request, product_id):
     if request.method == 'POST':
-        # First we parse the JSON data from the request body.
-        data = json.loads(request.body)
-        
-        # Then we get the unlimited product by using the ID.
-        product = get_object_or_404(UnlimitedProduct, id=product_id)
-        customer_name = data.get('name')
-        customer_email = data.get('email')
-
-        # We then store the previous page URL in session to then redirect back after checkout is successful
-        previous_url = request.META.get('HTTP_REFERER')
-        request.session['previous_url'] = previous_url
-
         try:
-            # First we try to create a Stripe checkout session for the product
+            # Parse the JSON data from request
+            data = json.loads(request.body)
+            
+            # Get the product
+            product = get_object_or_404(UnlimitedProduct, id=product_id)
+            
+            # Get customer details
+            customer_name = data.get('name')
+            customer_email = data.get('email')
+
+            # Validate required fields
+            if not customer_name or not customer_email:
+                return JsonResponse({'error': 'Name and email are required'}, status=400)
+
+            # Validate product has stripe price ID
+            if not product.stripe_price_id:
+                return JsonResponse({'error': 'Product not properly configured for checkout'}, status=400)
+
+            # Store the previous URL in session
+            previous_url = request.META.get('HTTP_REFERER')
+            if previous_url:
+                request.session['previous_url'] = previous_url
+
+            # Create checkout session
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card', 'paypal'],
+                payment_method_types=['card'],  # Simplified payment methods
                 line_items=[{
-                    'price': product.stripe_price_id, 
+                    'price': product.stripe_price_id,
                     'quantity': 1,
                 }],
                 mode='payment',
                 success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
-                customer_email=customer_email,  
+                customer_email=customer_email,
                 metadata={
                     'product_id': product.id,
-                    'customer_name': customer_name,  
+                    'customer_name': customer_name,
                     'customer_email': customer_email
                 }
             )
+            
             return JsonResponse({'id': checkout_session.id})
-        except Exception as e:
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        except stripe.error.StripeError as e:
             return JsonResponse({'error': str(e)}, status=400)
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return JsonResponse({'error': 'An unexpected error occurred'}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 def update_user_income(user, amount, currency):
-    # First we get UserIncome record for the user
-    user_income, created = UserIncome.objects.get_or_create(user=user)
-    #  then we update their income
-    user_income.update_income(Decimal(str(amount)), currency)
+    try:
+        # Debug: Print initial values
+        print(f"[DEBUG] Updating income for user: {user.username}")
+        print(f"[DEBUG] Amount: {amount}, Currency: {currency}")
+
+        # Get or create UserIncome record
+        user_income, created = UserIncome.objects.get_or_create(user=user)
+        print(f"[DEBUG] UserIncome record {'created' if created else 'retrieved'}")
+
+        # Debug: Print current balances before update
+        currency_attribute = f"{currency.lower().replace('.', '_')}_total"
+        current_balance = getattr(user_income, currency_attribute, None)
+        print(f"[DEBUG] Current balance for {currency_attribute}: {current_balance}")
+
+        # Update income and get the result
+        update_result = user_income.update_income(Decimal(str(amount)), currency)
+        
+        # Debug: Print new balance after update
+        new_balance = getattr(user_income, currency_attribute, None)
+        print(f"[DEBUG] New balance for {currency_attribute}: {new_balance}")
+        print(f"[DEBUG] Update result: {update_result}")
+
+        return True
+    except Exception as e:
+        print(f"[ERROR] Failed to update user income: {str(e)}")
+        print(f"[ERROR] Traceback: ", traceback.format_exc())
+        return False
+
+def checkout_cancel(request):
+    # Render the checkout cancel template
+    return render(request, 'checkout/cancel.html')
 
 def checkout_success(request):
-    # First we get the session ID.
-    session_id = request.GET.get('session_id')
-    # Then we get the checkout session details from Stripe.
-    session = stripe.checkout.Session.retrieve(session_id)
+    try:
+        # Get the session ID from the request
+        session_id = request.GET.get('session_id')
+        if not session_id:
+            return render(request, 'checkout/checkout_success.html', {'error': 'No session ID provided'})
 
-    # Then we get the metadata from the session for product and customer details to use later
-    product_id = session.metadata.get('product_id')
-    customer_name = session.metadata.get('customer_name')
-    customer_email = session.metadata.get('customer_email')
+        # Retrieve the checkout session from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        # Get metadata from the session
+        product_id = session.metadata.get('product_id')
+        customer_name = session.metadata.get('customer_name')
+        customer_email = session.metadata.get('customer_email')
+        
+        # Get the product
+        product = UnlimitedProduct.objects.filter(id=product_id).first()
+        
+        if not product:
+            return render(request, 'checkout/checkout_success.html', {'error': 'Product not found'})
 
-    # Here we find the purchased unlimited product using its ID.
-    unlimited_product = UnlimitedProduct.objects.filter(id=product_id).first()
-
-    if unlimited_product:
-        user = unlimited_product.user
-
-        # Here we get the user's AutoSell info for sending the email.
-        autosell_info = AutoSell.objects.filter(user=user).first()
-        from_name = autosell_info.name if autosell_info else "Mystorelink"
-        from_email = f"{from_name} <{EMAIL_HOST_USER}>"
-
-        # We also record the sale in the ProductSale model
+        # Prepare context for the template
+        context = {
+            'customer_name': customer_name,
+            'product': product,
+            'amount': session.amount_total / 100,  # Convert from cents to actual currency
+            'currency': session.currency.upper(),
+            'download_link': product.link if hasattr(product, 'link') else None,
+            'session_id': session_id
+        }
+        
+        # Record the sale in database
         ProductSale.objects.create(
-            user=unlimited_product.user,
-            unlimited_product=unlimited_product,
+            user=product.user,
+            unlimited_product=product,
             stripe_session_id=session_id,
             amount=session.amount_total / 100,
             currency=session.currency.upper(),
@@ -1020,73 +1075,71 @@ def checkout_success(request):
             customer_email=customer_email
         )
 
-        # Here we generate a unique identifier because same gmails will have a error
+        # Update the user's income
+        update_user_income(product.user, session.amount_total / 100, session.currency.upper())
+
+        # Get AutoSell info for email sending
+        autosell_info = AutoSell.objects.filter(user=product.user).first()
+        from_name = autosell_info.name if autosell_info else "Mystorelink"
+        from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
+        # Generate unique identifier for tracking
         unique_hash = str(uuid.uuid4())
 
-        # Then we prepare and send a confirmation email to the customer with their purchase details.
-        customer_subject = f"Your purchase of {unlimited_product.title}"
+        # Send confirmation email to customer
+        customer_subject = f"Your purchase of {product.title}"
         customer_html_template = render_to_string("emails/purchase_confirmation.html", {
             "customer_name": customer_name,
-            "product_title": unlimited_product.title,
-            "download_link": unlimited_product.link,
+            "product_title": product.title,
+            "download_link": product.link,
             "amount": session.amount_total / 100,
             "currency": session.currency.upper(),
             "unique_hash": unique_hash
         })
-        customer_email_message = EmailMultiAlternatives(
+        
+        customer_email = EmailMultiAlternatives(
             subject=customer_subject,
             body=f"Hi {customer_name},\n\nThank you for your purchase!",
             from_email=from_email,
             to=[customer_email]
         )
-        customer_email_message.attach_alternative(customer_html_template, "text/html")
-        customer_email_message.send()
+        customer_email.attach_alternative(customer_html_template, "text/html")
+        customer_email.send()
 
-        # We also prepare and send a notification email to the product owner about the sale
-        owner_subject = f"DiscAuto Order confirmation for: {unlimited_product.price} {unlimited_product.currency} from {customer_name}"
+        # Send notification email to product owner
+        owner_subject = f"New order: {product.price} {product.currency} from {customer_name}"
         owner_html_content = render_to_string("emails/sale_notification.html", {
-            "username": unlimited_product.user.username,
+            "username": product.user.username,
             "customer_name": customer_name,
-            "product_title": unlimited_product.title,
-            "customer_email": customer_email,
+            "product_title": product.title,
+            "customer_email": session.metadata.get('customer_email'),  # Use the email string directly
             "amount": session.amount_total / 100,
             "currency": session.currency.upper(),
             "unique_hash": unique_hash
         })
+        
         owner_email = EmailMultiAlternatives(
             subject=owner_subject,
-            body=f"Congratulations on your sale {unlimited_product.user.username}!",
+            body=f"Congratulations on your sale {product.user.username}!",
             from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
-            to=[unlimited_product.user.email]
+            to=[product.user.email]
         )
         owner_email.attach_alternative(owner_html_content, "text/html")
         owner_email.send()
 
-        # Here we then update the owner's income record and send a Pushover notification if they have a key saved.
-        profile, created = UserProfile.objects.get_or_create(user=unlimited_product.user)
-        owner_pushover_key = profile.pushover_user_key
-        if owner_pushover_key:
-            message = f"🎉 {customer_name} Ordered 1 item from your store!"
-            send_pushover_notification(owner_pushover_key, message)
-            # Here we ddd the income to the user's income record with the transaction currency
-            update_user_income(unlimited_product.user, session.amount_total / 100, session.currency.upper())
-        else:
-            # We also log a message if the owner doesn’t have a Pushover key for notifications, just for debugging
-            print(f"No Pushover key found for {unlimited_product.user.username}, skipping push notification.")
-    
-    else:
-        return JsonResponse({'error': 'Product not found'}, status=400)
+        # Send Pushover notification if enabled
+        profile, created = UserProfile.objects.get_or_create(user=product.user)
+        if profile.pushover_user_key:
+            message = f"🎉 {customer_name} ordered 1 item from your store!"
+            send_pushover_notification(profile.pushover_user_key, message)
 
-    # Here we get the previous URL from the session for redirection, then remove it.
-    previous_url = request.session.get('previous_url', '/')
-    request.session.pop('previous_url', None)
-    # Then we redirect the user back to the previous page after checkout.
-    return redirect(previous_url)
+        # Render success template with context
+        return render(request, 'checkout/checkout_success.html', context)
 
-
-# Here we render the cancel checkout page if a customer cancels the checkout process.
-def checkout_cancel(request):
-    return render(request, 'checkout/cancel.html')
+    except stripe.error.StripeError as e:
+        return render(request, 'checkout/checkout_success.html', {'error': str(e)})
+    except Exception as e:
+        return render(request, 'checkout/checkout_success.html', {'error': 'An unexpected error occurred'})
 
 # Here we show the details of a specific one-time product.
 def one_time_product_detail(request, product_id):

@@ -3,62 +3,76 @@
 <head>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            color: #333;
+            font-family: 'DM Sans', Arial, sans-serif;
+            background-color: #f5f7f7;
+            color: #2d4b50;
             padding: 20px;
+            margin: 0;
+            line-height: 1.6;
         }
         .email-container {
             max-width: 600px;
             margin: 0 auto;
             background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(45, 75, 80, 0.12);
             overflow: hidden;
         }
         .header {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #359271, #2d4b50);
             color: #ffffff;
             text-align: center;
-            padding: 20px;
+            padding: 32px 20px;
         }
         .header img {
-            width: 100px;
-            margin-bottom: 10px;
+            width: 120px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .content {
-            padding: 20px;
+            padding: 32px 24px;
         }
         .content h2 {
-            color: #4CAF50;
-            margin-top: 0;
+            color: #359271;
+            margin: 0 0 24px 0;
+            font-size: 24px;
+            font-weight: 700;
         }
         .content p {
             font-size: 16px;
-            line-height: 1.6;
+            line-height: 1.7;
+            color: #4a5568;
+            margin: 0 0 16px 0;
+        }
+        .footer {
+            background-color: #f8fafb;
+            text-align: center;
+            padding: 16px;
+            font-size: 13px;
+            color: #718096;
+            border-top: 1px solid #bce4d6;
         }
         .button {
             display: inline-block;
-            background-color: #4CAF50;
-            color: #ffffff;
-            padding: 10px 20px;
+            background: linear-gradient(135deg, #359271, #2d4b50);
+            color: white !important;
             text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-        .footer {
-            background-color: #eeeeee;
-            text-align: center;
-            padding: 10px;
-            font-size: 12px;
-            color: #555;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 24px 0;
         }
     </style>
 </head>
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="https://mystorel.ink/local-cdn/icon/website-logo.png" alt="Mystorelink Logo">
             <h1>Thank You for Your Purchase!</h1>
         </div>
         <div class="content">

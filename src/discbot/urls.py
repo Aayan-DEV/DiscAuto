@@ -37,8 +37,6 @@ urlpatterns = [
     path('products/add/', products_views.add_product_options, name='add_product_options'),
     path('products/add/category/', products_views.add_category, name='add_category'),
     path('products/add/unlimited/', products_views.add_unlimited_product, name='add_unlimited_product'),
-    path('checkout/success/', products_views.checkout_success, name='stripe-checkout-end'),
-    # Remove or rename any conflicting checkout cancel URLs that might have been in products_views.
     path("auths/", auths_views.auths, name="auths"), 
     path('coinpayments-ipn/', products_views.coinpayments_ipn, name='coinpayments_ipn'),
     path('create_crypto_transaction/<int:product_id>/<str:product_type>/', products_views.create_crypto_transaction, name='create_crypto_transaction'),
@@ -46,7 +44,9 @@ urlpatterns = [
     path('auto-sell/delete/<int:auto_sell_id>/', autosell_views.delete_lander, name='delete_lander'),
     path('live-search/<str:custom_link>/', autosell_views.live_search, name='live_search'),
     path("checkout/sub-price/<int:price_id>/", checkout_views.product_price_redirect_view, name='sub-price-checkout'),
+    # Update these specific paths
     path('create-checkout-session/<int:product_id>/', products_views.create_checkout_session, name='create_checkout_session'),
+    path('checkout/cancel/', products_views.checkout_cancel, name='checkout_cancel'),
     path('products/edit/unlimited/<int:pk>/', products_views.edit_unlimited_product, name='edit_unlimited_product'),
     path('products/edit/category/<int:pk>/', products_views.edit_category, name='edit_category'),
     path('products/delete/unlimited/<int:pk>/', products_views.delete_unlimited_product, name='delete_unlimited_product'),

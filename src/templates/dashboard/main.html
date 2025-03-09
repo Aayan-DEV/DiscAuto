@@ -31,30 +31,49 @@
             <option value="area">Area</option>
         </select>
     </div>
+    <div class="flex items-center gap-2">
+        <label class="text-white text-sm">Display:</label>
+        <select id="displayType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
+            <option value="separate">Separate Graphs</option>
+            <option value="combined">Combined Graph</option>
+        </select>
+    </div>
 </div>
 
+<!-- Chart Container with Responsive Grid -->
 <div class="pt-10">
-    <!-- Chart Container with Responsive Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+    <div id="separateCharts" class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
         <!-- Sales Chart --> 
-        <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
-            <h3 class="text-lg font-medium text-white text-center mb-4 flex items-center justify-center gap-2">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
+            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
                 <span class="material-icons">trending_up</span>
                 Sales (in USD)
             </h3>
-            <div class="relative h-[300px]">
+            <div class="relative h-[200px] sm:h-[250px] md:h-[300px]" id="salesChartContainer">
                 <canvas id="salesChart"></canvas>
             </div>
         </div>
 
         <!-- Views Chart -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
-            <h3 class="text-lg font-medium text-white text-center mb-4 flex items-center justify-center gap-2">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
+            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
                 <span class="material-icons">visibility</span>
                 Views
             </h3>
-            <div class="relative h-[300px]">
+            <div class="relative h-[200px] sm:h-[250px] md:h-[300px]" id="viewsChartContainer">
                 <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div id="combinedChart" class="hidden px-4">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
+            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
+                <span class="material-icons">analytics</span>
+                Sales & Views Analysis
+            </h3>
+            <div class="relative h-[300px] sm:h-[400px] md:h-[500px]">
+                <canvas id="combinedAnalyticsChart"></canvas>
             </div>
         </div>
     </div>
@@ -62,48 +81,67 @@
 
 <!-- Recent Sales Section -->
 <div class="pt-8 px-4">
-    <div class="text-[#359271] mb-4">
+    <div class="text-[#359271] mb-4 flex flex-wrap justify-between items-center gap-2">
         <h2 class="text-2xl font-bold flex items-center gap-2">
             <span class="material-icons">receipt_long</span>
             Recent Sales
         </h2>
+        <button id="viewAllSalesBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition-colors">
+            <span class="material-icons text-sm">visibility</span>
+            <span>View All</span>
+        </button>
     </div>
 
     <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-[#359271]/20 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-white">
-                <thead class="bg-[#359271]/20">
-                    <tr>
-                        <th class="px-4 py-3 text-left">Customer</th>
-                        <th class="px-4 py-3 text-left">Product</th>
-                        <th class="px-4 py-3 text-left">Amount</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[#359271]/10">
-                    {% for sale in recent_sales %}
-                    <tr class="hover:bg-[#359271]/10 transition-colors">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="material-icons text-[#359271]">person</span>
-                                {{ sale.customer_name }}
-                            </div>
-                            <div class="text-gray-400 text-xs">{{ sale.customer_email }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            {% if sale.product %}
-                                {{ sale.product.title }}
-                            {% else %}
-                                {{ sale.unlimited_product.title }} (Unlimited)
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% endif %}
-                            {{ sale.amount }} {{ sale.currency }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="max-h-[300px] overflow-y-auto" id="salesTableContainer">
+                <table class="w-full text-sm text-white">
+                    <thead class="bg-[#359271]/100 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Customer</th>
+                            <th class="px-4 py-3 text-left">Product</th>
+                            <th class="px-4 py-3 text-left">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody" class="divide-y divide-[#359271]/10">
+                        {% for sale in recent_sales %}
+                        <tr class="hover:bg-[#359271]/10 transition-colors {% if forloop.counter > 5 %}hidden sale-row{% endif %}">
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-icons text-[#359271]">person</span>
+                                    <span class="truncate max-w-[120px] sm:max-w-none">{{ sale.customer_name }}</span>
+                                </div>
+                                <div class="text-gray-400 text-xs truncate max-w-[120px] sm:max-w-none">{{ sale.customer_email }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="truncate max-w-[100px] sm:max-w-none">
+                                {% if sale.product %}
+                                    {{ sale.product.title }}
+                                {% else %}
+                                    {{ sale.unlimited_product.title }} (Unlimited)
+                                {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% endif %}
+                                {{ sale.amount }} {{ sale.currency }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div id="salesPagination" class="flex justify-center items-center gap-2 py-3 px-4 border-t border-[#359271]/20 {% if recent_sales|length <= 5 %}hidden{% endif %}">
+            <button id="prevPageBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-2 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <span id="pageIndicator" class="text-white text-sm">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+            <button id="nextPageBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-2 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="material-icons">chevron_right</span>
+            </button>
         </div>
     </div>
 </div>
@@ -165,8 +203,31 @@
         .grid {
             grid-template-columns: 1fr;
         }
-        .chart-container {
-            height: 250px;
+        
+        /* Mobile table adjustments */
+        table {
+            font-size: 0.8rem;
+        }
+        
+        th, td {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Ensure pagination is properly sized on mobile */
+        #salesPagination {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* Adjust button sizes for better touch targets */
+        button {
+            min-height: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     }
 
@@ -188,6 +249,13 @@
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(53, 146, 113, 0.7);
     }
+    
+    /* Ensure table is responsive */
+    @media (max-width: 480px) {
+        #salesTableContainer {
+            max-height: 250px;
+        }
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -199,9 +267,8 @@
 
     // Chart configuration factory
     function createChartConfig(type, labels, data, label, color) {
-        // Convert 'area' type to 'line' with fill
         const chartType = type === 'area' ? 'line' : type;
-        
+        const isMobile = window.innerWidth < 768;
         return {
             type: chartType,
             data: {
@@ -210,24 +277,33 @@
                     label: label,
                     data: data,
                     borderColor: color,
-                    backgroundColor: type === 'area' ? `${color}33` : (type === 'bar' ? `${color}99` : `${color}33`),
-                    borderWidth: 2,
+                    backgroundColor: type === 'area'
+                        ? `${color}33`
+                        : (type === 'bar' ? `${color}99` : `${color}33`),
+                    borderWidth: isMobile ? 1 : 2,
                     tension: 0.4,
-                    fill: type === 'area' ? true : false
+                    fill: type === 'area',
+                    spanGaps: true // Connect lines across empty values
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 layout: {
                     padding: {
-                        left: 10,
-                        right: 10
+                        left: isMobile ? 5 : 10,
+                        right: isMobile ? 5 : 10,
+                        top: isMobile ? 5 : 10,
+                        bottom: isMobile ? 5 : 10
                     }
                 },
                 plugins: {
                     legend: {
-                        labels: { color: 'white' }
+                        display: !isMobile,
+                        labels: { 
+                            color: 'white',
+                            font: { size: isMobile ? 10 : 12 }
+                        }
                     },
                     tooltip: {
                         backgroundColor: '#1f2937',
@@ -235,75 +311,237 @@
                         bodyColor: 'white',
                         borderColor: '#359271',
                         borderWidth: 1,
-                        padding: 10,
-                        displayColors: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(53, 146, 113, 0.1)'
-                        },
-                        ticks: { color: 'white' }
+                        padding: isMobile ? 6 : 10,
+                        displayColors: false,
+                        titleFont: { size: isMobile ? 10 : 14 },
+                        bodyFont: { size: isMobile ? 10 : 14 }
                     },
-                    x: {
-                        grid: {
-                            color: 'rgba(53, 146, 113, 0.1)'
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: isMobile ? 8 : 12 },
+                                maxTicksLimit: isMobile ? 5 : 8
+                            }
                         },
-                        ticks: { color: 'white' }
+                        x: {
+                            grid: {
+                                color: 'rgba(53, 146, 113, 0.1)',
+                                display: (_, index) => labels[index] !== ''
+                            },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: isMobile ? 8 : 12 },
+                                maxRotation: isMobile ? 45 : 0,
+                                autoSkip: false,
+                                callback: function(_, index) {
+                                    return labels[index] || '';
+                                }
+                            }
+                        }
                     }
                 }
             }
         };
     }
 
-    // Initialize charts
+    // Initialize charts in the global scope
     let salesChart = new Chart(
         document.getElementById('salesChart'),
         createChartConfig('line', days, totalSales, 'Sales (USD)', '#359271')
     );
-
     let viewsChart = new Chart(
         document.getElementById('viewsChart'),
         createChartConfig('line', days, totalClicks, 'Views', '#2d4b50')
     );
 
-    // Handle chart type changes
-    document.getElementById('chartType').addEventListener('change', (e) => {
-        const type = e.target.value;
-        
-        // Create new charts without destroying old ones first
-        const newSalesChart = new Chart(
-            document.getElementById('salesChart'),
-            createChartConfig(type, days, totalSales, 'Sales (USD)', '#359271')
-        );
-        
-        const newViewsChart = new Chart(
-            document.getElementById('viewsChart'),
-            createChartConfig(type, days, totalClicks, 'Views', '#2d4b50')
-        );
+    // Initialize combined chart
+    let combinedChart = new Chart(
+        document.getElementById('combinedAnalyticsChart'),
+        {
+            type: 'line',
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: 'Sales (USD)',
+                        data: totalSales,
+                        borderColor: '#359271',
+                        backgroundColor: '#35927133',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y-sales'
+                    },
+                    {
+                        label: 'Views',
+                        data: totalClicks,
+                        borderColor: '#2d4b50',
+                        backgroundColor: '#2d4b5033',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y-views'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    'y-sales': {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { color: 'rgba(53, 146, 113, 0.1)' },
+                        ticks: { color: '#359271' },
+                        title: {
+                            display: true,
+                            text: 'Sales (USD)',
+                            color: '#359271'
+                        }
+                    },
+                    'y-views': {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#2d4b50' },
+                        title: {
+                            display: true,
+                            text: 'Views',
+                            color: '#2d4b50'
+                        }
+                    }
+                }
+            }
+        }
+    );
 
-        // Only destroy old charts after new ones are created
-        salesChart.destroy();
-        viewsChart.destroy();
+    // Handle display type changes
+    document.getElementById('displayType').addEventListener('change', function(e) {
+        const separateCharts = document.getElementById('separateCharts');
+        const combinedChart = document.getElementById('combinedChart');
         
-        salesChart = newSalesChart;
-        viewsChart = newViewsChart;
+        if (e.target.value === 'combined') {
+            separateCharts.classList.add('hidden');
+            combinedChart.classList.remove('hidden');
+        } else {
+            separateCharts.classList.remove('hidden');
+            combinedChart.classList.add('hidden');
+        }
+        
+        // Update all charts
+        handleResize();
     });
 
-    // Date range filter with AJAX
+    // Update handleResize function to include combined chart
+    function handleResize() {
+        const chartType = document.getElementById('chartType').value;
+        
+        if (salesChart) salesChart.destroy();
+        if (viewsChart) viewsChart.destroy();
+        if (combinedChart) combinedChart.destroy();
+        
+        salesChart = new Chart(
+            document.getElementById('salesChart'),
+            createChartConfig(chartType, days, totalSales, 'Sales (USD)', '#359271')
+        );
+        
+        viewsChart = new Chart(
+            document.getElementById('viewsChart'),
+            createChartConfig(chartType, days, totalClicks, 'Views', '#2d4b50')
+        );
+        
+        combinedChart = new Chart(
+            document.getElementById('combinedAnalyticsChart'),
+            {
+                type: chartType === 'area' ? 'line' : chartType,
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Sales (USD)',
+                            data: totalSales,
+                            borderColor: '#359271',
+                            backgroundColor: chartType === 'bar' ? '#35927199' : '#35927133',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: chartType === 'area',
+                            yAxisID: 'y-sales'
+                        },
+                        {
+                            label: 'Views',
+                            data: totalClicks,
+                            borderColor: '#2d4b50',
+                            backgroundColor: chartType === 'bar' ? '#2d4b5099' : '#2d4b5033',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: chartType === 'area',
+                            yAxisID: 'y-views'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        'y-sales': {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
+                            ticks: { color: '#359271' },
+                            title: {
+                                display: true,
+                                text: 'Sales (USD)',
+                                color: '#359271'
+                            }
+                        },
+                        'y-views': {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: { color: '#2d4b50' },
+                            title: {
+                                display: true,
+                                text: 'Views',
+                                color: '#2d4b50'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    // Add resize event listener with debounce
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(handleResize, 250);
+    });
+
+    // Handle chart type changes
+    document.getElementById('chartType').addEventListener('change', () => {
+        handleResize();
+    });
+
+    // Date range filter with AJAX (single instance)
     document.getElementById('dateRange').addEventListener('change', async (e) => {
         const daysRange = parseInt(e.target.value);
-        
         try {
-            // Update the URL to match the new path
             const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}`);
             if (!response.ok) throw new Error('Network response was not ok');
             
             const data = await response.json();
             
-            // Update charts with new data
+            // Update separate charts
             salesChart.data.labels = data.days;
             salesChart.data.datasets[0].data = data.total_sales;
             salesChart.update();
@@ -311,11 +549,102 @@
             viewsChart.data.labels = data.days;
             viewsChart.data.datasets[0].data = data.total_clicks;
             viewsChart.update();
-            
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
+    // Update combined chart
+    combinedChart.data.labels = data.days;
+    combinedChart.data.datasets[0].data = data.total_sales;
+    combinedChart.data.datasets[1].data = data.total_clicks;
+    combinedChart.update();
+    } catch (error) {
+        console.error('Error fetching chart data:', error);
+    }
+    });
+
+    // Sales pagination functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const salesRows = document.querySelectorAll('#salesTableBody tr');
+        const viewAllBtn = document.getElementById('viewAllSalesBtn');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const currentPageEl = document.getElementById('currentPage');
+        const totalPagesEl = document.getElementById('totalPages');
+        const paginationEl = document.getElementById('salesPagination');
+        const salesTableContainer = document.getElementById('salesTableContainer');
+        
+        // Adjust rows per page based on screen size
+        const isMobile = window.innerWidth < 768;
+        const rowsPerPage = isMobile ? 5 : 10;
+        
+        let currentPage = 1;
+        const totalRows = salesRows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+        let isExpanded = false;
+        
+        totalPagesEl.textContent = totalPages;
+        
+        // Initial state - show only first 5 rows
+        function initializeTable() {
+            salesRows.forEach((row, index) => {
+                if (index < 5) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+            // Set fixed height for collapsed view
+            salesTableContainer.style.maxHeight = isMobile ? '250px' : '300px';
+            // Hide pagination initially
+            paginationEl.classList.add('hidden');
         }
+        
+        // Show page of results
+        function showPage(page) {
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            salesRows.forEach(row => row.classList.add('hidden'));
+            for (let i = start; i < end && i < totalRows; i++) {
+                salesRows[i].classList.remove('hidden');
+            }
+            currentPageEl.textContent = page;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
+        }
+        
+        // View All button click
+        viewAllBtn.addEventListener('click', function() {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                paginationEl.classList.remove('hidden');
+                showPage(1);
+                currentPage = 1;
+                viewAllBtn.querySelector('span:last-child').textContent = 'Show Less';
+                viewAllBtn.querySelector('span:first-child').textContent = 'unfold_less';
+            } else {
+                viewAllBtn.querySelector('span:last-child').textContent = 'View All';
+                viewAllBtn.querySelector('span:first-child').textContent = 'visibility';
+                initializeTable();
+                paginationEl.classList.add('hidden');
+            }
+        });
+        
+        // Pagination controls
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        });
+        
+        nextPageBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
+        
+        // Initialize the table
+        initializeTable();
     });
 </script>
 
 {% endblock content %}
+    

@@ -1,67 +1,45 @@
 {% extends "dashboard/base.html" %}
-
-{% block extra_head %}
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Clash+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <style>
-    :root {
-      --font-primary: 'Plus Jakarta Sans', sans-serif;
-      --font-secondary: 'DM Sans', sans-serif;
-    }
-    
-    body {
-      font-family: var(--font-primary);
-    }
-
-    * {
-      font-family: inherit;
-    }
-
-    .font-primary {
-      font-family: var(--font-primary) !important;
-    }
-
-    .font-secondary {
-      font-family: var(--font-secondary) !important;
-    }
-  </style>
-{% endblock extra_head %}
-
 {% block head_title %}Account Settings - {{ block.super }}{% endblock head_title %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-4rem)] flex items-start justify-center p-4 sm:p-8 mt-3 sm:mt-3 font-['Plus_Jakarta_Sans']">
-  <div class="w-full max-w-2xl">
+<!-- Add Google Fonts and Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<div class="min-h-screen p-4 sm:p-6 lg:p-12">
+  <div class="max-w-7xl mx-auto bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 lg:p-8">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl sm:text-4xl font-bold text-white font-['Plus_Jakarta_Sans'] flex items-center gap-3">
-        <span class="material-icons text-[#359271]">settings</span>
+    <div class="text-center text-[#359271] mb-8 sm:mb-12">
+      <h2 class="text-2xl sm:text-3xl font-bold flex items-center justify-center gap-2 sm:gap-3">
+        <span class="material-icons text-xl sm:text-2xl">settings</span>
         Account Settings
-      </h1>
+      </h2>
+      <p class="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-base">
+        Manage your account preferences and payment methods.
+      </p>
     </div>
 
     <form method="POST" action="{% url 'auths' %}" class="space-y-8">
       {% csrf_token %}
       
       <!-- Notifications Section -->
-      <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
+      <div class="p-4 sm:p-6 bg-gray-800/30 rounded-xl space-y-3 sm:space-y-4">
         <div class="flex items-center gap-2 mb-4">
           <span class="material-icons text-[#359271]">notifications</span>
-          <h2 class="text-xl font-bold text-white font-['Plus_Jakarta_Sans']">Notifications</h2>
+          <h2 class="text-xl font-bold text-white">Notifications</h2>
         </div>
         
         <div class="relative">
           <div class="mb-2 flex items-center gap-2">
-            <label for="pushover_user_key" class="text-white/80 font-['Plus_Jakarta_Sans']">Pushover User Key</label>
+            <label for="pushover_user_key" class="text-white/80">Pushover User Key</label>
             <div class="relative inline-block group" x-data="{ isOpen: false }">
               <span 
                 class="material-icons text-white/60 cursor-help text-sm hover:text-[#359271]" 
                 @click.prevent="isOpen = !isOpen"
                 @click.away="isOpen = false">info</span>
               <div 
-                class="absolute left-0 bottom-full mb-2 hidden group-hover:block md:group-hover:block bg-gray-800 text-white text-sm rounded-lg py-2 px-3 w-64 z-10"
-                :class="{ 'block': isOpen }">
+                class="absolute left-0 bottom-full mb-2 hidden group-hover:block md:group-hover:block bg-gray-700 text-white text-sm rounded-lg py-2 px-3 w-64 z-10"
+                x-show="isOpen">
                 Download Pushover from the app/play store, signup and copy paste your user key here to get notifications!
               </div>
             </div>
@@ -70,26 +48,26 @@
             type="text" 
             name="pushover_user_key" 
             id="pushover_user_key"
-            class="w-full bg-gray-800/50 text-white rounded-lg px-4 py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none font-['Plus_Jakarta_Sans']" 
+            class="w-full text-sm sm:text-base bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" 
             placeholder="Enter your Pushover user key"
             value="{{ profile.pushover_user_key|default:'' }}">
         </div>
       </div>
       
       <!-- Payment Methods Section -->
-      <div class="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6">
+      <div class="p-4 sm:p-6 bg-gray-800/30 rounded-xl space-y-3 sm:space-y-4">
         <div class="flex items-center gap-2 mb-4">
           <span class="material-icons text-[#359271]">payments</span>
-          <h2 class="text-xl font-bold text-white font-['Plus_Jakarta_Sans']">Payment Methods</h2>
+          <h2 class="text-xl font-bold text-white">Payment Methods</h2>
         </div>
 
         <div class="space-y-4">
           <!-- PayPal -->
           <details class="group">
-            <summary class="flex items-center justify-between cursor-pointer p-4 bg-gray-800/50 rounded-lg border border-[#359271]/20 hover:border-[#359271]/40 transition-all">
+            <summary class="flex items-center justify-between cursor-pointer p-4 bg-gray-700 rounded-lg border border-[#359271]/20 hover:border-[#359271]/40 transition-all">
               <div class="flex items-center gap-3">
                 <span class="material-icons text-[#359271]">account_balance_wallet</span>
-                <span class="text-white font-medium font-['Plus_Jakarta_Sans']">PayPal</span>
+                <span class="text-white font-medium">PayPal</span>
               </div>
               <div class="flex items-center gap-2">
                 {% if profile.paypal_email %}
@@ -100,7 +78,7 @@
             </summary>
             <div class="p-4 mt-2 bg-gray-800/30 rounded-lg">
               <input type="email" name="paypal_email" 
-                     class="w-full bg-gray-800/50 text-white rounded-lg px-4 py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none font-['Plus_Jakarta_Sans']" 
+                     class="w-full text-sm sm:text-base bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" 
                      placeholder="Enter PayPal email"
                      value="{{ profile.paypal_email|default:'' }}">
             </div>
@@ -109,10 +87,10 @@
           <!-- Cryptocurrency Wallets -->
           {% for wallet_type, field_name, value in wallet_fields %}
           <details class="group">
-            <summary class="flex items-center justify-between cursor-pointer p-4 bg-gray-800/50 rounded-lg border border-[#359271]/20 hover:border-[#359271]/40 transition-all">
+            <summary class="flex items-center justify-between cursor-pointer p-4 bg-gray-700 rounded-lg border border-[#359271]/20 hover:border-[#359271]/40 transition-all">
               <div class="flex items-center gap-3">
                 <span class="material-icons text-[#359271]">currency_bitcoin</span>
-                <span class="text-white font-medium font-['Plus_Jakarta_Sans']">{{ wallet_type }}</span>
+                <span class="text-white font-medium">{{ wallet_type }}</span>
               </div>
               <div class="flex items-center gap-2">
                 {% if value %}
@@ -124,7 +102,7 @@
             <div class="p-4 mt-2 bg-gray-800/30 rounded-lg">
               <input type="text" 
                      name="{{ field_name }}" 
-                     class="w-full bg-gray-800/50 text-white rounded-lg px-4 py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none font-['Plus_Jakarta_Sans']" 
+                     class="w-full text-sm sm:text-base bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" 
                      placeholder="Enter {{ wallet_type }} address"
                      value="{{ value|default:'' }}">
             </div>
@@ -135,38 +113,49 @@
       
       <!-- Save Button -->
       <button type="submit" 
-              class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-['Plus_Jakarta_Sans']">
-        <span class="material-icons">save</span>
+              class="w-full sm:w-auto text-sm sm:text-base bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+        <span class="material-icons text-base sm:text-lg">save</span>
         Save Changes
       </button>
     </form>
   </div>
 </div>
-<!-- Remove or comment out the duplicate style block at the bottom -->
-<!--
+
 <style>
-  body {
-    font-family: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
-  }
+    body {
+        font-family: 'DM Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        width: 100%;
+        background-color: rgb(17, 24, 39);
+    }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+    /* Additional responsive styles */
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents zoom on mobile */
+        }
 
-  ::-webkit-scrollbar-track {
-    background: rgba(53, 146, 113, 0.1);
-  }
+        /* Improve file input appearance on mobile */
+        input[type="file"] {
+            padding: 8px !important;
+        }
 
-  ::-webkit-scrollbar-thumb {
-    background: rgba(53, 146, 113, 0.5);
-    border-radius: 4px;
-  }
+        /* Better touch targets for mobile */
+        button, a {
+            min-height: 44px;
+        }
+    }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(53, 146, 113, 0.7);
-  }
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
+    }
 </style>
--->
 {% endblock content %}
