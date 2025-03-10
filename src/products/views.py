@@ -978,6 +978,7 @@ def create_checkout_session(request, product_id):
                     'price': product.stripe_price_id,
                     'quantity': 1,
                 }],
+                automatic_tax={"enabled": True},
                 mode='payment',
                 success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
@@ -1188,19 +1189,24 @@ def create_one_time_checkout_session(request, product_id):
         try:
             # Here we create a checkout session on Stripe for the one-time product.
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card', 'paypal'],
+                payment_method_types=['card'],  # Simplified payment methods
                 line_items=[{
-                    'price': current_product.stripe_price_id,  
+                    'price': product.stripe_price_id,
                     'quantity': 1,
                 }],
-                mode='payment',  
-                success_url=request.build_absolute_uri(reverse('one_time_checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
+                automatic_tax={"enabled": True},  # Enable automatic tax calculation
+                customer_update={  # Add address collection for tax calculation
+                    'address': 'auto',
+                    'shipping': 'auto'
+                },
+                mode='payment',
+                success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
                 customer_email=customer_email,
                 metadata={
-                    'product_id': current_product.id, 
+                    'product_id': product.id,
                     'customer_name': customer_name,
-                    'customer_email': customer_email,
+                    'customer_email': customer_email
                 }
             )
 

@@ -5,6 +5,7 @@ import helpers.billing
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required  # Add this import at the top
 
 BASE_URL = settings.BASE_URL
 User = get_user_model()
@@ -16,6 +17,7 @@ def product_price_redirect_view(request, price_id=None, *args, **kwargs):
     request.session['checkout_subscription_price_id'] = price_id
     return redirect('stripe-checkout-start')
 
+@login_required  # Add this decorator
 def checkout_redirect_view(request):
     """
     Retrieve the SubscriptionPrice object from session,
@@ -46,7 +48,11 @@ def checkout_redirect_view(request):
         success_url=success_url,
         cancel_url=cancel_url,
         price_stripe_id=price_stripe_id,
-        raw=False  # Return just the URL.
+        raw=False,  # Return just the URL.
+        customer_update={  # Add this parameter
+            'address': 'auto',
+            'shipping': 'auto'
+        }
     )
     return redirect(checkout_session_url)
 
@@ -59,11 +65,15 @@ def checkout_finalize_view(request):
     """
     session_id = request.GET.get('session_id')
     if not session_id:
-        return HttpResponseBadRequest("Missing session_id parameter.")
+        return render(request, "checkout/checkout_success.html", {
+            'error': "Missing session_id parameter."
+        })
 
     checkout_data = helpers.billing.get_checkout_customer_plan(session_id)
     if not checkout_data:
-        return HttpResponseBadRequest("Unable to find checkout data.")
+        return render(request, "checkout/checkout_success.html", {
+            'error': "Unable to find checkout data."
+        })
 
     plan_id = checkout_data.pop('plan_id')         # Price's stripe product ID.
     customer_id = checkout_data.pop('customer_id')   # Stripe customer ID.
@@ -114,7 +124,9 @@ def checkout_finalize_view(request):
         return redirect(redirect_url)
 
     except Exception:
-        return HttpResponseBadRequest("Error creating or updating user subscription.")
+        return render(request, "checkout/checkout_success.html", {
+            'error': "Error creating or updating user subscription."
+        })
 
 def checkout_cancel_view(request):
     """

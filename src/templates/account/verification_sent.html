@@ -1,85 +1,75 @@
-{% extends "base.html" %}
-{% load i18n %}
-{% load allauth %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email Address</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'icon/website-logo.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md mx-auto bg-gray-800/50 backdrop-blur-sm shadow-xl rounded-xl border border-[#359271]/20">
+            <div class="p-8">
+                <div class="text-center">
+                    <div class="mb-6">
+                        <span class="material-icons text-6xl text-[#359271]">mail</span>
+                    </div>
 
-{% block head_title %}
-    {% trans "Verify Your Email Address" %}
-{% endblock head_title %}
+                    <h1 class="text-2xl sm:text-3xl font-bold text-white mb-4">Verify Your Email Address</h1>
+                    <p class="text-gray-400 mb-6 text-sm sm:text-base">
+                        We have sent an email to you for verification. Follow the link provided to finalize the signup process.
+                        If you do not see the verification email in your main inbox, check your spam folder. Please contact us if
+                        you do not receive the verification email within a few minutes.
+                    </p>
 
-{% block content %}
+                    <a href="{% url 'account_login' %}" 
+                       class="inline-block bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-semibold py-3 sm:py-4 px-6 rounded-xl transition duration-200 hover:opacity-90 text-sm sm:text-base">
+                        <span class="material-icons align-middle mr-2">login</span>
+                        Back to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
 <style>
-    /* Custom CSS for gradient background and animations */
+    :root {
+        --color-primary: #2d4b50;
+        --color-secondary: #359271;
+        --color-accent: #bce4d6;
+    }
+
     body {
-        background: linear-gradient(135deg, #1e1e3f, #283593);
-        min-height: 100vh;
+        font-family: 'DM Sans', sans-serif;
         margin: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-family: 'Roboto', sans-serif;
-    }
-
-    .container {
-        background-color: rgba(0, 0, 0, 0.7);
-        border-radius: 10px;
-        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
-        padding: 2.5rem;
-        max-width: 500px;
+        padding: 0;
+        min-height: 100vh;
         width: 100%;
-        text-align: center;
+        background: radial-gradient(circle at center, var(--color-primary), rgb(17, 24, 39));
+        background-repeat: no-repeat;
+        background-attachment: fixed;
     }
 
-    h1 {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #c084fc;
-        margin-bottom: 1.5rem;
+    @media (max-width: 640px) {
+        .material-icons {
+            font-size: 20px !important;
+        }
+        
+        button, a {
+            min-height: 44px;
+        }
     }
 
-    p {
-        color: #fff;
-        font-size: 1.1rem;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-    }
-
-    a.link {
-        color: #c084fc;
-        text-decoration: none;
-        transition: opacity 0.3s ease;
-    }
-
-    a.link:hover {
-        opacity: 0.8;
-        text-decoration: underline;
-    }
-
-    .btn {
-        background: linear-gradient(90deg, #c084fc, #7c3aed);
-        border: none;
-        padding: 0.75rem 1.5rem;
-        color: white;
-        font-size: 1rem;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: background 0.3s ease;
-        margin-top: 1rem;
-    }
-
-    .btn:hover {
-        background: linear-gradient(90deg, #7c3aed, #c084fc);
+    @media (min-width: 641px) and (max-width: 1024px) {
+        .material-icons {
+            font-size: 22px !important;
+        }
     }
 </style>
-
-<div class="container">
-    <h1>{% trans "Verify Your Email Address" %}</h1>
-    <p>
-        {% blocktrans %}
-        We have sent an email to you for verification. Follow the link provided to finalize the signup process.
-        If you do not see the verification email in your main inbox, check your spam folder. Please contact us if
-        you do not receive the verification email within a few minutes.
-        {% endblocktrans %}
-    </p>
-    <a href="{% url 'account_login' %}" class="btn">Back to Login</a>
-</div>
-{% endblock content %}
+</html>

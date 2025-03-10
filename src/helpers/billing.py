@@ -96,16 +96,26 @@ def start_checkout_session(customer_id,
         success_url="https://example.com/success", 
         cancel_url="https://example.com/cancel", 
         price_stripe_id="", 
-        raw=True):
+        raw=True,
+        customer_update=None):  # Add this parameter
     if not success_url.endswith("?session_id={CHECKOUT_SESSION_ID}"):
         success_url = f"{success_url}" + "?session_id={CHECKOUT_SESSION_ID}"
-    response = stripe.checkout.Session.create(
-        customer= customer_id,
-        success_url=success_url,
-        cancel_url=cancel_url,
-        line_items=[{"price": price_stripe_id, "quantity": 1}],
-        mode="subscription",
-    )
+    
+    session_params = {
+        'customer': customer_id,
+        'automatic_tax': {"enabled": True},
+        'success_url': success_url,
+        'cancel_url': cancel_url,
+        'line_items': [{"price": price_stripe_id, "quantity": 1}],
+        'mode': "subscription",
+        'customer_update': {  # Add this parameter
+            'address': 'auto',
+            'shipping': 'auto'
+        }
+    }
+    
+    response = stripe.checkout.Session.create(**session_params)
+    
     if raw:
         return response
     return response.url
