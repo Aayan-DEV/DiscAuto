@@ -582,6 +582,7 @@ def add_product_to_category(request, category_id):
                     unit_amount=int(one_time_product.price * 100), 
                     currency=one_time_product.currency.lower(),  
                     recurring=None, 
+                    tax_behavior='exclusive',    
                 )
                 # Save the Stripe product ID and price ID in Django.
                 one_time_product.stripe_product_id = stripe_product.id
@@ -658,6 +659,7 @@ def edit_one_time_product(request, pk):
                             unit_amount=int(updated_product.price * 100),  
                             currency=updated_product.currency.lower(),
                             recurring=None,  
+                            tax_behavior='exclusive',
                         )
                         # Update the product with the new Stripe price ID.
                         updated_product.stripe_price_id = new_price.id
@@ -728,6 +730,7 @@ def edit_unlimited_product(request, pk):
                             product=product.stripe_product_id,
                             unit_amount=int(updated_product.price * 100), 
                             currency=updated_product.currency.lower(),
+                            tax_behavior='exclusive',
                         )
 
                         # Update the product with the new Stripe price ID.
@@ -884,6 +887,7 @@ def add_unlimited_product(request):
                 unit_amount=int(unlimited_product.price * 100), 
                 currency=unlimited_product.currency.lower(),
                 recurring=None,  
+                tax_behavior='exclusive',
             )
 
             # Finally we save the Stripe product and price IDs to the unlimited product for future
@@ -980,12 +984,11 @@ def create_checkout_session(request, product_id):
                 'quantity': 1,
             }]
 
-            # Create checkout session
+            # Create checkout session without automatic tax
             print("[DEBUG] Creating Stripe checkout session...")
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
-                automatic_tax={"enabled": True},
                 mode='payment',
                 success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
