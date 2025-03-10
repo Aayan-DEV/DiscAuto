@@ -948,36 +948,43 @@ def product_detail(request, product_id):
 def create_checkout_session(request, product_id):
     if request.method == 'POST':
         try:
-            # Parse the JSON data from request
+            # Parse the JSON data from request and log it
+            print(f"[DEBUG] Raw request body: {request.body}")
             data = json.loads(request.body)
+            print(f"[DEBUG] Parsed JSON data: {data}")
             
-            # Get the product
+            # Get the product and log its details
             product = get_object_or_404(UnlimitedProduct, id=product_id)
+            print(f"[DEBUG] Product found: {product.id}, stripe_price_id: {product.stripe_price_id}")
             
-            # Get customer details
+            # Get and log customer details
             customer_name = data.get('name')
             customer_email = data.get('email')
+            print(f"[DEBUG] Customer details - Name: {customer_name}, Email: {customer_email}")
 
             # Validate required fields
             if not customer_name or not customer_email:
-                return JsonResponse({'error': 'Name and email are required'}, status=400)
+                error_msg = "Name and email are required"
+                print(f"[ERROR] {error_msg}")
+                return JsonResponse({'error': error_msg}, status=400)
 
-            # Validate product has stripe price ID
+            # Validate stripe_price_id
             if not product.stripe_price_id:
-                return JsonResponse({'error': 'Product not properly configured for checkout'}, status=400)
+                error_msg = "Product does not have a valid Stripe Price ID"
+                print(f"[ERROR] {error_msg}")
+                return JsonResponse({'error': error_msg}, status=400)
 
-            # Store the previous URL in session
-            previous_url = request.META.get('HTTP_REFERER')
-            if previous_url:
-                request.session['previous_url'] = previous_url
+            # Create line items using the product's stripe price ID
+            line_items = [{
+                'price': product.stripe_price_id,
+                'quantity': 1,
+            }]
 
             # Create checkout session
+            print("[DEBUG] Creating Stripe checkout session...")
             checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],  # Simplified payment methods
-                line_items=[{
-                    'price': product.stripe_price_id,
-                    'quantity': 1,
-                }],
+                payment_method_types=['card'],
+                line_items=line_items,
                 automatic_tax={"enabled": True},
                 mode='payment',
                 success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
@@ -989,15 +996,22 @@ def create_checkout_session(request, product_id):
                     'customer_email': customer_email
                 }
             )
+            print(f"[DEBUG] Checkout session created: {checkout_session.id}")
             
             return JsonResponse({'id': checkout_session.id})
             
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        except json.JSONDecodeError as e:
+            error_msg = f"Invalid JSON data: {str(e)}"
+            print(f"[ERROR] {error_msg}")
+            return JsonResponse({'error': error_msg}, status=400)
         except stripe.error.StripeError as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            error_msg = f"Stripe error: {str(e)}"
+            print(f"[ERROR] {error_msg}")
+            return JsonResponse({'error': error_msg}, status=400)
         except Exception as e:
-            print(f"Unexpected error: {str(e)}")
+            error_msg = f"Unexpected error: {str(e)}"
+            print(f"[ERROR] {error_msg}")
+            print(f"[ERROR] Full traceback: {traceback.format_exc()}")
             return JsonResponse({'error': 'An unexpected error occurred'}, status=400)
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
