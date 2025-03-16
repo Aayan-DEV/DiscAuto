@@ -25,16 +25,12 @@ class OneTimeProductInline(admin.TabularInline):
 # Here we register the OneTimeProductCategory model with custom admin settings.
 @admin.register(OneTimeProductCategory)
 class OneTimeProductCategoryAdmin(admin.ModelAdmin):
-    # It will show these fields in the list view to help find products. 
     list_display = ('name', 'user')
-    # Filtering is enabled so that its easier to search. 
-    list_filter = ('user',)
-    # Here we allow searching for categories by name or by the owner's username.
+    list_filter = ('user',)  # Remove landing_pages from list_filter
     search_fields = ('name', 'user__username')
-    # Here we specify the order of products, right now it will order products alphabetically by name.
     ordering = ('name',)
-    # Now we also include the TabularInline created earlier.
     inlines = [OneTimeProductInline]
+    # Remove filter_horizontal = ('landing_pages',)
 
 # Here we register the UnlimitedProduct model with custom admin settings.
 @admin.register(UnlimitedProduct)

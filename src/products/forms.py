@@ -7,7 +7,8 @@ from helpers.supabase import upload_to_supabase
 class OneTimeProductCategoryForm(forms.ModelForm):
     class Meta:
         model = OneTimeProductCategory
-        fields = ['name', 'category_image']  # Keep only these fields in the form
+        fields = ['name', 'category_image']
+        # Exclude landing_pages as we'll handle it in the view
         widgets = {
             'category_image': forms.ClearableFileInput(attrs={
                 'class': 'block w-full text-gray-900 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500',

@@ -5,6 +5,7 @@ from .models import OneTimeProductCategory, OneTimeProduct, UnlimitedProduct, Pr
 from .forms import OneTimeProductCategoryForm, OneTimeProductForm, UnlimitedProductForm
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib import messages 
 from helpers.supabase import upload_to_supabase
 import stripe
 from django.views.decorators.csrf import csrf_exempt
@@ -498,38 +499,74 @@ def products(request):
         'unlimited_products': unlimited_products, 
     })
 
-# Requires user login to access the add_category page.
 @login_required
 def add_category(request):
-    # First we check if the request method is POST as usual, we don't want random requests from outside the server. 
     if request.method == 'POST':
-        # Then we initialize a form with data and files that are provided by the user when the request is sent.
         form = OneTimeProductCategoryForm(request.POST, request.FILES)
-        # Then we validate the form data, meaning we check if the data provided in the form is correct and meets all the 
-        # requirements specified in the form's fields. 
         if form.is_valid():
-            # Then we create a new category object from the form data without saving it to the database yet.
             category = form.save(commit=False)
-            # Then we assign the current logged-in user as the owner of the new category.
             category.user = request.user
-            # Then we check if an image file is included in the request.
-            if 'category_image' in request.FILES:
-                # Then we upload the image to Supabase and get the URL to save in the category object, this way can save all
-                # image files into supabase and show using urls 
-                category_image_url = upload_to_supabase(request.FILES['category_image'], folder='categories')
-                # Then we set the category's image URL to the uploaded file URL to access later. 
-                category.category_image_url = category_image_url 
             
-            # Then we finally save the category object to the database.
+            if 'category_image' in request.FILES:
+                image_url = upload_to_supabase(request.FILES['category_image'], folder='category_images')
+                category.category_image_url = image_url
+            
             category.save()
-            # It also redirects the user to the products page after.
+            
+            # Get AutoSell instances instead of LandingPage
+            auto_sell_ids = request.POST.getlist('landing_pages')
+            if auto_sell_ids:
+                category.landing_pages.set(auto_sell_ids)
+            
+            messages.success(request, 'Category created successfully!')
             return redirect('products')
     else:
-        # Send error if request method is not POST.
         form = OneTimeProductCategoryForm()
+    
+    # Get AutoSell instances for the current user
+    landing_pages = AutoSell.objects.filter(user=request.user)
+    
+    return render(request, 'features/products/add_category.html', {
+        'form': form,
+        'landing_pages': landing_pages
+    })
 
-    # Finally we render the "add_category.html" template with the form to show the user.
-    return render(request, 'features/products/add_category.html', {'form': form})
+@login_required
+def edit_category(request, pk):  # Change parameter from category_id to pk
+    category = get_object_or_404(OneTimeProductCategory, id=pk, user=request.user)  # Change category_id to pk
+    if request.method == 'POST':
+        form = OneTimeProductCategoryForm(request.POST, request.FILES, instance=category)
+        if form.is_valid():
+            category = form.save(commit=False)
+            
+            if 'category_image' in request.FILES:
+                image_url = upload_to_supabase(request.FILES['category_image'], folder='category_images')
+                category.category_image_url = image_url
+            
+            category.save()
+            
+            # Get AutoSell instances instead of LandingPage
+            auto_sell_ids = request.POST.getlist('landing_pages')
+            if auto_sell_ids:
+                category.landing_pages.set(auto_sell_ids)
+            else:
+                category.landing_pages.clear()
+            
+            messages.success(request, 'Category updated successfully!')
+            return redirect('products')
+    else:
+        form = OneTimeProductCategoryForm(instance=category)
+    
+    # Get AutoSell instances for the current user
+    landing_pages = AutoSell.objects.filter(user=request.user)
+    selected_landing_pages = [page.id for page in category.landing_pages.all()]
+    
+    return render(request, 'features/products/edit_category.html', {
+        'form': form,
+        'category': category,
+        'landing_pages': landing_pages,
+        'selected_landing_pages': selected_landing_pages
+    })
 
 @login_required
 def add_product_to_category(request, category_id):
@@ -701,38 +738,6 @@ def edit_unlimited_product(request, pk):
         'product': product,
         'landing_pages': landing_pages,
     })
-
-@login_required
-def edit_category(request, pk):
-    # First we get the specific category using the primary key from the database.
-    category = get_object_or_404(OneTimeProductCategory, pk=pk)
-
-    # Then we check if the request method is POST.
-    if request.method == 'POST':
-        # Then we set "form" to the submitted data and files, and also link it to the current category instance
-        form = OneTimeProductCategoryForm(request.POST, request.FILES, instance=category)
-        
-        # Here we validate the form data to make sure that it meets all required conditions.
-        if form.is_valid():
-            # Here we save the form data without committing to the database because it makes it so that we can do more edits.
-            updated_category = form.save(commit=False)
-
-            # Then we check if a new category image is included in the request
-            if 'category_image' in request.FILES:
-                # If it is, we upload the image to Supabase, and save the given public URL to the category object.
-                category_image_url = upload_to_supabase(request.FILES['category_image'], folder='category_images')
-                updated_category.category_image_url = category_image_url
-
-            # Then we save the updated category to the database.
-            updated_category.save()
-            # We also redirect the user to the category detail page after saving.
-            return redirect('category_detail', category_id=category.id)
-    else:
-        form = OneTimeProductCategoryForm(instance=category)
-
-    # Finally we render the template with the form to show the user.
-    return render(request, 'features/products/edit_category.html', {'form': form})
-
 
 @login_required
 def delete_one_time_product(request, pk):

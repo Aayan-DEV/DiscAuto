@@ -31,8 +31,9 @@ class OneTimeProductCategory(models.Model):
     category_image = models.ImageField(upload_to='category_images/', null=True, blank=True)
     # URL of the category image stored which is gotten from supabase. 
     category_image_url = models.URLField(max_length=500, null=True, blank=True)
+    # Add this new field
+    landing_pages = models.ManyToManyField('autosell.AutoSell', blank=True, related_name='one_time_categories')
 
-    # This function returns a readable name for each category when displayed. A django standard practice. 
     def __str__(self):
         return f'{self.name} - {self.user.username}'
     

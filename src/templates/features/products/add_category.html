@@ -55,13 +55,49 @@
                 </div>
 
                 <!-- Show on Landing Page Checkbox -->
-                <div class="flex items-start sm:items-center gap-3 bg-gray-700/50 p-3 sm:p-4 rounded-lg border border-[#359271]/20">
+                <!-- Remove this section as the field no longer exists in the model -->
+                <!-- <div class="flex items-start sm:items-center gap-3 bg-gray-700/50 p-3 sm:p-4 rounded-lg border border-[#359271]/20">
                     <input type="checkbox" id="show_on_custom_lander" name="show_on_custom_lander" 
                            class="w-4 h-4 sm:w-5 sm:h-5 mt-1 sm:mt-0 rounded border-[#359271]/20 text-[#359271] focus:ring-[#359271]"
                            {% if form.show_on_custom_lander.value %}checked{% endif %}>
                     <label for="show_on_custom_lander" class="text-white text-sm sm:text-base">
                         Show this category on the custom landing page?
                     </label>
+                </div> -->
+
+                <!-- Landing Pages Section -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <h3 class="text-[#359271] font-medium flex items-center gap-2 text-sm sm:text-base">
+                        <span class="material-icons text-base sm:text-lg">storefront</span>
+                        Landing Pages
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        {% if landing_pages %}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {% for page in landing_pages %}
+                                    <label class="relative flex items-center p-3 bg-gray-800/50 rounded-lg border border-[#359271]/20 hover:border-[#359271] transition-all cursor-pointer group">
+                                        <input type="checkbox" 
+                                               name="landing_pages" 
+                                               value="{{ page.id }}"
+                                               class="form-checkbox h-5 w-5 text-[#359271] rounded border-gray-600 bg-gray-700 focus:ring-[#359271]">
+                                        <div class="ml-3 flex flex-col">
+                                            <span class="text-white group-hover:text-[#359271] transition-colors font-medium">{{ page.name }}</span>
+                                            <span class="text-gray-400 text-sm truncate">{{ page.slug }}</span>
+                                        </div>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center p-4">
+                                <p class="text-gray-400">No landing pages available</p>
+                                <a href="{% url 'create_auto_sell' %}" class="text-[#359271] hover:text-[#359271]/80 inline-flex items-center gap-1 mt-2">
+                                    <span class="material-icons text-sm">add</span>
+                                    Create Landing Page
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Submit Button -->
