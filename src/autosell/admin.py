@@ -1,32 +1,26 @@
 from django.contrib import admin
-from .models import AutoSell, AutoSellView
+from .models import AutoSell, AutoSellView, SocialLink
+
+class SocialLinkInline(admin.TabularInline):
+    model = SocialLink
+    extra = 1
 
 @admin.register(AutoSell)
 class AutoSellAdmin(admin.ModelAdmin):
-    # These are the fields which will be displayed in the list view of the AutoSell objects in the admin panel.
-    list_display = (
-        'name',              # Name of the user.
-        'title',             # Title of the AutoSell page.
-        'email',             # User's email for the autosell page.
-        'instagram_link',    # Instagram profile link for the autosell page.
-        'tiktok_link',       # TikTok profile link for the autosell page.
-        'custom_link',       # Custom slug for the AutoSell landing page.
-        'total_views'        # A calculated field for displaying the total number of views.
-    )
+    list_display = ['name', 'title', 'email', 'custom_link', 'show_social_names']  # Add show_social_names
+    search_fields = ['name', 'title', 'email', 'custom_link']
+    inlines = [SocialLinkInline]
 
-    # Custom method to calculate the total number of views for the AutoSell instance.
-    def total_views(self, obj):
-        # Count the AutoSellView instance associated with the current AutoSell object.
-        return AutoSellView.objects.filter(autosell=obj).count()
-    
-    # Set a more human-readable label for the 'total_views' column in the admin panel.
-    total_views.short_description = 'Total Views'
+@admin.register(AutoSellView)
+class AutoSellViewAdmin(admin.ModelAdmin):
+    list_display = ['auto_sell', 'timestamp', 'ip_address']
+    list_filter = ['timestamp']
+    search_fields = ['auto_sell__name']
 
-
-
-'''
-Citations: 
-("The Django Admin") -> 4 - 23
-'''
+@admin.register(SocialLink)
+class SocialLinkAdmin(admin.ModelAdmin):
+    list_display = ['auto_sell', 'platform', 'url']
+    list_filter = ['platform']
+    search_fields = ['auto_sell__name', 'platform', 'url']
 
     

@@ -26,8 +26,7 @@ class OneTimeProductCategory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     # The next field is setting the category name with a max length of 255 characters.
     name = models.CharField(max_length=255)
-    # Third field is boolean for telling if the person wants the person to be shown on the landing page or not. 
-    show_on_custom_lander = models.BooleanField(default=True)
+    # Remove the show_on_custom_lander field
     # Image for the category, stored in the 'category_images/' folder.
     category_image = models.ImageField(upload_to='category_images/', null=True, blank=True)
     # URL of the category image stored which is gotten from supabase. 
@@ -47,54 +46,48 @@ class OneTimeProduct(models.Model):
 
     category = models.ForeignKey(OneTimeProductCategory, related_name='products', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    ltc_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    btc_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    eth_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    usdt_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    test_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    sol_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    discount_percentage = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    currency = models.CharField(max_length=4, choices=[('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR')])
-    description = models.TextField(blank=True, default='')
-    product_content = models.TextField(blank=True, null=True)
-    stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
-    stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    # This is a function which was created to normalize prices by removing trailing zeros, an issue which occurred. 
-    def normalize_price(self, value):
-        if value is not None:
-            return value.normalize()
-        return value
-
-    # We also override save to normalize prices before saving to the database.
-    def save(self, *args, **kwargs):
-        self.ltc_price = self.normalize_price(self.ltc_price)
-        self.btc_price = self.normalize_price(self.btc_price)
-        self.eth_price = self.normalize_price(self.eth_price)
-        self.usdt_price = self.normalize_price(self.usdt_price)
-        self.test_price = self.normalize_price(self.test_price)
-
-        super().save(*args, **kwargs)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    ltc_price = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    btc_price = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    eth_price = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    usdt_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    sol_price = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    test_price = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=10, choices=[
+        ('USD', 'USD'),
+        ('EUR', 'EUR'),
+        ('GBP', 'GBP')
+    ])
+    product_content = models.TextField(blank=True, null=True)  # Make this field nullable
+    product_image = models.ImageField(upload_to='one_time_products/', null=True, blank=True)
+    product_image_url = models.URLField(max_length=500, null=True, blank=True)
+    stripe_product_id = models.CharField(max_length=100, null=True, blank=True)
+    stripe_price_id = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # Add the missing created_at field
+    landing_pages = models.ManyToManyField(
+        'autosell.LandingPage',  # Change this to reference the correct model
+        blank=True,
+        related_name='product_onetime'  # Changed this related_name
+    )
 
     def __str__(self):
         return f'{self.title} - {self.category.name} - {self.category.user.username}'
 
 # Here we define a model for unlimited products.
 class UnlimitedProduct(models.Model):
-    # Also normal fields needed, user is a foreign key. 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Add this field
     ltc_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
     btc_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
     eth_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
     usdt_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
     sol_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
     test_price = models.DecimalField(max_digits=30, decimal_places=20, blank=True, null=True)
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     discount_percentage = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     currency = models.CharField(max_length=4, choices=[('USD', 'USD'), ('GBP', 'GBP'), ('EUR', 'EUR')])
     sku = models.CharField(max_length=100)
@@ -105,27 +98,12 @@ class UnlimitedProduct(models.Model):
     product_image_url = models.URLField(max_length=500, blank=True, null=True)
     stripe_product_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_price_id = models.CharField(max_length=255, blank=True, null=True)
-    show_on_custom_lander = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # Here we also normalize price fields. 
-    def normalize_price(self, value):
-        if value is not None:
-            return value.normalize()
-        return value
-
-    # Override save to normalize prices before saving.
-    def save(self, *args, **kwargs):
-        self.ltc_price = self.normalize_price(self.ltc_price)
-        self.btc_price = self.normalize_price(self.btc_price)
-        self.eth_price = self.normalize_price(self.eth_price)
-        self.usdt_price = self.normalize_price(self.usdt_price)
-        self.test_price = self.normalize_price(self.test_price)
-
-        super().save(*args, **kwargs)
-
+    landing_pages = models.ManyToManyField('autosell.AutoSell', blank=True, related_name='unlimited_products')
+    # Removed the landing_page field
+    
     def __str__(self):
-        return f'{self.title} - {self.user.username}'
+        return self.title
 
 # Here we define a model to record product sales.
 class ProductSale(models.Model):

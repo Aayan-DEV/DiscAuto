@@ -8,17 +8,31 @@
 
 <div class="min-h-screen p-4 sm:p-6 lg:p-12">
     <div class="max-w-7xl mx-auto bg-gray-800/50 backdrop-blur-sm shadow-lg rounded-xl border border-[#359271]/20 p-4 sm:p-6 lg:p-8">
-        <!-- Header Section -->
-        <div class="text-center text-[#359271] mb-8 sm:mb-12">
-            <h2 class="text-2xl sm:text-3xl font-bold flex items-center justify-center gap-2 sm:gap-3">
-                <span class="material-icons text-xl sm:text-2xl">web</span>
-                Landing Page Generator
-            </h2>
-            <p class="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-base">
-                Fill in the details to create or edit your customized landing page.
-            </p>
+        <!-- Header Section with Back Button -->
+        <div class="relative mb-8 sm:mb-12 flex flex-col sm:block">
+            <!-- Back Button - Made responsive -->
+            <div class="sm:absolute sm:left-0 sm:top-1/2 sm:-translate-y-1/2 mb-6 sm:mb-0">
+                <a href="{% url 'auto_sell_list' %}" 
+                   class="inline-flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-colors text-sm sm:text-base w-full sm:w-auto">
+                    <span class="material-icons text-base sm:text-lg">arrow_back</span>
+                    Back to Landing Pages
+                </a>
+            </div>
+            <!-- Title -->
+            <div class="text-center text-[#359271]">
+                <h2 class="text-2xl sm:text-3xl font-bold flex items-center justify-center gap-2 sm:gap-3">
+                    <span class="material-icons text-xl sm:text-2xl">web</span>
+                    Landing Page Generator
+                </h2>
+                <p class="mt-2 sm:mt-3 text-gray-400 text-sm sm:text-base">
+                    Fill in the details to create or edit your customized landing page.
+                </p>
+            </div>
         </div>
 
+        <!-- Rest of your content remains the same -->
+        
+        <!-- Rest of your form content remains the same -->
         {% if auto_sell and custom_link_url %}
         <div class="mb-8 sm:mb-12 p-4 sm:p-6 bg-gray-700/50 border border-[#359271]/20 rounded-xl text-center">
             <p class="text-white font-medium mb-2 sm:mb-3 text-sm sm:text-base">Your Link:</p>
@@ -62,33 +76,252 @@
             <!-- Basic Info Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                 {% for field in form %}
-                    {% if field.name in 'name,title,email' %}
+                    {% if field.name in 'name,title,email,custom_link' %}
                     <div class="p-4 sm:p-6 bg-gray-800/30 rounded-xl space-y-2 sm:space-y-3">
                         <label class="block text-white font-medium text-base sm:text-lg">{{ field.label }}</label>
-                        {% render_field field class="w-full text-sm sm:text-base bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" %}
+                        {{ field|add_class:"w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" }}
+                        {% if field.help_text %}
+                            <p class="text-gray-400 text-xs sm:text-sm">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <p class="text-red-500 text-xs sm:text-sm">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                     {% endif %}
                 {% endfor %}
             </div>
 
             <!-- Social Links Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-                {% for field in form %}
-                    {% if field.name in 'instagram_link,tiktok_link,custom_link' %}
-                    <div class="p-4 sm:p-6 bg-gray-800/30 rounded-xl space-y-2 sm:space-y-3">
-                        <label class="block text-white font-medium text-base sm:text-lg">{{ field.label }}</label>
-                        {% render_field field class="w-full text-sm sm:text-base bg-gray-700 text-white rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" %}
+            <div class="space-y-4 sm:space-y-6 bg-gray-800/30 rounded-xl p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+                    <h3 class="text-lg sm:text-xl font-medium text-white">Social Links</h3>
+                    <button type="button" id="addSocialLink" 
+                            class="w-full sm:w-auto bg-[#359271] text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:bg-[#359271]/90 disabled:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50">
+                        <span class="material-icons text-base sm:text-lg">add</span>
+                        Add Link
+                    </button>
+                </div>
+
+                <div id="socialLinksContainer" class="space-y-4">
+                    {% for social in social_links %}
+                    <div class="social-link-entry grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-700/50 p-4 rounded-lg">
+                        <div>
+                            <select name="social_platform[]" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" required>
+                                <option value="" disabled {% if not social.platform %}selected{% endif %}>Choose platform</option>
+                                {% for type_value, type_label in social_types %}
+                                <option value="{{ type_value }}" {% if social.platform == type_value %}selected{% endif %}>{{ type_label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <input type="url" name="social_url[]" value="{{ social.url }}" placeholder="Enter URL" 
+                                   class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" name="social_title[]" value="{{ social.title }}" placeholder="Title (for custom links)" 
+                                   class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none custom-title-input">
+                            <button type="button" class="remove-social-link bg-red-500/20 hover:bg-red-500/30 text-red-500 p-2 rounded-lg transition-colors">
+                                <span class="material-icons">delete</span>
+                            </button>
+                        </div>
                     </div>
-                    {% endif %}
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Update the Template for new social link entries -->
+            <template id="socialLinkTemplate">
+                <div class="social-link-entry grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-700/50 p-4 rounded-lg">
+                    <div>
+                        <select name="social_platform[]" class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" required>
+                            <option value="" disabled selected>Choose platform</option>
+                            {% for type_value, type_label in social_types %}
+                            <option value="{{ type_value }}">{{ type_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <input type="url" name="social_url[]" placeholder="Enter URL" 
+                               class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" name="social_title[]" placeholder="Title (for custom links)" 
+                               class="w-full bg-gray-700 text-white rounded-lg px-3 py-2.5 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none custom-title-input">
+                        <button type="button" class="remove-social-link bg-red-500/20 hover:bg-red-500/30 text-red-500 p-2 rounded-lg transition-colors">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Update the JavaScript -->
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const socialLinksContainer = document.getElementById('socialLinksContainer');
+                const addSocialLinkButton = document.getElementById('addSocialLink');
+                const template = document.getElementById('socialLinkTemplate');
+
+                // Track used platforms
+                let usedPlatforms = new Set();
+                // Get total available platforms count (fix the template syntax)
+                const totalPlatforms = parseInt("{{ social_types|length }}");
+                // Track total rows
+                let totalRows = document.querySelectorAll('.social-link-entry').length;
+
+                // Initialize used platforms from existing entries
+                document.querySelectorAll('.social-link-entry select[name="social_platform[]"]').forEach(select => {
+                    const value = select.value;
+                    if (value && value !== "") {
+                        usedPlatforms.add(value);
+                    }
+                });
+
+                // Update available options in all selects
+                function updateAvailableOptions() {
+                    document.querySelectorAll('select[name="social_platform[]"]').forEach(select => {
+                        Array.from(select.options).forEach(option => {
+                            if (option.value === "") return;
+                            option.disabled = usedPlatforms.has(option.value) && option.value !== select.value;
+                        });
+                    });
+                    
+                    // Update button state
+                    if (totalRows >= totalPlatforms) {
+                        addSocialLinkButton.disabled = true;
+                        addSocialLinkButton.classList.add('opacity-50', 'cursor-not-allowed');
+                        addSocialLinkButton.classList.remove('hover:bg-[#359271]/90');
+                        addSocialLinkButton.style.backgroundColor = '#1f2937';
+                    } else {
+                        addSocialLinkButton.disabled = false;
+                        addSocialLinkButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        addSocialLinkButton.classList.add('hover:bg-[#359271]/90');
+                        addSocialLinkButton.style.backgroundColor = '#359271';
+                    }
+                }
+
+                // Add new social link
+                addSocialLinkButton.addEventListener('click', function() {
+                    if (totalRows >= totalPlatforms) return;
+                    
+                    const clone = template.content.cloneNode(true);
+                    socialLinksContainer.appendChild(clone);
+                    totalRows++;
+                    
+                    const newEntry = socialLinksContainer.lastElementChild;
+                    initializeNewEntry(newEntry);
+                    updateAvailableOptions();
+                });
+
+                function initializeNewEntry(entry) {
+                    const platformSelect = entry.querySelector('select[name="social_platform[]"]');
+                    const titleInput = entry.querySelector('.custom-title-input');
+                    const removeButton = entry.querySelector('.remove-social-link');
+
+                    platformSelect.dataset.previousValue = platformSelect.value;
+                    
+                    if (platformSelect.value && platformSelect.value !== "") {
+                        usedPlatforms.add(platformSelect.value);
+                    }
+
+                    platformSelect.addEventListener('change', function() {
+                        const prevValue = this.dataset.previousValue;
+                        if (prevValue && prevValue !== "") {
+                            usedPlatforms.delete(prevValue);
+                        }
+                        
+                        const newValue = this.value;
+                        if (newValue && newValue !== "") {
+                            usedPlatforms.add(newValue);
+                        }
+                        
+                        this.dataset.previousValue = newValue;
+                        updateAvailableOptions();
+                        updateTitleVisibility();
+                    });
+
+                    if (removeButton) {
+                        removeButton.addEventListener('click', function() {
+                            if (platformSelect.value && platformSelect.value !== "") {
+                                usedPlatforms.delete(platformSelect.value);
+                            }
+                            entry.style.opacity = '0';
+                            setTimeout(() => {
+                                entry.remove();
+                                totalRows--;
+                                updateAvailableOptions();
+                            }, 300);
+                        });
+                    }
+
+                    function updateTitleVisibility() {
+                        titleInput.style.display = platformSelect.value === 'custom' ? 'block' : 'none';
+                    }
+
+                    updateTitleVisibility();
+
+                    // Add fade-in animation
+                    entry.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        entry.style.transition = 'opacity 0.3s ease-in-out';
+                        entry.style.opacity = '1';
+                    });
+                }
+
+                // Initialize existing entries
+                document.querySelectorAll('.social-link-entry').forEach(initializeNewEntry);
+                updateAvailableOptions();
+            });
+            </script>
+
+            <!-- Add these styles -->
+            <style>
+                .social-link-entry {
+                    transition: opacity 0.3s ease-in-out;
+                }
+
+                #notification {
+                    z-index: 9999;
+                    transition: opacity 0.3s ease, transform 0.3s ease;
+                }
+
+                @media (max-width: 640px) {
+                    .social-link-entry {
+                        padding: 1rem !important;
+                    }
+                    
+                    #notification {
+                        left: 1rem;
+                        right: 1rem;
+                        bottom: 1rem;
+                        text-align: center;
+                    }
+                }
+            </style>
+
+            <!-- Show Social Names Toggle -->
+            <div class="p-3 bg-gray-800/30 rounded-xl flex items-center justify-between">
+                <span class="text-sm text-gray-400">Show social media names</span>
+                <div class="relative inline-block w-8 h-4 transition duration-200 ease-in-out">
+                    <input type="checkbox" name="show_social_names" 
+                           {% if auto_sell and auto_sell.show_social_names %}checked{% endif %}
+                           class="absolute w-4 h-4 opacity-0 z-10 cursor-pointer peer">
+                    <div class="w-8 h-4 bg-gray-700 rounded-full peer-checked:bg-[#359271] transition-all duration-300"></div>
+                    <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-4"></div>
+                </div>
+            </div>
+
+            <!-- Update the form's submit button section -->
             <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+                <a href="{% url 'auto_sell_list' %}" 
+                   class="w-full sm:w-auto text-sm sm:text-base bg-gray-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium hover:opacity-90 transition-opacity text-center">
+                    Cancel
+                </a>
                 <button type="submit" 
                         class="w-full sm:w-auto text-sm sm:text-base bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
                     <span class="material-icons text-base sm:text-lg">{% if auto_sell %}save{% else %}add_circle{% endif %}</span>
-                    {% if auto_sell %}Save Changes{% else %}Generate{% endif %}
+                    {% if auto_sell %}Save Changes{% else %}Create Page{% endif %}
                 </button>
             </div>
         </form>

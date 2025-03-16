@@ -1,8 +1,8 @@
 # ImportS:
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import AutoSell, AutoSellView
-from .forms import AutoSellForm
+from .models import AutoSell, AutoSellView, SocialLink, LandingPage  # Add LandingPage here
+from .forms import AutoSellForm, LandingPageForm  # Add LandingPageForm here
 from products.models import OneTimeProductCategory, UnlimitedProduct, OneTimeProduct
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -17,6 +17,7 @@ from helpers.supabase import upload_to_supabase
 def auto_sell_view(request):
     # First we get the AutoSell instance for the logged-in user.
     auto_sell = AutoSell.objects.filter(user=request.user).first()
+    social_links = SocialLink.objects.filter(auto_sell=auto_sell) if auto_sell else []
 
     # Check if request is POST or not. 
     if request.method == 'POST':
@@ -32,21 +33,38 @@ def auto_sell_view(request):
             if 'banner' in request.FILES:
                 banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
                 auto_sell.banner = banner_url
-                print(f"Banner URL: {banner_url}")  
 
             # If a Profile pic was uploaded, it saves it to Supabase, gets the Public URL, then assigns it to auto_sell.
             if 'profile_picture' in request.FILES:
                 profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
                 auto_sell.profile_picture = profile_url
-                print(f"Profile Picture URL: {profile_url}")  
 
-            # Set the current user as the owner of the AutoSell instance.
-            # The person who uploaded the files is the owner of the landing page. 
             auto_sell.user = request.user
-            # Save the auto_sell data to the database with all changes.
+            # Add this line to handle the checkbox
+            auto_sell.show_social_names = 'show_social_names' in request.POST
+            
             auto_sell.save()
-            messages.success(request, 'Your Landing page has been successfully created!')
-            return redirect('auto_sell')
+
+            # Handle social links
+            social_data = request.POST.getlist('social_platform[]')
+            social_urls = request.POST.getlist('social_url[]')
+            social_titles = request.POST.getlist('social_title[]')
+
+            # Delete existing social links
+            SocialLink.objects.filter(auto_sell=auto_sell).delete()
+
+            # Create new social links
+            for platform, url, title in zip(social_data, social_urls, social_titles):
+                if url:  # Only create if URL is provided
+                    SocialLink.objects.create(
+                        auto_sell=auto_sell,
+                        platform=platform,
+                        url=url,
+                        title=title if platform == 'custom' else ''
+                    )
+
+            messages.success(request, 'Your Landing page has been successfully updated!')
+            return redirect('auto_sell_list')  # Change from 'auto_sell' to 'auto_sell_list'
         else:
             # If the form is invalid, show error. 
             messages.error(request, 'Please correct the errors below.')
@@ -63,75 +81,85 @@ def auto_sell_view(request):
     return render(request, 'features/auto-sell/auto-sell.html', {
         'form': form,
         'auto_sell': auto_sell,
-        'custom_link_url': custom_link_url
-    })
+        'custom_link_url': custom_link_url,
+        'social_links': social_links,
+        'social_types': SocialLink.SOCIAL_TYPES
+    })  # Add missing closing brace here
 
 def custom_landing_page(request, custom_link):
     """
-    This renders the custom landing page with products and categories.
+    This renders the custom landing page with only the products specifically chosen for this page.
     """
-    # First get the AutoSell instance using the custom link provided, to gell all the data. 
+    # First get the AutoSell instance using the custom link provided
     try:
         user_data = AutoSell.objects.get(custom_link=custom_link)
     except AutoSell.DoesNotExist:
         raise Http404("The requested landing page does not exist.")
 
-    # Get all categories and products with 'show_on_custom_lander=True'
-    # Because categories contain all the one time products, using prefetch_related, we can get all the products related, in a single query.
-    categories = OneTimeProductCategory.objects.filter(user=user_data.user, show_on_custom_lander=True).prefetch_related('products')
-    unlimited_products = UnlimitedProduct.objects.filter(user=user_data.user, show_on_custom_lander=True)
+    # Check if there's a LandingPage associated with this custom_link
+    landing_page = LandingPage.objects.filter(slug=custom_link).first()
+    
+    if landing_page:
+        # If a landing page exists, get only the selected products
+        unlimited_products = landing_page.unlimited_products.all()
+        one_time_products = landing_page.one_time_products.all()
+        
+        # Get categories that contain the selected one-time products
+        category_ids = one_time_products.values_list('category', flat=True).distinct()
+        categories = OneTimeProductCategory.objects.filter(id__in=category_ids)
+        
+        # For each category, filter products to only include those selected for this landing page
+        for category in categories:
+            # Replace the products queryset with only the products that are in one_time_products
+            category.filtered_products = one_time_products.filter(category=category)
+    else:
+        # If no specific landing page configuration exists, check if products are directly linked to AutoSell
+        unlimited_products = user_data.unlimited_products.all()
+        
+        # For one-time products, we need to get all categories and their products
+        categories = OneTimeProductCategory.objects.filter(user=user_data.user).prefetch_related('products')
+        one_time_products = None
+        
+        # No filtering needed since we're showing all products
+
+    # Record the view
+    AutoSellView.objects.create(
+        auto_sell=user_data,
+        ip_address=request.META.get('REMOTE_ADDR')
+    )
 
     return render(request, 'features/landing_page.html', {
         'user_data': user_data,
         'categories': categories,
         'unlimited_products': unlimited_products,
+        'one_time_products': one_time_products,
+        'landing_page': landing_page,
     })
-
 
 def live_search(request, custom_link):
     """
     This is a AJAX-based live search functionality to search for products and categories dynamically.
-    AJAX search means that you see the products and categories as you type, which makes it easier 
-    to search for products.
     """
-    # Try to get the AutoSell instance by custom link.
     try:
         user_data = AutoSell.objects.get(custom_link=custom_link)
     except AutoSell.DoesNotExist:
-        # If not found, return a 404 error.
         raise Http404("The requested landing page does not exist.")
     
-    # Get the search query string from the request's GET parameters.
-    # Meaning getting the character the person is typing. 
     query = request.GET.get('query', '')
 
-    # If there's a search query, filter categories and products based on it.
     if query:
-        # Filter categories whose names contain the search query, limited to the owner of the AutoSell.
-        # It's limited to the owner of the AutoSell, so that only the products of the owner of the AutoSell
-        # only show up. 
         categories = OneTimeProductCategory.objects.filter(
-            # The "__icontains" is a query lookup that is used to perform case-insensitive string matching. 
             name__icontains=query,
-            user=user_data.user,
-            show_on_custom_lander=True
+            user=user_data.user
         )
-        # Filter products based on title or description, and ensure they belong to the AutoSell user.
-        # The Q() method is used to make complex queries. It makes it so that i can combine conditions
-        # using logical operators (and (&)/or (|)). I have used OR here because the title and description
-        # are not the same. But it is always helpful if a word is in the description rather than in the title. 
-        # I cannot compare without the use of Q(), because it is just not allowed, and Q() is nessesary. 
         unlimited_products = UnlimitedProduct.objects.filter(
             Q(title__icontains=query) | Q(description__icontains=query),
-            user=user_data.user,
-            show_on_custom_lander=True
+            user=user_data.user
         )
     else:
-        # If no query is provided, return empty results.
         categories = []
         unlimited_products = []
 
-    # Render the search results template with the filtered data.
     return render(request, 'features/live_search_results.html', {
         'categories': categories,
         'unlimited_products': unlimited_products,
@@ -152,7 +180,7 @@ def delete_lander(request, auto_sell_id):
         # Show a success message after deletion.
         messages.success(request, 'Your Auto-Sell page has been deleted.')
         # Redirect to the main auto_sell page.
-        return redirect('auto_sell')
+        return redirect('auto_sell_list')  # Change from 'auto_sell' to 'auto_sell_list'
 
 def get_seller_page(request, product_id):
     """
@@ -179,8 +207,10 @@ def get_seller_page(request, product_id):
                 # If no product is found, raise a 404
                 raise Http404("Product not found")
 
-    # Find the AutoSell instance for the user's AutoSell page
-    auto_sell = get_object_or_404(AutoSell, user=user)
+    # Find the most recently created AutoSell instance for the user's AutoSell page
+    auto_sell = AutoSell.objects.filter(user=user).order_by('-id').first()
+    if not auto_sell:
+        raise Http404("Seller page not found")
 
     # Build the custom URL for the seller's page
     custom_url = request.build_absolute_uri(f"/{auto_sell.custom_link}")
@@ -190,23 +220,185 @@ def get_seller_page(request, product_id):
 
 @require_POST
 def increment_view_count(request, custom_link):
-    """
-    Here we Increment the view count for the given custom landing page.
-    """
-    # If no custom link is provided, return an error response.
     if not custom_link:
         return JsonResponse({'error': 'Missing custom link'}, status=400)
 
-    # Try to fetch the AutoSell instance by the custom link. To know who got a view?
     try:
         landing_page = AutoSell.objects.get(custom_link=custom_link)
     except AutoSell.DoesNotExist:
-        # If the landing page doesn't exist, return a 404 error. Probably not possible
-        # but error handling is always important. 
         return JsonResponse({'error': 'Landing page not found'}, status=404)
 
-    # Record a new view by creating an AutoSellView instance with today's date.
-    AutoSellView.objects.create(autosell=landing_page, view_date=timezone.now().date())
+    # Create view with timestamp only
+    AutoSellView.objects.create(
+        auto_sell=landing_page,
+        ip_address=request.META.get('REMOTE_ADDR')
+    )
 
-    # Return a success response with the updated total view count.
     return JsonResponse({'success': True})
+
+
+# Add these new views at the top of the file
+
+@login_required
+def auto_sell_list(request):
+    """
+    Display all auto-sell pages for the logged-in user
+    """
+    auto_sells = AutoSell.objects.filter(user=request.user)
+    return render(request, 'features/auto-sell/auto-sell-list.html', {
+        'auto_sells': auto_sells
+    })
+
+@login_required
+def create_auto_sell(request):
+    """
+    Create a new auto-sell page
+    """
+    if request.method == 'POST':
+        form = AutoSellForm(request.POST, request.FILES)
+        if form.is_valid():
+            auto_sell = form.save(commit=False)
+            
+            if 'banner' in request.FILES:
+                banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
+                auto_sell.banner = banner_url
+
+            if 'profile_picture' in request.FILES:
+                profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
+                auto_sell.profile_picture = profile_url
+
+            auto_sell.user = request.user
+            # Add this line to handle the checkbox
+            auto_sell.show_social_names = 'show_social_names' in request.POST
+            
+            auto_sell.save()
+            
+            # Handle social links
+            social_data = request.POST.getlist('social_platform[]')
+            social_urls = request.POST.getlist('social_url[]')
+            social_titles = request.POST.getlist('social_title[]')
+
+            # Create new social links
+            for platform, url, title in zip(social_data, social_urls, social_titles):
+                if url:  # Only create if URL is provided
+                    SocialLink.objects.create(
+                        auto_sell=auto_sell,
+                        platform=platform,
+                        url=url,
+                        title=title if platform == 'custom' else ''
+                    )
+                    
+            messages.success(request, 'Your Landing page has been successfully created!')
+            return redirect('auto_sell_list')
+        else:
+            # Improved error handling with specific error messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+            if not form.errors:
+                messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AutoSellForm()
+
+    # Add these context variables
+    return render(request, 'features/auto-sell/auto-sell.html', {
+        'form': form,
+        'auto_sell': None,
+        'social_links': [],  # Empty list since this is a new auto-sell page
+        'social_types': SocialLink.SOCIAL_TYPES  # Add the social types from the model
+    })
+
+@login_required
+def edit_auto_sell(request, auto_sell_id):
+    """
+    Edit an existing auto-sell page
+    """
+    auto_sell = get_object_or_404(AutoSell, id=auto_sell_id, user=request.user)
+    social_links = SocialLink.objects.filter(auto_sell=auto_sell)
+    
+    if request.method == 'POST':
+        form = AutoSellForm(request.POST, request.FILES, instance=auto_sell)
+        if form.is_valid():
+            auto_sell = form.save(commit=False)
+            
+            if 'banner' in request.FILES:
+                banner_url = upload_to_supabase(request.FILES['banner'], folder='banners')
+                auto_sell.banner = banner_url
+
+            if 'profile_picture' in request.FILES:
+                profile_url = upload_to_supabase(request.FILES['profile_picture'], folder='profiles')
+                auto_sell.profile_picture = profile_url
+
+            # Add this line to handle the checkbox
+            auto_sell.show_social_names = 'show_social_names' in request.POST
+            
+            auto_sell.save()
+
+            # Handle social links
+            social_data = request.POST.getlist('social_platform[]')
+            social_urls = request.POST.getlist('social_url[]')
+            social_titles = request.POST.getlist('social_title[]')
+
+            # Delete existing social links
+            SocialLink.objects.filter(auto_sell=auto_sell).delete()
+
+            # Create new social links
+            for platform, url, title in zip(social_data, social_urls, social_titles):
+                if url:  # Only create if URL is provided
+                    SocialLink.objects.create(
+                        auto_sell=auto_sell,
+                        platform=platform,
+                        url=url,
+                        title=title if platform == 'custom' else ''
+                    )
+
+            messages.success(request, 'Your Landing page has been successfully updated!')
+            return redirect('auto_sell_list')  # Change from 'auto_sell' to 'auto_sell_list'
+        else:
+            # Improved error handling with specific error messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+            if not form.errors:
+                messages.error(request, 'Please correct the errors below.')
+    else:
+        form = AutoSellForm(instance=auto_sell)
+
+    custom_link_url = request.build_absolute_uri('/') + auto_sell.custom_link
+    return render(request, 'features/auto-sell/auto-sell.html', {
+        'form': form,
+        'auto_sell': auto_sell,
+        'custom_link_url': custom_link_url,
+        'social_links': social_links,
+        'social_types': SocialLink.SOCIAL_TYPES
+   })
+
+
+# In your landing_page view, make sure to filter products by the landing page
+# Fix the landing_page_view function
+def landing_page_view(request, slug):
+    """
+    View for displaying a landing page with specific products
+    """
+    landing_page = get_object_or_404(LandingPage, slug=slug)
+    
+    # Get products specifically associated with this landing page
+    unlimited_products = landing_page.unlimited_products.all()
+    one_time_products = landing_page.one_time_products.all()
+    
+    # Get the user's AutoSell data
+    user_data = AutoSell.objects.filter(user=landing_page.user).first()
+    if not user_data:
+        raise Http404("Seller information not found")
+    
+    # Get categories that contain the selected one-time products
+    category_ids = one_time_products.values_list('category', flat=True).distinct()
+    categories = OneTimeProductCategory.objects.filter(id__in=category_ids)
+    
+    return render(request, 'features/landing_page.html', {
+        'landing_page': landing_page,
+        'unlimited_products': unlimited_products,
+        'one_time_products': one_time_products,
+        'categories': categories,
+        'user_data': user_data
+    })

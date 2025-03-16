@@ -95,4 +95,3 @@ products_admin_site.register(UserIncome, UserIncomeAdmin)
 Citations: 
 ("The Django Admin") -> 6 - 92
 '''
-

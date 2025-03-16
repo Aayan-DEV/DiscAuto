@@ -13,8 +13,11 @@ from dashboard import views as dashboard_views
 
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
-    path('auto-sell/', autosell_views.auto_sell_view, name='auto_sell'),
     path('profiles/', include('profiles.urls')),
+    path('auto-sell/', autosell_views.auto_sell_list, name='auto_sell_list'),  # Main listing page
+    path('auto-sell/create/', autosell_views.create_auto_sell, name='create_auto_sell'),  # Create new page
+    path('auto-sell/edit/<int:auto_sell_id>/', autosell_views.edit_auto_sell, name='edit_auto_sell'),  # Edit existing page
+    path('auto-sell/delete/<int:auto_sell_id>/', autosell_views.delete_lander, name='delete_lander'),  # Delete page
     path("hello-world/", home_view),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),  
     path('dashboard/get-chart-data/', dashboard_views.get_chart_data, name='get_chart_data'),  # Updated path
@@ -66,7 +69,12 @@ urlpatterns = [
     # path('product/<str:product_type>/<int:product_id>/', products_views.product_detail, name='product_detail'),
     # path('product/<int:product_id>/', products_views.one_time_product_detail, name='one_time_product_detail'),
     # path('refresh-sales/', products_views.refresh_sales, name='refresh_sales'),
+    # Replace the existing auto-sell URL with these new ones
+    # Update these URL patterns
+    
 ]
 
 if settings.DEBUG:
+    # Add this to your urlpatterns
+    path('landing/<str:slug>/', autosell_views.landing_page_view, name='landing_page_view'),
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

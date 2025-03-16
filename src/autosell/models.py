@@ -2,34 +2,75 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-# First we define a model named "AutoSell" that recieves data from Django's Model Class. 
+class SocialLink(models.Model):
+    SOCIAL_TYPES = [
+        ('youtube', 'YouTube'),
+        ('tiktok', 'TikTok'),
+        ('instagram', 'Instagram'),
+        ('twitter', 'Twitter'),
+        ('pinterest', 'Pinterest'),
+        ('discord', 'Discord Server'),
+        ('snapchat', 'Snapchat'),
+        ('custom', 'Custom Link')
+    ]
+
+    auto_sell = models.ForeignKey('AutoSell', on_delete=models.CASCADE, related_name='social_links')
+    platform = models.CharField(max_length=20, choices=SOCIAL_TYPES)
+    url = models.URLField(max_length=500)
+    title = models.CharField(max_length=100, blank=True, null=True)  # For custom link title
+
+    def __str__(self):
+        return f"{self.get_platform_display()} - {self.auto_sell.name}"
+
 class AutoSell(models.Model):
-    # Normal fields. 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     banner = models.ImageField(upload_to='banners/', max_length=500)  
     profile_picture = models.ImageField(upload_to='profiles/', max_length=500) 
     name = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
-    email = models.EmailField()
-    instagram_link = models.URLField(max_length=200)
-    tiktok_link = models.URLField(max_length=200)
+    email = models.EmailField(blank=True, null=True)
     custom_link = models.CharField(max_length=200, unique=True)
+    show_social_names = models.BooleanField(default=False)  # Changed default to False
 
     def __str__(self):
         return self.name
 
-# We define another model named "AutoSellView" that recieves data from Django's Model Class.
 class AutoSellView(models.Model):
-    # A ForeginKey, that makes it so that each instance is linked to a AutoSell.
-    autosell = models.ForeignKey(AutoSell, on_delete=models.CASCADE)
-    # DateField that stores the date when the view was made. It defaults to the current date and time.
-    view_date = models.DateField(default=timezone.now)
-    # Again, it is a standard procedure in django that returns a string representation of the model instance,
-    # for easy identification in the django admin. 
-    def __str__(self):
-        return f"View on {self.view_date} for {self.autosell.name}"
+    auto_sell = models.ForeignKey(
+        AutoSell, 
+        on_delete=models.CASCADE, 
+        related_name='views',
+        null=True,  # Add this to allow null values
+        blank=True  # Add this to allow blank values in forms
+    )
+    timestamp = models.DateTimeField(default=timezone.now)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
 
-"""
-Citations:
-("Models") -> Lines 6 - 30
-"""
+    def __str__(self):
+        return f"View of {self.auto_sell.name if self.auto_sell else 'Unknown'} at {self.timestamp}"
+
+    class Meta:
+        ordering = ['-timestamp']
+
+
+class LandingPage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    unlimited_products = models.ManyToManyField(
+        'products.UnlimitedProduct', 
+        blank=True, 
+        related_name='landing_page_unlimited'
+    )
+    one_time_products = models.ManyToManyField(
+        'products.OneTimeProduct', 
+        blank=True,
+        related_name='landing_page_onetime'  # Keep only this, remove the through parameter
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-created_at']

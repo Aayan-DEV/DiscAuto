@@ -19,7 +19,7 @@ import requests
 from .models import UserIncome
 from decimal import Decimal
 from django.template.loader import render_to_string
-from autosell.models import AutoSell  
+from autosell.models import AutoSell, LandingPage 
 
 # First we check if the application is running in a specific environment, such as on Railway.
 # We do that because i have had issues where the application uses the old .env from its cache rather
@@ -531,225 +531,176 @@ def add_category(request):
     # Finally we render the "add_category.html" template with the form to show the user.
     return render(request, 'features/products/add_category.html', {'form': form})
 
-# Require user login to access add_product_to_category page.
 @login_required
 def add_product_to_category(request, category_id):
-    # First we get the category with the given ID that relates to the logged-in user.
     category = get_object_or_404(OneTimeProductCategory, id=category_id, user=request.user)
     
-    # Then we check if the request method is POST.
     if request.method == 'POST':
-        # Then we initialize a form with data and files that are provided by the user when the request is sent.
         form = OneTimeProductForm(request.POST, request.FILES)
-        # Then we validate the form data, meaning we check if the data provided in the form is correct and meets all the 
-        # requirements specified in the form's fields. 
         if form.is_valid():
-            # Then we create a new product object from the form data without saving it to the database yet.
             one_time_product = form.save(commit=False)
-            # Then we assign the product to the specific category.
             one_time_product.category = category
-            # Then we check if a product image file is included in the request.
+            
             if 'product_image' in request.FILES:
-                # Then we upload the image to Supabase and get the public URL to save in the product object.
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
-                # Then we set the product's image URL to the uploaded file URL.
                 one_time_product.product_image_url = product_image_url 
-            # Finally we save the one-time product to the database.
+
             one_time_product.save()
 
+            # Save landing pages
+            landing_page_ids = request.POST.getlist('landing_pages')
+            one_time_product.landing_pages.set(landing_page_ids)
+
             try:
-                # We also have to create a new stripe product.
-                # Create a new product in Stripe for this one-time product.
-                try:
-                    stripe_product = stripe.Product.create(
-                        name=one_time_product.title, 
-                        description=one_time_product.description, 
-                        metadata={
-                            'django_product_id': one_time_product.id 
-                        }
-                    )
-                except stripe.error.InvalidRequestError:
-                    stripe_product = stripe.Product.create(
-                        name=one_time_product.title, 
-                        description="No description of product.", 
-                        metadata={
-                            'django_product_id': one_time_product.id 
-                        }
-                    )
-                # Create a price object in Stripe for the product.
+                stripe_product = stripe.Product.create(
+                    name=one_time_product.title,
+                    description=one_time_product.description or "No description provided",
+                    metadata={
+                        'django_product_id': one_time_product.id
+                    }
+                )
+
                 stripe_price = stripe.Price.create(
                     product=stripe_product.id,
-                    unit_amount=int(one_time_product.price * 100), 
-                    currency=one_time_product.currency.lower(),  
-                    recurring=None, 
-                    tax_behavior='exclusive',    
+                    unit_amount=int(one_time_product.price * 100),
+                    currency=one_time_product.currency.lower(),
+                    recurring=None,
+                    tax_behavior='exclusive',
                 )
-                # Save the Stripe product ID and price ID in Django.
+
                 one_time_product.stripe_product_id = stripe_product.id
                 one_time_product.stripe_price_id = stripe_price.id
-                # Update the product in the database with the Stripe IDs.
                 one_time_product.save()
 
             except stripe.error.StripeError as e:
-                # If any error message print the error and return a 400 error response.
                 print(f"Stripe error: {e}")
                 return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
 
-            # Redirect to the category details page after adding the product.
             return redirect('category_detail', category_id=category.id)
     else:
-        # Send error if request method is not POST.
         form = OneTimeProductForm()
-    
-    # Finally render the "add_product_to_category.html" template with the form and category context to show the user.
-    return render(request, 'features/products/add_product_to_category.html', {'form': form, 'category': category})
+
+    return render(request, 'features/products/add_product_to_category.html', {
+        'form': form,
+        'category': category,
+    })
 
 
-# Makes sure people who are logged in can only use the page. 
 @login_required
 def edit_one_time_product(request, pk):
-    # First get the specific one-time product by using the primary key (pk) from the database.
     one_time_product = get_object_or_404(OneTimeProduct, pk=pk)
-
-    # Check if the request method is POST.
+    
     if request.method == 'POST':
-        # Here we have to initialize the form with the user submitted data and files, and connect it to the 
-        # existing product instance, making it so that we can validate and save updates to this specific product.
         form = OneTimeProductForm(request.POST, request.FILES, instance=one_time_product)
-        
         if form.is_valid():
-            # Save the form data without committing to the database.
             updated_product = form.save(commit=False)
             
-            # Check if a new product image is uploaded by the user when editing. 
             if 'product_image' in request.FILES:
-                # Upload the new image to Supabase in the 'one_time_products' folder.
-                # The Public URL from Supabase is then saved to the product, so that it can be used to 
-                # display the images later.
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
                 updated_product.product_image_url = product_image_url 
-            
-            # Save the updated product with all changes to the database.
-            updated_product.save()
 
-            # We also want to update the product on stripe using the stipe ID.
+            # Save landing pages
+            landing_page_ids = request.POST.getlist('landing_pages')
+            updated_product.save()
+            updated_product.landing_pages.set(landing_page_ids)
+
             if one_time_product.stripe_product_id:
                 try:
-                    # We can update the product name and description on Stripe.
                     stripe.Product.modify(
                         one_time_product.stripe_product_id,
                         name=updated_product.title,
                         description=updated_product.description,
                     )
-
-                    # First we get the current Stripe price.
-                    current_stripe_price = stripe.Price.retrieve(one_time_product.stripe_price_id)
                     
-                    # If the price or currency has changed, we need to create a new price in Stripe.
+                    current_stripe_price = stripe.Price.retrieve(one_time_product.stripe_price_id)
                     if (updated_product.price * 100 != current_stripe_price.unit_amount) or (updated_product.currency.lower() != current_stripe_price.currency):
-                        # Deactivate the old price so only the new price is active.
-                        # We cannot delete a price, rather we have to deactivate it.
                         stripe.Price.modify(
                             one_time_product.stripe_price_id,
                             active=False
                         )
-                        # Create a new price on Stripe with the updated amount and currency.
                         new_price = stripe.Price.create(
                             product=one_time_product.stripe_product_id,
-                            unit_amount=int(updated_product.price * 100),  
+                            unit_amount=int(updated_product.price * 100),
                             currency=updated_product.currency.lower(),
-                            recurring=None,  
+                            recurring=None,
                             tax_behavior='exclusive',
                         )
-                        # Update the product with the new Stripe price ID.
                         updated_product.stripe_price_id = new_price.id
+                        updated_product.save()
 
-                # Catch any errors from Stripe and print them. 
                 except stripe.error.StripeError as e:
                     print(f"Stripe error: {e}")
                     return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
 
-            # Redirect the user to the category detail page after saving.
             return redirect('category_detail', category_id=one_time_product.category.id)
     else:
-        # Send error if request method is not POST.
         form = OneTimeProductForm(instance=one_time_product)
 
-    # Finally render the template with the form to show the user.
-    return render(request, 'features/products/edit_one_time_product.html', {'form': form})
+    return render(request, 'features/products/edit_one_time_product.html', {
+        'form': form,
+        'product': one_time_product,
+    })
 
-# Only allow logged in users. 
 @login_required
 def edit_unlimited_product(request, pk):
-    # Get the unlimited product by using the primary key (pk).
-    product = get_object_or_404(UnlimitedProduct, pk=pk)
-
-    # Check if the request method is POST.
+    product = get_object_or_404(UnlimitedProduct, pk=pk, user=request.user)
+    
     if request.method == 'POST':
-        # Here we have to initialize the form with the user submitted data and files, and connect it to the 
-        # existing product instance, making it so that we can validate and save updates to this specific product.
         form = UnlimitedProductForm(request.POST, request.FILES, instance=product)
-        
-        # Validate form
         if form.is_valid():
-            # Save form without committing.
             updated_product = form.save(commit=False)
-
-            # Check if a new product image was uploaded.
+            
             if 'product_image' in request.FILES:
-                # Upload the image to Supabase and save the Public URL to the product.
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
                 updated_product.product_image_url = product_image_url 
 
-            # Save the updated product with the new information.
+            # Save the product first
             updated_product.save()
 
-            # If the product has stripe product ID, update info on Stripe.
+            # Handle landing pages
+            landing_page_ids = request.POST.getlist('landing_pages')
+            if landing_page_ids:
+                updated_product.landing_pages.set(landing_page_ids)
+            else:
+                updated_product.landing_pages.clear()
+
             if product.stripe_product_id:
                 try:
-                    # Modify product’s name and description on Stripe.
-                    # If they weren't changed, thats fine, it will keep it the same. 
                     stripe.Product.modify(
                         product.stripe_product_id,
                         name=updated_product.title,
-                        description=updated_product.description,
+                        description=updated_product.description or "No description provided",
                     )
                     
-                    # Get the current Stripe price.
                     current_stripe_price = stripe.Price.retrieve(product.stripe_price_id)
-
-                    # Check if the price or currency has changed
                     if (updated_product.price * 100 != current_stripe_price.unit_amount) or (updated_product.currency.lower() != current_stripe_price.currency):
-                        # Deactivate the old price
                         stripe.Price.modify(
                             product.stripe_price_id,
                             active=False
                         )
-                        # Create a new price on Stripe (with amount and currency).
                         new_price = stripe.Price.create(
                             product=product.stripe_product_id,
-                            unit_amount=int(updated_product.price * 100), 
+                            unit_amount=int(updated_product.price * 100),
                             currency=updated_product.currency.lower(),
                             tax_behavior='exclusive',
                         )
-
-                        # Update the product with the new Stripe price ID.
                         updated_product.stripe_price_id = new_price.id
+                        updated_product.save()
 
-                # Catch and print any Stripe errors.
                 except stripe.error.StripeError as e:
                     print(f"Stripe error: {e}")
                     return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
 
-            # Save any final changes to the database and redirect the user to the products page.
-            updated_product.save()
             return redirect('products')
     else:
-        # Send error if request method is not POST.
-        form = UnlimitedProductForm(instance=product)
+        form = UnlimitedProductForm(instance=product, user=request.user)
 
-    # Finally render the template with the form to show the user.
-    return render(request, 'features/products/edit_unlimited_product.html', {'form': form})
+    landing_pages = AutoSell.objects.filter(user=request.user)
+    return render(request, 'features/products/edit_unlimited_product.html', {
+        'form': form,
+        'product': product,
+        'landing_pages': landing_pages,
+    })
 
 @login_required
 def edit_category(request, pk):
@@ -842,67 +793,61 @@ def add_product_options(request):
     # Here we only render the page with options for adding different types of products.
     return render(request, "features/products/add_product_options.html")
 
+
 @login_required
 def add_unlimited_product(request):
     if request.method == 'POST':
         form = UnlimitedProductForm(request.POST, request.FILES)
-        
-        # Here we validate the form data to make sure it meets all the requirements
         if form.is_valid():
-            # First we save the form data without committing
+            
             unlimited_product = form.save(commit=False)
-            # Then we assign the current logged-in user as the owner of the new product.
-            unlimited_product.user = request.user
 
-            # Then we check if an image file is uploaded with the product form
             if 'product_image' in request.FILES:
-                # If it is, we upload the image to Supabase and get the Public URL, saving it to the product
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
                 unlimited_product.product_image_url = product_image_url 
 
-            # Then we save the product to the database
+            unlimited_product.user = request.user
             unlimited_product.save()
 
-            # Here we also create a new product on Stripe to link this Django product to Stripe.
+            # Save landing pages
+            landing_page_ids = request.POST.getlist('landing_pages')
+            if landing_page_ids:
+                unlimited_product.landing_pages.set(landing_page_ids)
+
             try:
                 stripe_product = stripe.Product.create(
                     name=unlimited_product.title,
-                    description=unlimited_product.description,
+                    description=unlimited_product.description or "No description provided",
                     metadata={
-                        'django_product_id': unlimited_product.id 
+                        'django_product_id': unlimited_product.id
                     }
                 )
-            except stripe.InvalidRequestError:
-                stripe_product = stripe.Product.create(
-                    name=unlimited_product.title,
-                    description="No Description for this product.",
-                    metadata={
-                        'django_product_id': unlimited_product.id 
-                    }
+
+                stripe_price = stripe.Price.create(
+                    product=stripe_product.id,
+                    unit_amount=int(unlimited_product.price * 100),
+                    currency=unlimited_product.currency.lower(),
+                    recurring=None,
+                    tax_behavior='exclusive',
                 )
-            # Here we create a price on Stripe connected with this product using the given price and currency by the user
-            # when they were adding the product.
-            stripe_price = stripe.Price.create(
-                product=stripe_product.id,
-                unit_amount=int(unlimited_product.price * 100), 
-                currency=unlimited_product.currency.lower(),
-                recurring=None,  
-                tax_behavior='exclusive',
-            )
 
-            # Finally we save the Stripe product and price IDs to the unlimited product for future
-            unlimited_product.stripe_product_id = stripe_product.id
-            unlimited_product.stripe_price_id = stripe_price.id
-             # We commit all changes to the database.
-            unlimited_product.save() 
+                unlimited_product.stripe_product_id = stripe_product.id
+                unlimited_product.stripe_price_id = stripe_price.id
+                unlimited_product.save()
 
-            # We also redirect the user to the products page
+            except stripe.error.StripeError as e:
+                print(f"Stripe error: {e}")
+                return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
+
             return redirect('products')
     else:
-        form = UnlimitedProductForm()
+        form = UnlimitedProductForm(user=request.user)
 
-    # Here we render the add unlimited product page with the form for user input
-    return render(request, 'features/products/add_unlimited_product.html', {'form': form})
+    landing_pages = AutoSell.objects.filter(user=request.user)
+    return render(request, 'features/products/add_unlimited_product.html', {
+        'form': form,
+        'landing_pages': landing_pages,
+    })
 
 @login_required
 def delete_unlimited_product(request, pk):

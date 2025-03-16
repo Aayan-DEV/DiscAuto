@@ -164,19 +164,83 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Settings -->
-                <div class="bg-gray-700/50 rounded-lg p-4">
-                    <div class="flex items-start sm:items-center gap-3">
-                        <input type="checkbox" id="show_on_custom_lander" name="{{ form.show_on_custom_lander.name }}" 
-                               class="w-4 h-4 sm:w-5 sm:h-5 mt-1 sm:mt-0 rounded border-[#359271]/20 text-[#359271] focus:ring-[#359271]"
-                               {% if form.show_on_custom_lander.value %}checked{% endif %}>
-                        <label for="show_on_custom_lander" class="text-white text-sm sm:text-base">
-                            Show this product on the custom landing page?
-                        </label>
+                <!-- Add this before the submit button -->
+                <div class="bg-gray-700/50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    <h3 class="text-[#359271] font-medium flex items-center gap-2 text-sm sm:text-base">
+                        <span class="material-icons text-base sm:text-lg">web</span>
+                        Landing Pages
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        {% if landing_pages %}
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                {% for page in landing_pages %}
+                                    <label class="relative flex items-center p-3 bg-gray-800/50 rounded-lg border border-[#359271]/20 hover:border-[#359271] transition-all cursor-pointer group">
+                                        <!-- Change the input name from landing_pages[] to landing_pages -->
+                                        <input type="checkbox" 
+                                               name="landing_pages" 
+                                               value="{{ page.id }}"
+                                               {% if page in product.landing_pages.all %}checked{% endif %}
+                                               class="form-checkbox h-5 w-5 text-[#359271] rounded border-gray-600 bg-gray-700 focus:ring-[#359271]">
+                                        <span class="ml-3 text-white group-hover:text-[#359271] transition-colors">{{ page.name }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-400 text-sm">No landing pages available. Create one in the Auto-Sell section.</p>
+                        {% endif %}
                     </div>
                 </div>
 
+                <!-- Add this script before the closing form tag -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.getElementById('landing-pages-container');
+                    const select = document.getElementById('landing-page-select');
+                    const addButton = document.getElementById('add-landing-page');
+
+                    function getSelectedIds() {
+                        return Array.from(container.querySelectorAll('input[name="landing_pages"]'))
+                            .map(input => input.value);
+                    }
+
+                    function updateSelectOptions() {
+                        const selectedIds = getSelectedIds();
+                        Array.from(select.options).forEach(option => {
+                            if (option.value) {
+                                option.disabled = selectedIds.includes(option.value);
+                            }
+                        });
+                    }
+
+                    addButton.addEventListener('click', function() {
+                        const selectedOption = select.options[select.selectedIndex];
+                        if (selectedOption.value && !selectedOption.disabled) {
+                            const row = document.createElement('div');
+                            row.className = 'flex items-center gap-2 landing-page-row bg-gray-800/50 p-2 rounded-lg';
+                            row.innerHTML = `
+                                <input type="hidden" name="landing_pages" value="${selectedOption.value}">
+                                <span class="text-white flex-grow">${selectedOption.text}</span>
+                                <button type="button" class="text-red-400 hover:text-red-300 remove-page">
+                                    <span class="material-icons">close</span>
+                                </button>
+                            `;
+                            container.appendChild(row);
+                            updateSelectOptions();
+                        }
+                    });
+
+                    container.addEventListener('click', function(e) {
+                        if (e.target.closest('.remove-page')) {
+                            e.target.closest('.landing-page-row').remove();
+                            updateSelectOptions();
+                        }
+                    });
+
+                    updateSelectOptions();
+                });
+                </script>
+                
                 <!-- Submit Button -->
                 <button type="submit" 
                         class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">

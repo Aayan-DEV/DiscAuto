@@ -182,15 +182,15 @@ def get_chart_data(request):
 
     # Get all clicks/views within the date range using AutoSellView
     clicks_data = AutoSellView.objects.filter(
-        view_date__gte=start_date,
-        view_date__lte=end_date
-    ).values('view_date').annotate(
+        timestamp__gte=start_date,  # Changed from 'view_date__gte' to 'timestamp__gte'
+        timestamp__lte=end_date     # Changed from 'view_date__lte' to 'timestamp__lte'
+    ).values('timestamp').annotate(  # Changed from 'view_date' to 'timestamp'
         total=Count('id')
-    ).order_by('view_date')
+    ).order_by('timestamp')  # Changed from 'view_date' to 'timestamp'
 
     # Convert to dictionaries for easier lookup
     sales_dict = {item['created_at'].date(): item['total'] for item in sales_data}
-    clicks_dict = {item['view_date']: item['total'] for item in clicks_data}
+    clicks_dict = {item['timestamp'].date(): item['total'] for item in clicks_data}  # Changed from 'view_date' to 'timestamp'
 
     # Generate all dates in range
     date_list = []
@@ -282,9 +282,9 @@ def dashboard_view(request):
 
     sales_data_by_day = get_sales_data_by_day(start_of_week, end_of_week, request.user, exchange_rates)
     views_data = AutoSellView.objects.filter(
-        autosell__user=request.user,
-        view_date__range=[start_of_week, end_of_week]
-    ).annotate(day=TruncDay('view_date')).values('day').annotate(total_views=Count('id')).order_by('day')
+        auto_sell__user=request.user,
+        timestamp__range=[start_of_week, end_of_week]  # Changed from 'view_date__range' to 'timestamp__range'
+    ).annotate(day=TruncDay('timestamp')).values('day').annotate(total_views=Count('id')).order_by('day')
 
     days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
     total_sales_per_day = {day: 0 for day in days}
