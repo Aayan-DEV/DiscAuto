@@ -584,9 +584,12 @@ def add_product_to_category(request, category_id):
 
             one_time_product.save()
 
-            # Save landing pages
+            # Handle landing pages - Fix: Get the landing page IDs from POST data
             landing_page_ids = request.POST.getlist('landing_pages')
-            one_time_product.landing_pages.set(landing_page_ids)
+            if landing_page_ids:
+                # Get AutoSell objects that belong to the user
+                landing_pages = AutoSell.objects.filter(id__in=landing_page_ids, user=request.user)
+                one_time_product.landing_pages.set(landing_pages)
 
             try:
                 stripe_product = stripe.Product.create(
@@ -617,9 +620,12 @@ def add_product_to_category(request, category_id):
     else:
         form = OneTimeProductForm()
 
+    # Get available landing pages for the user
+    landing_pages = AutoSell.objects.filter(user=request.user)
     return render(request, 'features/products/add_product_to_category.html', {
         'form': form,
         'category': category,
+        'landing_pages': landing_pages,
     })
 
 
@@ -636,10 +642,15 @@ def edit_one_time_product(request, pk):
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
                 updated_product.product_image_url = product_image_url 
 
-            # Save landing pages
+           # Handle landing pages selection
             landing_page_ids = request.POST.getlist('landing_pages')
-            updated_product.save()
-            updated_product.landing_pages.set(landing_page_ids)
+            if landing_page_ids:
+                # Get AutoSell objects that belong to the user
+                landing_pages = AutoSell.objects.filter(id__in=landing_page_ids, user=request.user)
+                updated_product.landing_pages.set(landing_pages)
+            else:
+                # Clear all landing pages if none selected
+                updated_product.landing_pages.clear()
 
             if one_time_product.stripe_product_id:
                 try:
@@ -673,9 +684,13 @@ def edit_one_time_product(request, pk):
     else:
         form = OneTimeProductForm(instance=one_time_product)
 
+    # Get all landing pages for this user to display in the form
+    landing_pages = AutoSell.objects.filter(user=request.user)
+
     return render(request, 'features/products/edit_one_time_product.html', {
         'form': form,
         'product': one_time_product,
+        'landing_pages': landing_pages,
     })
 
 @login_required

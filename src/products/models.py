@@ -77,9 +77,9 @@ class OneTimeProduct(models.Model):
     stripe_price_id = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)  # Add the missing created_at field
     landing_pages = models.ManyToManyField(
-        'autosell.LandingPage',  # Change this to reference the correct model
+        'autosell.AutoSell',  # Changed from LandingPage to AutoSell
         blank=True,
-        related_name='product_onetime'  # Changed this related_name
+        related_name='onetime_products'  # Updated related_name to be consistent
     )
 
     def __str__(self):
