@@ -25,6 +25,7 @@ urlpatterns = [
     path("contact/", contact, name="contact"),
     path('admin/', admin.site.urls),
     path('checkout/one-time/success/', products_views.one_time_checkout_success, name='one_time_checkout_success'),
+    # The URL pattern should already exist, but make sure it's correct
     path('create_one_time_checkout_session/<int:product_id>/', products_views.create_one_time_checkout_session, name='create_one_time_checkout_session'),
     path('pricing/', subscriptions_views.pricing_view, name='pricing'),
     path('accounts/billing/cancel', subscriptions_views.user_subscription_cancel_view, name="user_subscription_cancel"),

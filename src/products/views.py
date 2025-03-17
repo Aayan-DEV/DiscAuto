@@ -532,8 +532,8 @@ def add_category(request):
     })
 
 @login_required
-def edit_category(request, pk):  # Change parameter from category_id to pk
-    category = get_object_or_404(OneTimeProductCategory, id=pk, user=request.user)  # Change category_id to pk
+def edit_category(request, pk):
+    category = get_object_or_404(OneTimeProductCategory, id=pk, user=request.user)
     if request.method == 'POST':
         form = OneTimeProductCategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
@@ -545,12 +545,28 @@ def edit_category(request, pk):  # Change parameter from category_id to pk
             
             category.save()
             
-            # Get AutoSell instances instead of LandingPage
+            # Get AutoSell instances
             auto_sell_ids = request.POST.getlist('landing_pages')
+            old_landing_pages = set(category.landing_pages.values_list('id', flat=True))
+            new_landing_pages = set(map(int, auto_sell_ids)) if auto_sell_ids else set()
+            
             if auto_sell_ids:
                 category.landing_pages.set(auto_sell_ids)
             else:
                 category.landing_pages.clear()
+            
+            # Get all products for this category
+            products = OneTimeProduct.objects.filter(category=category)
+            
+            # For each product, check if it has specific landing page assignments
+            for product in products:
+                product_landing_pages = set(product.landing_pages.values_list('id', flat=True))
+                
+                # If product doesn't have any specific landing page assignments,
+                # or if it was using exactly the old category landing pages,
+                # update it to use the new category landing pages
+                if not product_landing_pages or product_landing_pages == old_landing_pages:
+                    product.landing_pages.set(new_landing_pages)
             
             messages.success(request, 'Category updated successfully!')
             return redirect('products')
@@ -584,13 +600,18 @@ def add_product_to_category(request, category_id):
 
             one_time_product.save()
 
-            # Handle landing pages - Fix: Get the landing page IDs from POST data
+            # Handle landing pages based on user selection
             landing_page_ids = request.POST.getlist('landing_pages')
+            
+            # If user selected specific landing pages for this product, use those
             if landing_page_ids:
-                # Get AutoSell objects that belong to the user
                 landing_pages = AutoSell.objects.filter(id__in=landing_page_ids, user=request.user)
                 one_time_product.landing_pages.set(landing_pages)
+            # If no landing pages were selected, use all of the category's landing pages
+            elif category.landing_pages.exists():
+                one_time_product.landing_pages.set(category.landing_pages.all())
 
+            # Stripe product creation code remains the same
             try:
                 stripe_product = stripe.Product.create(
                     name=one_time_product.title,
@@ -622,16 +643,20 @@ def add_product_to_category(request, category_id):
 
     # Get available landing pages for the user
     landing_pages = AutoSell.objects.filter(user=request.user)
+    # Get the landing pages already selected for the category
+    category_landing_pages = category.landing_pages.all()
+    
     return render(request, 'features/products/add_product_to_category.html', {
         'form': form,
         'category': category,
         'landing_pages': landing_pages,
+        'category_landing_pages': category_landing_pages,
     })
-
 
 @login_required
 def edit_one_time_product(request, pk):
     one_time_product = get_object_or_404(OneTimeProduct, pk=pk)
+    category = one_time_product.category
     
     if request.method == 'POST':
         form = OneTimeProductForm(request.POST, request.FILES, instance=one_time_product)
@@ -642,16 +667,20 @@ def edit_one_time_product(request, pk):
                 product_image_url = upload_to_supabase(request.FILES['product_image'], folder='one_time_products')
                 updated_product.product_image_url = product_image_url 
 
-           # Handle landing pages selection
+            # Handle landing pages based on user selection
             landing_page_ids = request.POST.getlist('landing_pages')
+            
+            # If user selected specific landing pages for this product, use those
             if landing_page_ids:
-                # Get AutoSell objects that belong to the user
                 landing_pages = AutoSell.objects.filter(id__in=landing_page_ids, user=request.user)
                 updated_product.landing_pages.set(landing_pages)
-            else:
-                # Clear all landing pages if none selected
-                updated_product.landing_pages.clear()
+            # If no landing pages were selected but category has landing pages, use those
+            elif category.landing_pages.exists() and not updated_product.landing_pages.exists():
+                updated_product.landing_pages.set(category.landing_pages.all())
 
+            updated_product.save()
+
+            # Stripe update code remains the same
             if one_time_product.stripe_product_id:
                 try:
                     stripe.Product.modify(
@@ -686,11 +715,14 @@ def edit_one_time_product(request, pk):
 
     # Get all landing pages for this user to display in the form
     landing_pages = AutoSell.objects.filter(user=request.user)
+    # Get the landing pages already selected for the category
+    category_landing_pages = category.landing_pages.all()
 
     return render(request, 'features/products/edit_one_time_product.html', {
         'form': form,
         'product': one_time_product,
         'landing_pages': landing_pages,
+        'category_landing_pages': category_landing_pages,
     })
 
 @login_required
@@ -1124,27 +1156,14 @@ def checkout_success(request):
     except Exception as e:
         return render(request, 'checkout/checkout_success.html', {'error': 'An unexpected error occurred'})
 
-# Here we show the details of a specific one-time product.
 def one_time_product_detail(request, product_id):
-    # We get the one-time product by its ID
     product = get_object_or_404(OneTimeProduct, id=product_id)
-
-    # Here we get the first product in the product's category
-    first_product_in_category = product.category.products.first()
-
-    # Then we also store the previous page URL if available 
-    if 'HTTP_REFERER' in request.META:
-        request.session['previous_url'] = request.META.get('HTTP_REFERER')
-
-    # Here we prepare context data to pass to the template, including the product, its category, and Stripe key.
+    
     context = {
-        'product': product,
-        'first_product': first_product_in_category,
-        'previous_url': request.session.get('previous_url'),
-        'STRIPE_PUBLISHABLE_KEY': os.getenv('STRIPE_PUBLISHABLE_KEY')
+        'product': product,  # Using 'product' as the key, not 'first_product'
+        'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY
     }
-
-    # Finally we render the one-time product detail template with the context data collected
+    
     return render(request, 'features/products/one_time_product_detail.html', context)
 
 # Here we show the details of a specific unlimited product.
@@ -1158,43 +1177,53 @@ def unlimited_product_detail(request, product_id):
         'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY  
     })
 
+# Add this function if it doesn't exist or update it if it does
 @csrf_exempt
 def create_one_time_checkout_session(request, product_id):
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    try:
+        # Parse the JSON data from the request
         data = json.loads(request.body)
-
-        # First we get the one-time product by ID
-        current_product = get_object_or_404(OneTimeProduct, id=product_id)
-        customer_name = data.get('name')
-        customer_email = data.get('email')
-
-        try:
-            # Here we create a checkout session on Stripe for the one-time product.
-            checkout_session = stripe.checkout.Session.create(
-                payment_method_types=['card'],  # Simplified payment methods
-                line_items=[{
+        name = data.get('name')
+        email = data.get('email')
+        
+        # Validate the input
+        if not name or not email:
+            return JsonResponse({'error': 'Name and email are required'}, status=400)
+        
+        # Get the product
+        product = get_object_or_404(OneTimeProduct, id=product_id)
+        
+        # Create a Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
                     'price': product.stripe_price_id,
                     'quantity': 1,
-                }],
-                automatic_tax={"enabled": True},  # Enable automatic tax calculation
-                customer_update={  # Add address collection for tax calculation
-                    'address': 'auto',
-                    'shipping': 'auto'
                 },
-                mode='payment',
-                success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
-                cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
-                customer_email=customer_email,
-                metadata={
-                    'product_id': product.id,
-                    'customer_name': customer_name,
-                    'customer_email': customer_email
-                }
-            )
-
-            return JsonResponse({'id': checkout_session.id})
-        except stripe.error.StripeError as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            ],
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('one_time_checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
+            customer_email=email,
+            metadata={
+                'product_id': product_id,
+                'customer_name': name,
+                'customer_email': email
+            }
+        )
+        
+        return JsonResponse({'id': checkout_session.id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        print(f"Error creating checkout session: {str(e)}")
+        return JsonResponse({'error': 'Server error'}, status=500)
 
 # Here we handle successful checkout for a one-time product purchase.
 def one_time_checkout_success(request):

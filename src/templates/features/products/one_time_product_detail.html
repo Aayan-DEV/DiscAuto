@@ -60,32 +60,32 @@
                         <img src="https://www.svgrepo.com/show/18507/back-button.svg" class="w-8 h-8">
                     </button>
                 </div>
-                <img src="{{ first_product.category.category_image_url }}" alt="{{ first_product.category.name }}" class="w-full h-full object-contain rounded pt-10 lg:pt-0">
-
+                <img src="{{ product.category.category_image_url }}" alt="{{ product.category.name }}" class="w-full h-full object-contain rounded pt-10 lg:pt-0">
             </div>
 
             <div class="product-info-section">
                 <div class="w-full pr-4 pl-4 text-center">
-                    <h1 class="text-black text-lg bg-white py-1 rounded-md">{{ first_product.title }}</h1>
+                    <h1 class="text-black text-lg bg-white py-1 rounded-md">{{ product.title }}</h1>
                 </div>
-                {% if first_product.price == None or first_product.price == 0.00 %}
+                {% if product.price == None or product.price == 0.00 %}
                     {% else %}
                     <div class="flex gap-x-2 justify-center items-baseline"> 
-                        <p class="text-4xl font-semibold pb-2 text-green-700">{% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}</p> 
-                        {% if first_product.sale_price == None or first_product.sale_price == 0.00 %}
+                        <p class="text-4xl font-semibold pb-2 text-green-700">{% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}</p> 
+                        {% if product.sale_price == None or product.sale_price == 0.00 %}
                         {% else %}
-                        <p class="text-1xl font-semibold pb-2 text-gray-600 line-through">{% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}</p>
-                            {% if first_product.discount_percentage == None or first_product.discount_percentage == 0.00 %}
+                        <p class="text-1xl font-semibold pb-2 text-gray-600 line-through">{% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.sale_price }}</p>
+                            {% if product.discount_percentage == None or product.discount_percentage == 0.00 %}
                             {% else %}
-                                <p class="text-xs font-semibold text-black bg-green-400 p-2 rounded-full">{{ first_product.discount_percentage|floatformat:0 }}% off</p>
+                                <p class="text-xs font-semibold text-black bg-green-400 p-2 rounded-full">{{ product.discount_percentage|floatformat:0 }}% off</p>
                             {% endif %}
                         {% endif %}
                     </div>         
                     <h1 class="text-black text-xs bg-white rounded-md text-center">VAT Included</h1>   
                 {% endif %}
 
+                <!-- Change the checkout button text -->
                 <button id="checkout-button-down" class="bg-black border-gray-400 border hover:bg-green-700 text-white py-3 px-6 rounded-full w-full mt-2">
-                    {% if first_product.price != 0.00 %}
+                    {% if product.price != 0.00 %}
                     Buy Now
                     {% else %}
                     Free Download
@@ -94,7 +94,7 @@
 
                 <!-- Product Description -->
                 <div class="mt-4 text-black p-4 border-2 border-black rounded-md mb-12 lg:mb-4">
-                    {{ first_product.description|linebreaksbr }}
+                    {{ product.description|linebreaksbr }}
                 </div>
                 <div class="lg:hidden"> 
                     <hr class="w-full border-gray-300 mb-2 mt-6 pt-4">
@@ -102,25 +102,25 @@
                     <div class="flex justify-between items-center mb-4">
                         <h1 class="font-bold text-black text-lg">Order summary</h1>
                         <span class="text-black text-lg">
-                            {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                            {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}
                         </span>
                     </div>
                     
                     <div class="flex gap-4 items-start">
-                        <img src="{{ first_product.category.category_image_url }}" alt="{{ first_product.title }}" class="w-[82px] h-[82px] rounded-md">
+                        <img src="{{ product.category.category_image_url }}" alt="{{ product.title }}" class="w-[82px] h-[82px] rounded-md">
                         <div>
-                            <h2 class="font-bold text-sm text-black mb-2"> {{ first_product.title }}</h2>
+                            <h2 class="font-bold text-sm text-black mb-2"> {{ product.title }}</h2>
                             <div class="flex gap-x-2 items-baseline">
                                 <p class="text-lg font-semibold text-black">
-                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                    {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}
                                 </p>
                                 {% if product.sale_price %}
                                     <p class="text-sm font-semibold text-gray-500 line-through">
-                                        {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}
+                                        {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.sale_price }}
                                     </p>
-                                    {% if first_product.discount_percentage %}
+                                    {% if product.discount_percentage %}
                                         <p class="text-xs font-bold text-green-800 bg-green-300 px-2 py-1 rounded-lg">
-                                            -{{ first_product.discount_percentage|floatformat:0 }}% OFF
+                                            -{{ product.discount_percentage|floatformat:0 }}% OFF
                                         </p>
                                     {% endif %}
                                 {% endif %}
@@ -152,26 +152,27 @@
                                 <span class="text-gray-700 text-sm">Subtotal</span>
                             </div>
                             <!-- Final discounted price -->
+                            <!-- In the subtotal section -->
                             <span class="text-gray-700 text-sm">
                                 <!-- Original price with line-through -->
-                                {% if first_product.price == 0.00 %}
-                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                {% if product.price == 0.00 %}
+                                    {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}
                                 {% else %}
                                     {% if product.sale_price %}
                                         <span class="text-gray-700 text-sm line-through">
-                                            {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.sale_price }}
+                                            {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.sale_price }}
                                         </span> <br><Br>
                                     {% else %}
                                     <span class="text-gray-700 text-sm">
-                                        {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                        {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}
                                     </span> <br><Br>
                                     {% endif %}
-                                {% endif %}
-                                <!-- Discount percentage badge -->
-                                {% if first_product.discount_percentage %}
-                                <span class="text-1xs font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
-                                    - {{ first_product.discount_percentage }}%
-                                </span>
+                                    <!-- Discount percentage badge -->
+                                    {% if product.discount_percentage %}
+                                    <span class="text-1xs font-bold text-green-800 bg-green-200 px-2 py-1 rounded-full">
+                                        - {{ product.discount_percentage }}%
+                                    </span>
+                                    {% endif %}
                                 {% endif %}
                             </span>
                         </div>
@@ -181,18 +182,18 @@
                         <!-- Total (Final Price After Discount) -->
                         <div class="flex justify-between items-center">
                             <span class="font-bold text-black text-base">Total</span>
-                            {% if first_product.price == 0.00 %}
-                                <span class="font-bold text-black text-base">Free ({% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}0.00)</span>
+                            {% if product.price == 0.00 %}
+                                <span class="font-bold text-black text-base">Free ({% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}0.00)</span>
                             {% else %}
                                 <span class="font-bold text-black text-base">
-                                    {% if first_product.currency == "USD" %}${% elif first_product.currency == "GBP" %}£{% else %}€{% endif %}{{ first_product.price }}
+                                    {% if product.currency == "USD" %}${% elif product.currency == "GBP" %}£{% else %}€{% endif %}{{ product.price }}
                                 </span>
                             {% endif %}
                         </div>
                     </div>                    
                     <div class="flex gap-1 items-center pb-2">
                         <hr class="flex-grow mx-2 border-t border-gray-300">
-                        {% if first_product.price == 0.00 %}
+                        {% if product.price == 0.00 %}
                             <h1 class="text-black text-lg bg-white rounded-md text-center italic">Download for Free</h1>   
                         {% else %}
                             <h1 class="text-black text-lg bg-white rounded-md text-center italic">Pay With</h1>   
@@ -200,13 +201,13 @@
                         <hr class="flex-grow mx-2 border-t border-gray-300">    
                     </div>
                     <!-- Single Buy Button for Stripe (non-crypto) -->
-                    {% if first_product.price == 0.00 %}
+                    {% if product.price == 0.00 %}
                         <button type="submit" id="checkout-button" class="bg-green-300 border-gray-400 border hover:bg-green-400 text-white py-2 px-2 pt-2 rounded-full w-full mb-2 flex justify-center gap-4">
                     {% else %}
                         <button type="submit" id="checkout-button" class="bg-yellow-400 border-gray-400 border hover:bg-yellow-500 text-white py-2 px-2 pt-4 rounded-full w-full mb-2 flex justify-center gap-4">
                     {% endif %}
 
-                        {% if first_product.price == 0.00 %}
+                        {% if product.price == 0.00 %}
                             <h1 class="text-green-900 text-2xl pb-1">FREE</h1>   
                         {% else %}
                         <img src="https://mythslegendscollection.com/wp-content/uploads/2020/04/visa-mastercard-american-express-png-6.png" alt="Credit Card" class="w-15 h-6 lg:w-15 lg:h-10">
@@ -216,29 +217,30 @@
                     </button>
                     </form>
                     
-                    {% if first_product.price == 0.00 %}
+                    <!-- Crypto payment section -->
+                    {% if product.price == 0.00 %}
                     {% else %}
                     <!-- Buy with Crypto Button -->
-                        {% if first_product.btc_price or first_product.eth_price or first_product.ltc_price or first_product.sol_price or first_product.usdt_price %}
+                        {% if product.btc_price or product.eth_price or product.ltc_price or product.sol_price or product.usdt_price %}
                         <div class="text-center mt-4">
                             <button id="crypto-button" class="bg-yellow-400 border-gray-400 border hover:bg-yellow-500 text-white py-3 lg:py-5 rounded-full w-full mb-2 flex gap-5 justify-center">
-                                {% if first_product.ltc_price is not None and first_product.ltc_price != "" %}
+                                {% if product.ltc_price is not None and product.ltc_price != "" %}
                                 <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
                                 {% endif %}
 
-                                {% if first_product.btc_price is not None and first_product.btc_price != "" %}
+                                {% if product.btc_price is not None and product.btc_price != "" %}
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
                                 {% endif %}
 
-                                {% if first_product.eth_price is not None and first_product.eth_price != "" %}
+                                {% if product.eth_price is not None and product.eth_price != "" %}
                                 <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
                                 {% endif %}
 
-                                {% if first_product.sol_price is not None and first_product.sol_price != "" %}
+                                {% if product.sol_price is not None and product.sol_price != "" %}
                                 <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 {% endif %}
 
-                                {% if first_product.usdt_price is not None and first_product.usdt_price != "" %}
+                                {% if product.usdt_price is not None and product.usdt_price != "" %}
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Tether" class="w-6 h-6 mr-2">
                                 {% endif %}
                             </button>
@@ -249,7 +251,7 @@
                     <div class="crypto-select hidden mt-4" id="crypto-select">
                         <div class="crypto-list grid grid-cols-2 gap-4">
 
-                            {% if first_product.ltc_price != None or "" %}
+                            {% if product.ltc_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="LTC" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.png" alt="Litecoin" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">LTC</span>
@@ -258,7 +260,7 @@
                             {% else %}
                             {% endif %}
                             
-                            {% if first_product.btc_price != None or "" %}
+                            {% if product.btc_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="BTC" id="pay-now">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/2048px-Bitcoin.svg.png" alt="Bitcoin" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">BTC</span>
@@ -267,7 +269,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.eth_price != None or "" %}
+                            {% if product.eth_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="ETH" id="pay-now">
                                 <img src="https://cdn.worldvectorlogo.com/logos/ethereum-eth.svg" alt="Ethereum" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">ETH</span>
@@ -276,7 +278,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.sol_price != None or "" %}
+                            {% if product.sol_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="SOL" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/solana-sol-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">SOL</span>
@@ -285,7 +287,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.usdt_price != None or "" %}
+                            {% if product.usdt_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.BEP20" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">Tether USD (BSC Chain)</span>
@@ -294,7 +296,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.usdt_price != None or "" %}
+                            {% if product.usdt_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.ERC20" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">Tether USD (ERC20)</span>
@@ -303,7 +305,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.usdt_price != None or "" %}
+                            {% if product.usdt_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.PRC20" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">Tether USD (Polygon/MATIC)</span>
@@ -312,7 +314,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.usdt_price != None or "" %}
+                            {% if product.usdt_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.SOL" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">Tether USD (Solana)</span>
@@ -321,7 +323,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.usdt_price != None or "" %}
+                            {% if product.usdt_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="USDT.TRC20" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">Tether USD (Tron/TRC20)</span>
@@ -330,7 +332,7 @@
                             {% else %}
                             {% endif %}
 
-                            {% if first_product.test_price != None or "" %}
+                            {% if product.test_price != None or "" %}
                             <div class="crypto-item border rounded-lg p-4 flex items-center cursor-pointer hover:bg-gray-100" data-crypto="LTCT" id="pay-now">
                                 <img src="https://cryptologos.cc/logos/moonbeam-glmr-logo.png" alt="Solana" class="w-6 h-6 mr-2">
                                 <span class="text-xs lg:text-lg">TEST</span>
@@ -366,7 +368,13 @@
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
 
-            fetch("{% url 'create_one_time_checkout_session' first_product.id %}", {
+            // Check if name and email are provided
+            if (!name || !email) {
+                alert("Please provide both name and email.");
+                return;
+            }
+
+            fetch("{% url 'create_one_time_checkout_session' product.id %}", {
                 method: "POST",
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -379,7 +387,9 @@
             })
             .then(function (response) {
                 if (!response.ok) {
-                    throw new Error("Failed to create session");
+                    return response.json().then(data => {
+                        throw new Error(data.error || "Failed to create session");
+                    });
                 }
                 return response.json();
             })
@@ -393,6 +403,7 @@
             })
             .catch(function (error) {
                 console.error("Error:", error);
+                alert("Error: " + error.message);
             });
         });
     }
@@ -456,7 +467,7 @@
                 return;
             }
 
-            fetch("{% url 'create_crypto_transaction' first_product.id 'one_time' %}", {
+            fetch("{% url 'create_crypto_transaction' product.id 'one_time' %}", {
                 method: "POST",
                 headers: {
                     'X-CSRFToken': '{{ csrf_token }}',
@@ -490,7 +501,7 @@
     const backButton = document.getElementById('back-button');
     if (backButton) {
         backButton.addEventListener('click', function () {
-            window.location.href = "{% url 'get_seller_page' first_product.id %}";
+            window.location.href = "{% url 'get_seller_page' product.id %}";
         });
     }
 </script>

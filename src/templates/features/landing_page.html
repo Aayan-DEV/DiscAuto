@@ -186,11 +186,12 @@
             </div>
 
             <!-- Products Grid -->
+            <!-- Products Grid section in landing_page.html -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
                 <!-- Categories -->
                 {% for category in categories %}
-                    {% if category.products.first %}
-                        <a href="{% url 'one_time_product_detail' category.products.first.id %}" class="block category-item">
+                    {% if category.filtered_products.first %}
+                        <a href="{% url 'one_time_product_detail' category.filtered_products.first.id %}" class="block category-item">
                             <div class="product-card bg-white rounded-xl p-4 text-center h-full flex flex-col">
                                 <div class="flex-grow flex items-center justify-center mb-4">
                                     <img src="{{ category.category_image_url }}" alt="{{ category.name }}" 

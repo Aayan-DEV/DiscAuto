@@ -96,12 +96,25 @@ def custom_landing_page(request, custom_link):
     except AutoSell.DoesNotExist:
         raise Http404("The requested landing page does not exist.")
 
-    # Get only the categories that are selected for this landing page
-    categories = OneTimeProductCategory.objects.filter(
+    # Get all categories that are selected for this landing page
+    all_categories = OneTimeProductCategory.objects.filter(
         landing_pages=user_data
     ).prefetch_related('products')
+    
+    # Filter to only include categories that have at least one product assigned to this landing page
+    categories_with_products = []
+    
+    for category in all_categories:
+        # Get products specifically assigned to this landing page
+        products_for_this_page = category.products.filter(landing_pages=user_data)
+        
+        # Only include this category if it has at least one product assigned to this landing page
+        if products_for_this_page.exists():
+            # Store the filtered products with the category for use in the template
+            category.filtered_products = products_for_this_page
+            categories_with_products.append(category)
 
-    # Get unlimited products as before (no changes needed)
+    # Get unlimited products as before
     unlimited_products = UnlimitedProduct.objects.filter(
         landing_pages=user_data
     )
@@ -114,7 +127,7 @@ def custom_landing_page(request, custom_link):
 
     return render(request, 'features/landing_page.html', {
         'user_data': user_data,
-        'categories': categories,
+        'categories': categories_with_products,  # Only pass categories that have products for this page
         'unlimited_products': unlimited_products,
     })
 
