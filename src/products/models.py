@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from decimal import Decimal
+from autosell.models import LandingPage
 
 # This is a function that gets the default category ID if needed for OneTimeProductCategory.
 def get_default_category():
@@ -33,6 +34,22 @@ class OneTimeProductCategory(models.Model):
     category_image_url = models.URLField(max_length=500, null=True, blank=True)
     # Add this new field
     landing_pages = models.ManyToManyField('autosell.AutoSell', blank=True, related_name='one_time_categories')
+
+    def save(self, *args, **kwargs):
+        # First save the category
+        super().save(*args, **kwargs)
+        # Then update all products in this category to match the landing pages
+        if hasattr(self, 'products'):
+            # Get the landing pages
+            auto_sells = self.landing_pages.all()
+            for product in self.products.all():
+                # Clear existing landing pages first
+                product.landing_pages.clear()
+                # For each AutoSell, get or create corresponding LandingPage
+                for auto_sell in auto_sells:
+                    landing_pages = LandingPage.objects.filter(user=auto_sell.user)
+                    if landing_pages.exists():
+                        product.landing_pages.add(*landing_pages)
 
     def __str__(self):
         return f'{self.name} - {self.user.username}'

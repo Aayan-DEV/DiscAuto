@@ -96,6 +96,28 @@ def custom_landing_page(request, custom_link):
     except AutoSell.DoesNotExist:
         raise Http404("The requested landing page does not exist.")
 
+    # Get only the categories that are selected for this landing page
+    categories = OneTimeProductCategory.objects.filter(
+        landing_pages=user_data
+    ).prefetch_related('products')
+
+    # Get unlimited products as before (no changes needed)
+    unlimited_products = UnlimitedProduct.objects.filter(
+        landing_pages=user_data
+    )
+
+    # Record the view
+    AutoSellView.objects.create(
+        auto_sell=user_data,
+        ip_address=request.META.get('REMOTE_ADDR')
+    )
+
+    return render(request, 'features/landing_page.html', {
+        'user_data': user_data,
+        'categories': categories,
+        'unlimited_products': unlimited_products,
+    })
+
     # Check if there's a LandingPage associated with this custom_link
     landing_page = LandingPage.objects.filter(slug=custom_link).first()
     
