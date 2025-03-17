@@ -187,10 +187,10 @@
 
             <!-- Products Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-                <!-- One-Time Product Categories -->
+                <!-- Categories -->
                 {% for category in categories %}
                     {% if category.products.first %}
-                        <a href="{% url 'one_time_product_detail' category.products.first.id %}" class="block">
+                        <a href="{% url 'one_time_product_detail' category.products.first.id %}" class="block category-item">
                             <div class="product-card bg-white rounded-xl p-4 text-center h-full flex flex-col">
                                 <div class="flex-grow flex items-center justify-center mb-4">
                                     <img src="{{ category.category_image_url }}" alt="{{ category.name }}" 
@@ -199,13 +199,21 @@
                                 <h4 class="text-md font-bold category-name text-gray-800">{{ category.name }}</h4>
                             </div>
                         </a>
+                    {% else %}
+                        <div class="product-card bg-white rounded-xl p-4 text-center h-full flex flex-col category-item">
+                            <div class="flex-grow flex items-center justify-center mb-4">
+                                <img src="{{ category.category_image_url }}" alt="{{ category.name }}" 
+                                     class="product-image rounded-lg">
+                            </div>
+                            <h4 class="text-md font-bold category-name text-gray-800">{{ category.name }}</h4>
+                        </div>
                     {% endif %}
                 {% endfor %}
             
                 <!-- Unlimited Products -->
                 {% for product in unlimited_products %}
-                    <a href="{% url 'unlimited_product_detail' product.id %}" class="block">
-                        <div class="product-card product-item bg-white rounded-xl p-4 text-center h-full flex flex-col">
+                    <a href="{% url 'unlimited_product_detail' product.id %}" class="block product-item">
+                        <div class="product-card bg-white rounded-xl p-4 text-center h-full flex flex-col">
                             <div class="flex-grow flex items-center justify-center mb-4">
                                 <img src="{{ product.product_image_url }}" alt="{{ product.title }}" 
                                      class="product-image rounded-lg">
@@ -320,31 +328,3 @@
     </script>
 </body>
 </html>
-
-<!-- Replace the existing category products loop with this -->
-{% for category in categories %}
-    <div class="category-section mb-12">
-        <h3 class="text-xl font-bold mb-4">{{ category.name }}</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% if landing_page %}
-                {% for product in category.filtered_products %}
-                    <!-- Product card HTML -->
-                    <div class="product-card bg-white p-4">
-                        <!-- Your existing product card content -->
-                        <h4>{{ product.title }}</h4>
-                        <!-- Rest of product card -->
-                    </div>
-                {% endfor %}
-            {% else %}
-                {% for product in category.products.all %}
-                    <!-- Product card HTML for when no landing page is specified -->
-                    <div class="product-card bg-white p-4">
-                        <!-- Your existing product card content -->
-                        <h4>{{ product.title }}</h4>
-                        <!-- Rest of product card -->
-                    </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </div>
-{% endfor %}
