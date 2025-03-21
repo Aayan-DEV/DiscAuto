@@ -1,14 +1,18 @@
 from django.contrib import admin
 from .models import PayoutRequest
 
-@admin.register(PayoutRequest)
 class PayoutRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'amount', 'currency', 'payment_method', 'contact_method', 'contact_info', 'created_at')
-    search_fields = ('user__username', 'email', 'currency', 'payment_method')
-    list_filter = ('currency', 'payment_method', 'created_at')
-    ordering = ('-created_at',)
+    list_display = ['user', 'amount', 'currency', 'payout_method', 'status', 'created_at']
+    list_filter = ['currency', 'payout_method', 'status']
+    search_fields = ['user__username', 'payout_address']
+    readonly_fields = ['created_at']
+    
+    fieldsets = [
+        ('User Information', {'fields': ['user']}),
+        ('Payout Details', {'fields': ['amount', 'currency', 'eur_equivalent', 'conversion_fee']}),
+        ('Payment Method', {'fields': ['payout_method', 'payout_address']}),
+        ('Status', {'fields': ['status']}),
+        ('Timestamps', {'fields': ['created_at']}),
+    ]
 
-'''
-Citations: 
-("The Django Admin") -> 4 - 9
-'''
+admin.site.register(PayoutRequest, PayoutRequestAdmin)

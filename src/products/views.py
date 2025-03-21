@@ -1,5 +1,6 @@
 # Imports: 
 from django.shortcuts import render, redirect, get_object_or_404
+import traceback
 from django.contrib.auth.decorators import login_required
 from .models import OneTimeProductCategory, OneTimeProduct, UnlimitedProduct, ProductSale
 from .forms import OneTimeProductCategoryForm, OneTimeProductForm, UnlimitedProductForm
@@ -22,16 +23,8 @@ from decimal import Decimal
 from django.template.loader import render_to_string
 from autosell.models import AutoSell, LandingPage 
 
-# First we check if the application is running in a specific environment, such as on Railway.
-# We do that because i have had issues where the application uses the old .env from its cache rather
-# than updating it and using the new environment variables, so its always good to just override the 
-# variables with the new ones. 
-# We don't do that if the application is running in a production environment because i would place the
-# variables inside of railway and not push my .env file as its sensitive.
 if not os.getenv('RAILWAY_ENVIRONMENT'):
-    # First we override
     load_dotenv(override=True)  
-    # Then we update the current process's environment variables with values from the .env file.
     os.environ.update(dotenv_values())  
 
 # Here we get the Stripe secret key from environment variables.
@@ -58,7 +51,6 @@ coinpayments_client = CoinPayments(
     public_key=COINPAYMENTS_PUBLIC_KEY,
     private_key=COINPAYMENTS_PRIVATE_KEY
 )
-
 
 def send_pushover_notification(user_key, message):
     # First we get the Pushover API token from the environment variables.
@@ -109,7 +101,7 @@ def send_pushover_notification(user_key, message):
 
 # We disable CSRF validation for this view to allow external sources (like API clients) to send POST requests.
 @csrf_exempt
-def create_crypto_transaction(request, product_id, product_type):
+def create_crypto_transaction(request, product_id, product_type): 
     # Here we make sure that the request method is POST before starting.
     if request.method == 'POST':
         # Then we parse the JSON data from the request body to get the transaction details.
@@ -261,7 +253,8 @@ def coinpayments_ipn(request):
                     amount=amount,
                     currency=currency,
                     customer_name=name,
-                    customer_email=email
+                    customer_email=email,
+                    payout_amount=amount
                 )
 
                 # Update the seller's income with the sale amount.
@@ -327,7 +320,8 @@ def coinpayments_ipn(request):
                     amount=amount,
                     currency=currency,
                     customer_name=name,
-                    customer_email=email
+                    customer_email=email,
+                    payout_amount=amount
                 )
 
                 # Update seller's total income.
@@ -500,6 +494,11 @@ def products(request):
     })
 
 @login_required
+def add_product_options(request):
+    # Here we only render the page with options for adding different types of products.
+    return render(request, "features/products/add_product_options.html")
+
+@login_required
 def add_category(request):
     if request.method == 'POST':
         form = OneTimeProductCategoryForm(request.POST, request.FILES)
@@ -582,6 +581,48 @@ def edit_category(request, pk):
         'category': category,
         'landing_pages': landing_pages,
         'selected_landing_pages': selected_landing_pages
+    })
+
+@login_required
+def delete_category(request, pk):
+    # First we get the category by primary key that belongs to the current user.
+    category = get_object_or_404(OneTimeProductCategory, pk=pk, user=request.user)
+
+    # Then we get all the one-time products associated with this category to handle them before deleting the category.
+    one_time_products = OneTimeProduct.objects.filter(category=category)
+
+    # Here we loop through each product in the category to archive all the products from stripe.
+    for product in one_time_products:
+        # If the product has a Stripe product ID, deactivate it on Stripe before deletion.
+        if product.stripe_product_id:
+            try:
+                stripe.Product.modify(
+                    product.stripe_product_id,
+                    active=False  #
+                )
+            except stripe.error.StripeError as e:
+                print(f"Error archiving product {product.title} on Stripe: {e}")
+        
+        # And we also delete the product from database.
+        product.delete()
+
+    # After deleting all the products inside the category, we delete the category too.
+    category.delete()
+
+    # Finally we redirect the user to the main products page.
+    return redirect('products')
+
+@login_required
+def category_detail(request, category_id):
+    category = get_object_or_404(OneTimeProductCategory, id=category_id, user=request.user)
+
+    # First we get all products connected with this category for display in the template.
+    products = category.products.all()
+    
+    # Then we render the category detail template, passing in the category and its products to show on frontend
+    return render(request, 'features/products/category_detail.html', {
+        'category': category,
+        'products': products,
     })
 
 @login_required
@@ -726,6 +767,86 @@ def edit_one_time_product(request, pk):
     })
 
 @login_required
+def delete_one_time_product(request, pk):
+    # Here we first get the one-time product by primary key for the current user’s category.
+    product = get_object_or_404(OneTimeProduct, pk=pk, category__user=request.user)
+    # Then we store the ID of the category that the product belongs to, as we will use it later
+    category_id = product.category.id
+
+    # Here we check if the product has an associated Stripe product ID because we need to archive it from there.
+    if product.stripe_product_id:
+        try:
+            # We deactivate the product on Stripe.
+            stripe.Product.modify(
+                product.stripe_product_id,
+                active=False
+            )
+        # We also handle any errors from Stripe gracefully.
+        except stripe.error.StripeError as e:
+            print(f"Error archiving one-time product on Stripe: {e}")
+
+    # Here we delete the product from the database after archiving it from stripe.
+    product.delete()
+
+    # Finally we redirect the user to the category detail page after successfully deleting the product.
+    return redirect('category_detail', category_id=category_id)
+
+@login_required
+def add_unlimited_product(request):
+    if request.method == 'POST':
+        form = UnlimitedProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            
+            unlimited_product = form.save(commit=False)
+
+            if 'product_image' in request.FILES:
+                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
+                unlimited_product.product_image_url = product_image_url 
+
+            unlimited_product.user = request.user
+            unlimited_product.save()
+
+            # Save landing pages
+            landing_page_ids = request.POST.getlist('landing_pages')
+            if landing_page_ids:
+                unlimited_product.landing_pages.set(landing_page_ids)
+
+            try:
+                stripe_product = stripe.Product.create(
+                    name=unlimited_product.title,
+                    description=unlimited_product.description or "No description provided",
+                    metadata={
+                        'django_product_id': unlimited_product.id
+                    }
+                )
+
+                stripe_price = stripe.Price.create(
+                    product=stripe_product.id,
+                    unit_amount=int(unlimited_product.price * 100),
+                    currency=unlimited_product.currency.lower(),
+                    recurring=None,
+                    tax_behavior='exclusive',
+                )
+
+                unlimited_product.stripe_product_id = stripe_product.id
+                unlimited_product.stripe_price_id = stripe_price.id
+                unlimited_product.save()
+
+            except stripe.error.StripeError as e:
+                print(f"Stripe error: {e}")
+                return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
+
+            return redirect('products')
+    else:
+        form = UnlimitedProductForm(user=request.user)
+
+    landing_pages = AutoSell.objects.filter(user=request.user)
+    return render(request, 'features/products/add_unlimited_product.html', {
+        'form': form,
+        'landing_pages': landing_pages,
+    })
+
+@login_required
 def edit_unlimited_product(request, pk):
     product = get_object_or_404(UnlimitedProduct, pk=pk, user=request.user)
     
@@ -787,121 +908,6 @@ def edit_unlimited_product(request, pk):
     })
 
 @login_required
-def delete_one_time_product(request, pk):
-    # Here we first get the one-time product by primary key for the current user’s category.
-    product = get_object_or_404(OneTimeProduct, pk=pk, category__user=request.user)
-    # Then we store the ID of the category that the product belongs to, as we will use it later
-    category_id = product.category.id
-
-    # Here we check if the product has an associated Stripe product ID because we need to archive it from there.
-    if product.stripe_product_id:
-        try:
-            # We deactivate the product on Stripe.
-            stripe.Product.modify(
-                product.stripe_product_id,
-                active=False
-            )
-        # We also handle any errors from Stripe gracefully.
-        except stripe.error.StripeError as e:
-            print(f"Error archiving one-time product on Stripe: {e}")
-
-    # Here we delete the product from the database after archiving it from stripe.
-    product.delete()
-
-    # Finally we redirect the user to the category detail page after successfully deleting the product.
-    return redirect('category_detail', category_id=category_id)
-
-@login_required
-def delete_category(request, pk):
-    # First we get the category by primary key that belongs to the current user.
-    category = get_object_or_404(OneTimeProductCategory, pk=pk, user=request.user)
-
-    # Then we get all the one-time products associated with this category to handle them before deleting the category.
-    one_time_products = OneTimeProduct.objects.filter(category=category)
-
-    # Here we loop through each product in the category to archive all the products from stripe.
-    for product in one_time_products:
-        # If the product has a Stripe product ID, deactivate it on Stripe before deletion.
-        if product.stripe_product_id:
-            try:
-                stripe.Product.modify(
-                    product.stripe_product_id,
-                    active=False  #
-                )
-            except stripe.error.StripeError as e:
-                print(f"Error archiving product {product.title} on Stripe: {e}")
-        
-        # And we also delete the product from database.
-        product.delete()
-
-    # After deleting all the products inside the category, we delete the category too.
-    category.delete()
-
-    # Finally we redirect the user to the main products page.
-    return redirect('products')
-
-@login_required
-def add_product_options(request):
-    # Here we only render the page with options for adding different types of products.
-    return render(request, "features/products/add_product_options.html")
-
-
-@login_required
-def add_unlimited_product(request):
-    if request.method == 'POST':
-        form = UnlimitedProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            
-            unlimited_product = form.save(commit=False)
-
-            if 'product_image' in request.FILES:
-                product_image_url = upload_to_supabase(request.FILES['product_image'], folder='unlimited_products')
-                unlimited_product.product_image_url = product_image_url 
-
-            unlimited_product.user = request.user
-            unlimited_product.save()
-
-            # Save landing pages
-            landing_page_ids = request.POST.getlist('landing_pages')
-            if landing_page_ids:
-                unlimited_product.landing_pages.set(landing_page_ids)
-
-            try:
-                stripe_product = stripe.Product.create(
-                    name=unlimited_product.title,
-                    description=unlimited_product.description or "No description provided",
-                    metadata={
-                        'django_product_id': unlimited_product.id
-                    }
-                )
-
-                stripe_price = stripe.Price.create(
-                    product=stripe_product.id,
-                    unit_amount=int(unlimited_product.price * 100),
-                    currency=unlimited_product.currency.lower(),
-                    recurring=None,
-                    tax_behavior='exclusive',
-                )
-
-                unlimited_product.stripe_product_id = stripe_product.id
-                unlimited_product.stripe_price_id = stripe_price.id
-                unlimited_product.save()
-
-            except stripe.error.StripeError as e:
-                print(f"Stripe error: {e}")
-                return JsonResponse({'error': f"Stripe error: {e}"}, status=400)
-
-            return redirect('products')
-    else:
-        form = UnlimitedProductForm(user=request.user)
-
-    landing_pages = AutoSell.objects.filter(user=request.user)
-    return render(request, 'features/products/add_unlimited_product.html', {
-        'form': form,
-        'landing_pages': landing_pages,
-    })
-
-@login_required
 def delete_unlimited_product(request, pk):
     product = get_object_or_404(UnlimitedProduct, pk=pk, user=request.user)
 
@@ -922,19 +928,6 @@ def delete_unlimited_product(request, pk):
 
     # We also redirect the user to the products page
     return redirect('products')
-
-@login_required
-def category_detail(request, category_id):
-    category = get_object_or_404(OneTimeProductCategory, id=category_id, user=request.user)
-
-    # First we get all products connected with this category for display in the template.
-    products = category.products.all()
-    
-    # Then we render the category detail template, passing in the category and its products to show on frontend
-    return render(request, 'features/products/category_detail.html', {
-        'category': category,
-        'products': products,
-    })
 
 def product_detail(request, product_id):
     product = get_object_or_404(UnlimitedProduct, id=product_id)
@@ -993,7 +986,8 @@ def create_checkout_session(request, product_id):
                 metadata={
                     'product_id': product.id,
                     'customer_name': customer_name,
-                    'customer_email': customer_email
+                    'customer_email': customer_email,
+                    'product_type': 'unlimited'  # Add product type to metadata
                 }
             )
             print(f"[DEBUG] Checkout session created: {checkout_session.id}")
@@ -1017,32 +1011,39 @@ def create_checkout_session(request, product_id):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 def update_user_income(user, amount, currency):
+    """Update the user's income with the given amount and currency"""
     try:
-        # Debug: Print initial values
-        print(f"[DEBUG] Updating income for user: {user.username}")
-        print(f"[DEBUG] Amount: {amount}, Currency: {currency}")
-
-        # Get or create UserIncome record
+        # Get or create the user's income record
         user_income, created = UserIncome.objects.get_or_create(user=user)
-        print(f"[DEBUG] UserIncome record {'created' if created else 'retrieved'}")
-
-        # Debug: Print current balances before update
-        currency_attribute = f"{currency.lower().replace('.', '_')}_total"
-        current_balance = getattr(user_income, currency_attribute, None)
-        print(f"[DEBUG] Current balance for {currency_attribute}: {current_balance}")
-
-        # Update income and get the result
-        update_result = user_income.update_income(Decimal(str(amount)), currency)
         
-        # Debug: Print new balance after update
-        new_balance = getattr(user_income, currency_attribute, None)
-        print(f"[DEBUG] New balance for {currency_attribute}: {new_balance}")
-        print(f"[DEBUG] Update result: {update_result}")
-
+        # For cryptocurrency payments
+        if currency in ['BTC', 'ETH', 'LTC', 'SOL', 'LTCT']:
+            crypto_field = f"{currency}_TOTAL"
+            if hasattr(user_income, crypto_field):
+                current_value = getattr(user_income, crypto_field)
+                setattr(user_income, crypto_field, current_value + amount)
+                print(f"Updated {crypto_field} for {user.username}: +{amount}")
+        
+        # For USDT variants
+        elif currency.startswith('USDT.'):
+            network = currency.split('.')[1]
+            crypto_field = f"USDT_{network}_TOTAL"
+            if hasattr(user_income, crypto_field):
+                current_value = getattr(user_income, crypto_field)
+                setattr(user_income, crypto_field, current_value + amount)
+                print(f"Updated {crypto_field} for {user.username}: +{amount}")
+        
+        # For fiat currencies
+        else:
+            # Only update EUR_TOTAL with the net payout amount
+            if currency == 'EUR':
+                user_income.EUR_TOTAL += amount
+                print(f"Updated EUR_TOTAL with net payout amount: +{amount}")
+        
+        user_income.save()
         return True
     except Exception as e:
-        print(f"[ERROR] Failed to update user income: {str(e)}")
-        print(f"[ERROR] Traceback: ", traceback.format_exc())
+        print(f"Error updating user income: {str(e)}")
         return False
 
 def checkout_cancel(request):
@@ -1062,11 +1063,30 @@ def checkout_success(request):
         product_id = session.metadata.get('product_id')
         customer_name = session.metadata.get('customer_name')
         customer_email = session.metadata.get('customer_email')
+        product_type = session.metadata.get('product_type', 'unlimited')  # Default to unlimited if not specified
+
+        # Get amount and currency
+        amount = session.amount_total / 100
+        currency = session.currency.upper()
         
-        # Get the product
-        product = UnlimitedProduct.objects.filter(id=product_id).first()
+        # Calculate initial converted amount in EUR (will be updated later)
+        converted_amount_eur = None
+        if currency != 'EUR':
+            exchange_rates = {'USD': 0.92, 'GBP': 1.17}
+            if currency in exchange_rates:
+                converted_amount_eur = Decimal(str(amount * exchange_rates[currency])).quantize(Decimal('0.01'))
+        else:
+            converted_amount_eur = Decimal(str(amount)).quantize(Decimal('0.01'))
         
-        if not product:
+        # Get the product based on product type
+        if product_type == 'one_time':
+            product = OneTimeProduct.objects.filter(id=product_id).first()
+            user = product.category.user if product else None
+        else:  # unlimited product
+            product = UnlimitedProduct.objects.filter(id=product_id).first()
+            user = product.user if product else None
+        
+        if not product or not user:
             return render(request, 'checkout/checkout_success.html', {'error': 'Product not found'})
 
         # Prepare context for the template
@@ -1080,21 +1100,23 @@ def checkout_success(request):
         }
         
         # Record the sale in database
-        ProductSale.objects.create(
-            user=product.user,
-            unlimited_product=product,
+        sale = ProductSale.objects.create(
+            user=user,
+            product=product if product_type == 'one_time' else None,
+            unlimited_product=product if product_type == 'unlimited' else None,
             stripe_session_id=session_id,
             amount=session.amount_total / 100,
             currency=session.currency.upper(),
             customer_name=customer_name,
-            customer_email=customer_email
+            customer_email=customer_email,
+            converted_amount_eur=converted_amount_eur,  # Initial value, will be updated
         )
 
-        # Update the user's income
-        update_user_income(product.user, session.amount_total / 100, session.currency.upper())
+        # Calculate and update fee details using the consolidated function
+        calculate_stripe_sale_details(sale, session_id)
 
         # Get AutoSell info for email sending
-        autosell_info = AutoSell.objects.filter(user=product.user).first()
+        autosell_info = AutoSell.objects.filter(user=user).first()
         from_name = autosell_info.name if autosell_info else "Mystorelink"
         from_email = f"{from_name} <{EMAIL_HOST_USER}>"
 
@@ -1102,58 +1124,97 @@ def checkout_success(request):
         unique_hash = str(uuid.uuid4())
 
         # Send confirmation email to customer
-        customer_subject = f"Your purchase of {product.title}"
-        customer_html_template = render_to_string("emails/purchase_confirmation.html", {
-            "customer_name": customer_name,
-            "product_title": product.title,
-            "download_link": product.link,
-            "amount": session.amount_total / 100,
-            "currency": session.currency.upper(),
-            "unique_hash": unique_hash
-        })
+        if product_type == 'one_time':
+            # One-time product email template
+            customer_subject = f"Your purchase of {product.title}"
+            customer_html_template = render_to_string("emails/one_time_product_purchase_confirmation.html", {
+                "customer_name": customer_name,
+                "product_title": product.title,
+                "product_content": product.product_content, 
+                "amount": session.amount_total / 100,
+                "currency": session.currency.upper(),
+                "unique_hash": unique_hash
+            })
+        else:
+            # Unlimited product email template
+            customer_subject = f"Your purchase of {product.title}"
+            customer_html_template = render_to_string("emails/purchase_confirmation.html", {
+                "customer_name": customer_name,
+                "product_title": product.title,
+                "download_link": product.link,
+                "amount": session.amount_total / 100,
+                "currency": session.currency.upper(),
+                "unique_hash": unique_hash
+            })
         
-        customer_email = EmailMultiAlternatives(
+        customer_email_msg = EmailMultiAlternatives(
             subject=customer_subject,
             body=f"Hi {customer_name},\n\nThank you for your purchase!",
             from_email=from_email,
             to=[customer_email]
         )
-        customer_email.attach_alternative(customer_html_template, "text/html")
-        customer_email.send()
+        customer_email_msg.attach_alternative(customer_html_template, "text/html")
+        customer_email_msg.send()
 
         # Send notification email to product owner
-        owner_subject = f"New order: {product.price} {product.currency} from {customer_name}"
-        owner_html_content = render_to_string("emails/sale_notification.html", {
-            "username": product.user.username,
-            "customer_name": customer_name,
-            "product_title": product.title,
-            "customer_email": session.metadata.get('customer_email'),  # Use the email string directly
-            "amount": session.amount_total / 100,
-            "currency": session.currency.upper(),
-            "unique_hash": unique_hash
-        })
+        if product_type == 'one_time':
+            owner_subject = f"New Order for {product.title} from {customer_name}"
+            owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
+                "username": user.username,
+                "product_title": product.title,
+                "customer_name": customer_name,
+                "customer_email": customer_email,
+                "amount": session.amount_total / 100,
+                "currency": session.currency.upper(),
+                "unique_hash": unique_hash
+            })
+        else:
+            owner_subject = f"New order: {product.price} {product.currency} from {customer_name}"
+            owner_html_content = render_to_string("emails/sale_notification.html", {
+                "username": user.username,
+                "customer_name": customer_name,
+                "product_title": product.title,
+                "customer_email": customer_email,
+                "amount": session.amount_total / 100,
+                "currency": session.currency.upper(),
+                "unique_hash": unique_hash
+            })
         
         owner_email = EmailMultiAlternatives(
             subject=owner_subject,
-            body=f"Congratulations on your sale {product.user.username}!",
+            body=f"Congratulations on your sale {user.username}!",
             from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
-            to=[product.user.email]
+            to=[user.email]
         )
         owner_email.attach_alternative(owner_html_content, "text/html")
         owner_email.send()
 
         # Send Pushover notification if enabled
-        profile, created = UserProfile.objects.get_or_create(user=product.user)
+        profile, created = UserProfile.objects.get_or_create(user=user)
         if profile.pushover_user_key:
             message = f"🎉 {customer_name} ordered 1 item from your store!"
             send_pushover_notification(profile.pushover_user_key, message)
 
-        # Render success template with context
+        # For one-time products, delete the product after purchase
+        if product_type == 'one_time':
+            try:
+                stripe.Product.modify(product.stripe_product_id, active=False)
+                product.delete()
+            except Exception as e:
+                print(f"Error archiving/deleting one-time product: {str(e)}")
+
+            # Redirect to previous page for one-time products
+            previous_url = request.session.get('previous_url', '/')
+            return redirect(previous_url)
+
+        # Render success template with context for unlimited products
         return render(request, 'checkout/checkout_success.html', context)
 
     except stripe.error.StripeError as e:
         return render(request, 'checkout/checkout_success.html', {'error': str(e)})
     except Exception as e:
+        print(f"Checkout success error: {str(e)}")
+        print(traceback.format_exc())
         return render(request, 'checkout/checkout_success.html', {'error': 'An unexpected error occurred'})
 
 def one_time_product_detail(request, product_id):
@@ -1177,7 +1238,6 @@ def unlimited_product_detail(request, product_id):
         'STRIPE_PUBLISHABLE_KEY': STRIPE_PUBLISHABLE_KEY  
     })
 
-# Add this function if it doesn't exist or update it if it does
 @csrf_exempt
 def create_one_time_checkout_session(request, product_id):
     if request.method != 'POST':
@@ -1206,13 +1266,14 @@ def create_one_time_checkout_session(request, product_id):
                 },
             ],
             mode='payment',
-            success_url=request.build_absolute_uri(reverse('one_time_checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
+            success_url=request.build_absolute_uri(reverse('checkout_success')) + '?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=request.build_absolute_uri(reverse('checkout_cancel')),
             customer_email=email,
             metadata={
                 'product_id': product_id,
                 'customer_name': name,
-                'customer_email': email
+                'customer_email': email,
+                'product_type': 'one_time'  # Add product type to metadata
             }
         )
         
@@ -1225,90 +1286,292 @@ def create_one_time_checkout_session(request, product_id):
         print(f"Error creating checkout session: {str(e)}")
         return JsonResponse({'error': 'Server error'}, status=500)
 
-# Here we handle successful checkout for a one-time product purchase.
 def one_time_checkout_success(request):
-    session_id = request.GET.get('session_id')
-    # Here it gets the Stripe checkout session to see metadata and payment details
-    session = stripe.checkout.Session.retrieve(session_id)
-
-    # Then we take out the product and customer details from the session metadata
-    product_id = session.metadata.get('product_id')
-    customer_name = session.metadata.get('customer_name')
-    customer_email = session.metadata.get('customer_email')
-
-    # Then we get the one-time product by ID
-    product = get_object_or_404(OneTimeProduct, id=product_id)
-
-    # Here we create a new record of the sale in the ProductSale model.
-    ProductSale.objects.create(
-        user=product.category.user,  
-        product=product, 
-        stripe_session_id=session_id,
-        amount=session.amount_total / 100,  
-        currency=session.currency.upper(),
-        customer_name=customer_name, 
-        customer_email=customer_email 
-    )
-
-    # Here we get the product owner's AutoSell information to send them a email.
-    user = product.category.user
-    autosell_info = AutoSell.objects.filter(user=user).first()
-    from_name = autosell_info.name if autosell_info else "Mystorelink"
-    from_email = f"{from_name} <{EMAIL_HOST_USER}>"
-
-    unique_hash = str(uuid.uuid4())
-
-    customer_subject = f"Your purchase of {product.title}"
-    customer_html_template = render_to_string("emails/one_time_product_purchase_confirmation.html", {
-        "customer_name": customer_name,
-        "product_title": product.title,
-        "product_content": product.product_content, 
-        "amount": session.amount_total / 100,
-        "currency": session.currency.upper(),
-        "unique_hash": unique_hash
-    })
-    customer_email_message = EmailMultiAlternatives(
-        subject=customer_subject,
-        body=f"Hi {customer_name},\n\nThank you for your purchase!",
-        from_email=from_email,
-        to=[customer_email]
-    )
-    customer_email_message.attach_alternative(customer_html_template, "text/html")
-    customer_email_message.send()
-
-    owner_subject = f"New Order for {product.title} from {customer_name}"
-    owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
-        "username": product.category.user.username,
-        "product_title": product.title,
-        "customer_name": customer_name,
-        "customer_email": customer_email,
-        "amount": session.amount_total / 100,
-        "currency": session.currency.upper(),
-        "unique_hash": unique_hash
-    })
-    owner_email_message = EmailMultiAlternatives(
-        subject=owner_subject,
-        body=f"Congratulations on your sale {product.category.user.username}!",
-        from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
-        to=[product.category.user.email]
-    )
-    owner_email_message.attach_alternative(owner_html_content, "text/html")
-    owner_email_message.send()
-
-    profile, created = UserProfile.objects.get_or_create(user=product.category.user)
-    owner_pushover_key = profile.pushover_user_key
-    if owner_pushover_key:
-        message = f"🎉 {customer_name} ordered 1 item from your store!"
-        send_pushover_notification(owner_pushover_key, message)
-
-    update_user_income(product.category.user, session.amount_total / 100, session.currency.upper())
-
     try:
-        stripe.Product.modify(product.stripe_product_id, active=False)
+        session_id = request.GET.get('session_id')
+        if not session_id:
+            return render(request, 'checkout/checkout_success.html', {'error': 'No session ID provided'})
+            
+        # Here it gets the Stripe checkout session to see metadata and payment details
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        # Then we take out the product and customer details from the session metadata
+        product_id = session.metadata.get('product_id')
+        customer_name = session.metadata.get('customer_name')
+        customer_email = session.metadata.get('customer_email')
+
+        # Then we get the one-time product by ID
+        product = get_object_or_404(OneTimeProduct, id=product_id)
+
+        # Get the amount and currency from the session
+        amount = session.amount_total / 100
+        currency = session.currency.upper()
+        
+        # Calculate initial converted amount in EUR (will be updated later)
+        converted_amount_eur = None
+        if currency != 'EUR':
+            exchange_rates = {'USD': 0.92, 'GBP': 1.17}
+            if currency in exchange_rates:
+                converted_amount_eur = Decimal(str(amount * exchange_rates[currency])).quantize(Decimal('0.01'))
+        else:
+            converted_amount_eur = Decimal(str(amount)).quantize(Decimal('0.01'))
+
+        # Here we create a new record of the sale in the ProductSale model.
+        sale = ProductSale.objects.create(
+            user=product.category.user,  
+            product=product, 
+            stripe_session_id=session_id,
+            amount=amount,  
+            currency=currency,
+            customer_name=customer_name, 
+            customer_email=customer_email,
+            converted_amount_eur=converted_amount_eur,  # Initial value, will be updated
+        )
+
+        # Use the consolidated function to calculate and update fee details
+        calculation_result = calculate_stripe_sale_details(sale, session_id)
+        
+        if not calculation_result['success']:
+            print(f"Warning: Failed to calculate fee details: {calculation_result.get('error')}")
+            # Continue with the checkout process even if fee details couldn't be fetched
+
+        # Here we get the product owner's AutoSell information to send them a email.
+        user = product.category.user
+        autosell_info = AutoSell.objects.filter(user=user).first()
+        from_name = autosell_info.name if autosell_info else "Mystorelink"
+        from_email = f"{from_name} <{EMAIL_HOST_USER}>"
+
+        unique_hash = str(uuid.uuid4())
+
+        # Send confirmation email to customer
+        customer_subject = f"Your purchase of {product.title}"
+        customer_html_template = render_to_string("emails/one_time_product_purchase_confirmation.html", {
+            "customer_name": customer_name,
+            "product_title": product.title,
+            "product_content": product.product_content, 
+            "amount": session.amount_total / 100,
+            "currency": session.currency.upper(),
+            "unique_hash": unique_hash
+        })
+        customer_email_message = EmailMultiAlternatives(
+            subject=customer_subject,
+            body=f"Hi {customer_name},\n\nThank you for your purchase!",
+            from_email=from_email,
+            to=[customer_email]
+        )
+        customer_email_message.attach_alternative(customer_html_template, "text/html")
+        customer_email_message.send()
+
+        # Send notification email to product owner
+        owner_subject = f"New Order for {product.title} from {customer_name}"
+        owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
+            "username": product.category.user.username,
+            "product_title": product.title,
+            "customer_name": customer_name,
+            "customer_email": customer_email,
+            "amount": session.amount_total / 100,
+            "currency": session.currency.upper(),
+            "unique_hash": unique_hash
+        })
+        owner_email_message = EmailMultiAlternatives(
+            subject=owner_subject,
+            body=f"Congratulations on your sale {product.category.user.username}!",
+            from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
+            to=[product.category.user.email]
+        )
+        owner_email_message.attach_alternative(owner_html_content, "text/html")
+        owner_email_message.send()
+
+        # Send Pushover notification if enabled
+        profile, created = UserProfile.objects.get_or_create(user=product.category.user)
+        owner_pushover_key = profile.pushover_user_key
+        if owner_pushover_key:
+            message = f"🎉 {customer_name} ordered 1 item from your store!"
+            send_pushover_notification(owner_pushover_key, message)
+
+        # Archive the Stripe product and delete the one-time product
+        try:
+            stripe.Product.modify(product.stripe_product_id, active=False)
+        except stripe.error.StripeError as e:
+            print(f"Error archiving product on Stripe: {e}")
+
+        product.delete()
+
+        # Redirect to previous page
+        previous_url = request.session.get('previous_url', '/')
+        return redirect(previous_url)
+        
     except stripe.error.StripeError as e:
-        print(f"Error archiving product on Stripe: {e}")
+        print(f"Stripe error in one_time_checkout_success: {str(e)}")
+        return render(request, 'checkout/checkout_success.html', {'error': str(e)})
+    except Exception as e:
+        print(f"Error in one_time_checkout_success: {str(e)}")
+        print(traceback.format_exc())
+        return render(request, 'checkout/checkout_success.html', {'error': 'An unexpected error occurred'})
 
-    product.delete()
 
-    previous_url = request.session.get('previous_url', '/')
-    return redirect(previous_url)
+def calculate_stripe_sale_details(sale, session_id=None):
+    """
+    Calculate and update all Stripe sale details for a given ProductSale object.
+    
+    Args:
+        sale: The ProductSale object to update
+        session_id: Optional session ID if not already set on the sale object
+    
+    Returns:
+        dict: Dictionary containing the calculated values
+    """
+    try:
+        # Use provided session_id or get from sale object
+        stripe_session_id = session_id or sale.stripe_session_id
+        
+        # Skip if already calculated and no session_id provided
+        if sale.fee_details_fetched and not session_id:
+            print(f"Fee details already fetched for sale {sale.id}")
+            return {
+                'stripe_fee': sale.stripe_fee,
+                'platform_fee': sale.platform_fee,
+                'payout_amount': sale.payout_amount,
+                'converted_amount_eur': sale.converted_amount_eur,
+                'success': True
+            }
+        
+        # Retrieve the checkout session from Stripe
+        session = stripe.checkout.Session.retrieve(stripe_session_id)
+        
+        # Get the payment intent ID
+        payment_intent_id = session.payment_intent
+        
+        if not payment_intent_id:
+            print("No payment intent ID found in the session")
+            return {'success': False, 'error': 'No payment intent ID found'}
+        
+        # Retrieve the payment intent
+        payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+        
+        # Get the latest charge directly from the payment intent ID
+        charges = stripe.Charge.list(payment_intent=payment_intent_id)
+        
+        if not charges or len(charges.data) == 0:
+            print(f"No charges found for payment intent: {payment_intent_id}")
+            return {'success': False, 'error': 'No charges found'}
+        
+        charge = charges.data[0]
+        
+        # Get the balance transaction to access fee details
+        balance_transaction = stripe.BalanceTransaction.retrieve(charge.balance_transaction)
+        
+        # Extract fee details
+        amount = balance_transaction.amount / 100  # Convert from cents
+        stripe_fee = balance_transaction.fee / 100  # Stripe's fee (already includes tax)
+        
+        # Calculate platform fee (1.5%)
+        platform_fee = amount * 0.015
+        
+        # Calculate net payout
+        net_payout = amount - stripe_fee - platform_fee
+        
+        # Handle currency conversion to EUR
+        if sale.currency != 'EUR':
+            # For non-EUR currencies, just use the sum of components
+            net_payout_eur = Decimal(str(net_payout)).quantize(Decimal('0.01'))
+            converted_amount_eur = net_payout + stripe_fee + platform_fee
+            converted_amount_eur = Decimal(str(converted_amount_eur)).quantize(Decimal('0.01'))
+            print(f"Amount calculated from components: {converted_amount_eur}")
+        else:
+            # Already in EUR, no conversion needed
+            net_payout_eur = Decimal(str(net_payout)).quantize(Decimal('0.01'))
+            converted_amount_eur = Decimal(str(amount)).quantize(Decimal('0.01'))
+            print(f"Amount already in EUR: {converted_amount_eur}")
+
+        # Update the sale record with fee details
+        sale.stripe_fee = Decimal(str(stripe_fee))
+        sale.platform_fee = Decimal(str(platform_fee))
+        sale.payout_amount = Decimal(str(net_payout)) 
+        sale.converted_amount_eur = converted_amount_eur
+        sale.fee_details_fetched = True
+        sale.save()
+        
+        # Update user's income with the net payout amount in EUR
+        if net_payout_eur is not None:
+            user = sale.user
+            # Use the net payout amount directly, not the converted amount
+            update_user_income(user, float(net_payout_eur), 'EUR')
+            print(f"Updated user income with net payout amount: {net_payout_eur}")
+        
+        print(f"Updated sale {sale.id} with fee details: Stripe fee: {stripe_fee}, Platform fee: {platform_fee}, Net payout: {net_payout}, Converted amount: {converted_amount_eur}")
+        
+        return {
+            'stripe_fee': stripe_fee,
+            'platform_fee': platform_fee,
+            'payout_amount': net_payout,
+            'net_payout_eur': net_payout_eur,
+            'converted_amount_eur': converted_amount_eur,
+            'success': True
+        }
+        
+    except Exception as e:
+        print(f"Error calculating Stripe sale details: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return {'success': False, 'error': str(e)}
+
+
+@login_required
+def get_sale_details(request, sale_id):
+    try:
+        # Get the sale object
+        sale = get_object_or_404(ProductSale, id=sale_id)
+        
+        # Check if the user is authorized to view this sale
+        if sale.user != request.user:
+            return JsonResponse({'error': 'You are not authorized to view this sale'}, status=403)
+        
+        # If fee details haven't been fetched yet, try to get them using the consolidated function
+        if not sale.fee_details_fetched:
+            calculation_result = calculate_stripe_sale_details(sale)
+            if not calculation_result['success']:
+                print(f"Warning: Failed to calculate fee details: {calculation_result.get('error')}")
+                return JsonResponse({'error': 'Failed to retrieve fee details'}, status=500)
+        
+        # Prepare the response data from the database
+        response_data = {
+            'id': sale.id,
+            'currency': sale.currency,
+            'amount': float(sale.amount),
+            'customer_name': sale.customer_name,
+            'customer_email': sale.customer_email,
+            'created_at': sale.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'fee_details_fetched': sale.fee_details_fetched
+        }
+        
+        # Add fee details if available
+        if sale.stripe_fee is not None:
+            response_data['stripe_fee'] = float(sale.stripe_fee)
+        else:
+            response_data['stripe_fee'] = 0.0
+        
+        if sale.platform_fee is not None:
+            response_data['platform_fee'] = float(sale.platform_fee)
+        else:
+            response_data['platform_fee'] = 0.0
+        
+        if sale.payout_amount is not None:
+            response_data['payout_amount'] = float(sale.payout_amount)
+        else:
+            response_data['payout_amount'] = 0.0
+        
+        # Add converted amount if available
+        if sale.converted_amount_eur is not None:
+            response_data['converted_amount_eur'] = float(sale.converted_amount_eur)
+        else:
+            response_data['converted_amount_eur'] = 0.0
+        
+        print(f"Returning sale details for sale {sale_id}: {response_data}")
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        print(f"Error retrieving sale details: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return JsonResponse({'error': 'An error occurred while retrieving sale details'}, status=500)

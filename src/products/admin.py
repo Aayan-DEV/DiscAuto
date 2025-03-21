@@ -61,11 +61,21 @@ class ProductSaleAdmin(admin.ModelAdmin):
 # Here we register the UserIncome model with custom admin settings for managing user earnings.
 @admin.register(UserIncome)
 class UserIncomeAdmin(admin.ModelAdmin):
-    # We can display user earnings in list view. The major ones first and the less important ones later. 
-    list_display = ('user', 'usd_total', 'gbp_total', 'eur_total', 'btc_total', 'ltc_total', 'sol_total', 'eth_total',
-                    'usdt_bep20_total', 'usdt_erc20_total', 'usdt_prc20_total', 'usdt_sol_total', 'usdt_trc20_total')
-    # Here we allow searching by username.
-    search_fields = ('user__username',)
+    list_display = [
+        'user', 
+        'EUR_TOTAL',  # Keep only EUR_TOTAL for fiat currencies
+        'BTC_TOTAL', 
+        'ETH_TOTAL', 
+        'LTC_TOTAL', 
+        'SOL_TOTAL',
+        'USDT_BEP20_TOTAL', 
+        'USDT_ERC20_TOTAL', 
+        'USDT_PRC20_TOTAL',
+        'USDT_SOL_TOTAL',
+        'USDT_TRC20_TOTAL',
+        'LTCT_TOTAL'
+    ]
+    search_fields = ['user__username', 'user__email']
     # The order would be using the username. 
     ordering = ('user',)
 

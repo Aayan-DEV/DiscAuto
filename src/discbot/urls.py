@@ -21,6 +21,10 @@ urlpatterns = [
     path("hello-world/", home_view),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),  
     path('dashboard/get-chart-data/', dashboard_views.get_chart_data, name='get_chart_data'),  # Updated path
+    # Add this to your urlpatterns
+    path('dashboard/refresh-income/', dashboard_views.refresh_income, name='refresh_income'),
+    # Add this new URL pattern for get_sale_details
+    path('products/get-sale-details/<int:sale_id>/', products_views.get_sale_details, name='get_sale_details'),
     path("", home_view, name="home"),
     path("contact/", contact, name="contact"),
     path('admin/', admin.site.urls),
@@ -48,7 +52,6 @@ urlpatterns = [
     path('auto-sell/delete/<int:auto_sell_id>/', autosell_views.delete_lander, name='delete_lander'),
     path('live-search/<str:custom_link>/', autosell_views.live_search, name='live_search'),
     path("checkout/sub-price/<int:price_id>/", checkout_views.product_price_redirect_view, name='sub-price-checkout'),
-    # Update these specific paths
     path('create-checkout-session/<int:product_id>/', products_views.create_checkout_session, name='create_checkout_session'),
     path('checkout/cancel/', products_views.checkout_cancel, name='checkout_cancel'),
     path('products/edit/unlimited/<int:pk>/', products_views.edit_unlimited_product, name='edit_unlimited_product'),
@@ -72,10 +75,11 @@ urlpatterns = [
     # path('refresh-sales/', products_views.refresh_sales, name='refresh_sales'),
     # Replace the existing auto-sell URL with these new ones
     # Update these URL patterns
-    
 ]
 
 if settings.DEBUG:
     # Add this to your urlpatterns
-    path('landing/<str:slug>/', autosell_views.landing_page_view, name='landing_page_view'),
+    urlpatterns += [
+        path('landing/<str:slug>/', autosell_views.landing_page_view, name='landing_page_view'),
+    ]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

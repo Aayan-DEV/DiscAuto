@@ -1,3 +1,4 @@
+
 {% extends "dashboard/base.html" %}
 {% block head_title %} Dashboard - {{ block.super }} {% endblock head_title %}
 {% block content %}
@@ -38,6 +39,14 @@
             <option value="combined">Combined Graph</option>
         </select>
     </div>
+    <div class="flex items-center gap-2">
+        <label class="text-white text-sm">Currency:</label>
+        <select id="currencyType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+        </select>
+    </div>
 </div>
 
 <!-- Chart Container with Responsive Grid -->
@@ -47,7 +56,7 @@
         <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
             <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
                 <span class="material-icons">trending_up</span>
-                Sales (in USD)
+                Sales (<span class="currency-label">USD</span>)
             </h3>
             <div class="relative h-[200px] sm:h-[250px] md:h-[300px]" id="salesChartContainer">
                 <canvas id="salesChart"></canvas>
@@ -85,7 +94,7 @@
         <h2 class="text-2xl font-bold flex items-center gap-2">
             <span class="material-icons">receipt_long</span>
             Recent Sales
-        </h2>
+            </h2>
         <button id="viewAllSalesBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition-colors">
             <span class="material-icons text-sm">visibility</span>
             <span>View All</span>
@@ -101,6 +110,7 @@
                             <th class="px-4 py-3 text-left">Customer</th>
                             <th class="px-4 py-3 text-left">Product</th>
                             <th class="px-4 py-3 text-left">Amount</th>
+                            <th class="px-4 py-3 text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="salesTableBody" class="divide-y divide-[#359271]/10">
@@ -126,6 +136,42 @@
                                 {% if sale.currency == "USD" %}${% elif sale.currency == "GBP" %}£{% elif sale.currency == "EUR" %}€{% endif %}
                                 {{ sale.amount }} {{ sale.currency }}
                             </td>
+                            <td class="px-4 py-3">
+                                <button class="details-btn bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors" data-sale-id="{{ sale.id }}">
+                                    <span class="material-icons text-sm">info</span>
+                                    <span>Details</span>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="details-row hidden" id="details-{{ sale.id }}">
+                            <td colspan="4" class="px-4 py-3 bg-gray-900/50">
+                                <div class="details-content p-3 rounded-lg border border-[#359271]/20">
+                                    <div class="text-center mb-2">
+                                        <span class="loading-spinner hidden">
+                                            <span class="material-icons animate-spin">refresh</span> Loading details...
+                                        </span>
+                                    </div>
+                                    <div class="fee-details hidden">
+                                        <div class="grid grid-cols-2 gap-1 text-sm">
+                                            <div class="text-gray-300">Gross Amount:</div>
+                                            <div class="text-right font-medium text-white gross-amount">$0.00</div>
+                                            
+                                            <div class="text-gray-300 converted-amount-row">EUR Amount (Converted):</div>
+                                            <div class="text-right font-medium text-white converted-amount">€0.00</div>
+                                            
+                                            <div class="text-gray-300">Stripe Fee:</div>
+                                            <div class="text-right font-medium text-red-400 stripe-fee">-$0.00</div>
+                                            
+                                            <div class="text-gray-300">Platform Fee (1.5%):</div>
+                                            <div class="text-right font-medium text-red-400 platform-fee">-$0.00</div>
+                                            
+                                            <div class="text-gray-300 font-bold">Net Payout:</div>
+                                            <div class="text-right font-bold text-[#359271] payout-amount">$0.00</div>
+                                        </div>
+                                    </div>
+                                    <div class="error-message text-red-400 text-center hidden"></div>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -146,7 +192,6 @@
     </div>
 </div>
 
-<!-- Account Balances Section -->
 <div class="pt-8 px-4">
     <div class="text-[#359271] mb-4">
         <h2 class="text-2xl font-bold flex items-center gap-2">
@@ -154,16 +199,189 @@
             Account Balances
         </h2>
     </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for currency, amount in user_income.items %}
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex justify-between items-center">
-                <span class="text-white font-medium">{{ currency|upper|cut:"_TOTAL" }}</span>
-                <span class="text-lg font-bold text-[#359271]">{{ amount }}</span>
+        
+        <!-- EUR Income Card -->
+    <div class="income-card bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-gray-400 text-sm">Total Income</h3>
+                <div class="flex items-baseline mt-1">
+                    <span class="text-2xl font-bold text-white">€</span>
+                    <span id="eur-total" class="text-3xl font-bold text-white amount">Loading...</span>
+                </div>
+                <span class="currency-label text-sm text-gray-400">EUR</span>
+            </div>
+            <div class="bg-[#359271]/20 p-3 rounded-full">
+                <span class="material-icons text-[#359271]">euro</span>
             </div>
         </div>
-        {% endfor %}
+    </div>
+    <!-- Cryptocurrency Balances -->
+    <h3 class="text-xl font-bold text-[#359271] mb-4 flex items-center gap-2">
+        <span class="material-icons">currency_bitcoin</span>
+        Cryptocurrency Balances
+    </h3>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Bitcoin -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="btc-total" class="text-2xl font-bold text-white">{{ formatted_income.BTC_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">BTC</span>
+                </div>
+                <div class="bg-[#f7931a]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#f7931a]">currency_bitcoin</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ethereum -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="eth-total" class="text-2xl font-bold text-white">{{ formatted_income.ETH_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">ETH</span>
+                </div>
+                <div class="bg-[#627eea]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#627eea]">diamond</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Litecoin -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="ltc-total" class="text-2xl font-bold text-white">{{ formatted_income.LTC_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">LTC</span>
+                </div>
+                <div class="bg-[#b8b8b8]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#b8b8b8]">monetization_on</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Solana -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="sol-total" class="text-2xl font-bold text-white">{{ formatted_income.SOL_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">SOL</span>
+                </div>
+                <div class="bg-[#00ffbd]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#00ffbd]">bolt</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USDT TRC20 -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="usdt-trc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_TRC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">USDT (TRC20)</span>
+                </div>
+                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USDT ERC20 -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="usdt-erc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_ERC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">USDT (ERC20)</span>
+                </div>
+                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USDT BEP20 -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="usdt-bep20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_BEP20_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">USDT (BEP20)</span>
+                </div>
+                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USDT SOL -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="usdt-sol-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_SOL_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">USDT (SOL)</span>
+                </div>
+                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- USDT PRC20 -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="usdt-prc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_PRC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">USDT (PRC20)</span>
+                </div>
+                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- LTCT -->
+        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-gray-400 text-sm">Balance</h3>
+                    <div class="flex items-baseline mt-1">
+                        <span id="ltct-total" class="text-2xl font-bold text-white">{{ formatted_income.LTCT_TOTAL }}</span>
+                    </div>
+                    <span class="text-sm text-gray-400">LTCT</span>
+                </div>
+                <div class="bg-[#b8b8b8]/20 p-3 rounded-full">
+                    <span class="material-icons text-[#b8b8b8]">monetization_on</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -175,20 +393,55 @@
             Request Payout
         </h2>
     </div>
-
+    
     <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
         <form method="post" class="space-y-4">
             {% csrf_token %}
-            {% for field in payout_form %}
-            <div class="space-y-2">
-                <label class="block text-white">{{ field.label }}</label>
-                {% render_field field class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/20 focus:border-[#359271] focus:ring-1 focus:ring-[#359271] outline-none" %}
+            <input type="hidden" name="payout_form" value="1">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ payout_form.amount.id_for_label }}" class="block text-white mb-2">Amount</label>
+                    {% render_field payout_form.amount class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" placeholder="Enter amount" %}
+                    {% if payout_form.amount.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ payout_form.amount.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ payout_form.currency.id_for_label }}" class="block text-white mb-2">Currency</label>
+                    {% render_field payout_form.currency class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" %}
+                    {% if payout_form.currency.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ payout_form.currency.errors.0 }}</p>
+                    {% endif %}
+                    <div id="conversion-fee-warning" class="hidden text-yellow-400 text-sm mt-1">
+                        Note: A 2% conversion fee applies for payouts in USD and GBP. No fee for EUR payouts.
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ payout_form.payout_method.id_for_label }}" class="block text-white mb-2">Payout Method</label>
+                    {% render_field payout_form.payout_method class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" %}
+                    {% if payout_form.payout_method.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ payout_form.payout_method.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ payout_form.payout_address.id_for_label }}" class="block text-white mb-2">Payout Address</label>
+                    {% render_field payout_form.payout_address class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" placeholder="Enter your payout address" %}
+                    {% if payout_form.payout_address.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ payout_form.payout_address.errors.0 }}</p>
+                    {% endif %}
+                </div>
             </div>
-            {% endfor %}
-            <button type="submit" name="payout_form" class="w-full bg-gradient-to-r from-[#359271] to-[#2d4b50] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                <span class="material-icons">send</span>
-                Request Payout
-            </button>
+            
+            <div class="mt-6">
+                <button type="submit" class="w-full bg-[#359271] hover:bg-[#2a7259] text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <span class="material-icons">payments</span>
+                    Request Payout
+                </button>
+            </div>
         </form>
     </div>
 </div>
@@ -256,17 +509,1181 @@
             max-height: 250px;
         }
     }
+
+
+    body {
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Mobile table adjustments */
+        table {
+            font-size: 0.8rem;
+        }
+        
+        th, td {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Ensure pagination is properly sized on mobile */
+        #salesPagination {
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        /* Adjust button sizes for better touch targets */
+        button {
+            min-height: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(53, 146, 113, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(53, 146, 113, 0.5);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(53, 146, 113, 0.7);
+    }
+    
+    /* Ensure table is responsive */
+    @media (max-width: 480px) {
+        #salesTableContainer {
+            max-height: 250px;
+        }
+    }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // Initial data from the server
     const days = {{ days|safe }};
     const totalSales = {{ total_sales|safe }};
     const totalClicks = {{ total_clicks|safe }};
+    let currentCurrency = 'USD';
+    
+    // Chart instances
+    let salesChartInstance = null;
+    let viewsChartInstance = null;
+    let combinedChartInstance = null;
+    const originalTotalClicks = [...totalClicks]; 
+    
+    // DOM elements
+    const salesChartEl = document.getElementById('salesChart');
+    const viewsChartEl = document.getElementById('viewsChart');
+    const combinedChartEl = document.getElementById('combinedAnalyticsChart');
+    
+    // Chart controls
+    const dateRangeSelect = document.getElementById('dateRange');
+    const chartTypeSelect = document.getElementById('chartType');
+    const displayTypeSelect = document.getElementById('displayType');
+    const currencyTypeSelect = document.getElementById('currencyType');
+    
+    // Initialize charts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+        
+        // Add event listeners to controls
+        dateRangeSelect.addEventListener('change', fetchChartData);
+        chartTypeSelect.addEventListener('change', updateCharts);
+        displayTypeSelect.addEventListener('change', toggleChartDisplay);
+        currencyTypeSelect.addEventListener('change', fetchChartData);
+        
+        // Add event listeners to details buttons
+        document.querySelectorAll('.details-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.getAttribute('data-sale-id');
+                toggleSaleDetails(saleId);
+            });
+        });
+        
+        // Fetch the total net payout instead of using refreshIncomeData
+        fetchTotalNetPayout();
+        
+        // Still refresh other cryptocurrency balances
+        refreshCryptoBalances();
+    });
 
-    // Chart configuration factory
-    function createChartConfig(type, labels, data, label, color) {
+    // Function to fetch total net payout using existing get-sale-details endpoint
+    function fetchTotalNetPayout() {
+        // Get all sale IDs from the table
+        const saleIds = [];
+        document.querySelectorAll('.details-btn').forEach(button => {
+            saleIds.push(button.getAttribute('data-sale-id'));
+        });
+        
+        if (saleIds.length === 0) {
+            document.getElementById('eur-total').textContent = '0.00';
+            return;
+        }
+        
+        // Fetch details for each sale and calculate total
+        let totalPayout = 0;
+        let completedRequests = 0;
+        
+        saleIds.forEach(saleId => {
+            fetch(`/products/get-sale-details/${saleId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Add the payout amount to the total
+                    if (data.payout_amount) {
+                        totalPayout += parseFloat(data.payout_amount);
+                    }
+                    
+                    // Increment completed requests counter
+                    completedRequests++;
+                    
+                    // If all requests are complete, update the total
+                    if (completedRequests === saleIds.length) {
+                        document.getElementById('eur-total').textContent = totalPayout.toFixed(2);
+                        console.log("Updated EUR total with net payout:", totalPayout.toFixed(2));
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error fetching sale details for sale ${saleId}:`, error);
+                    // Still increment counter to ensure we complete
+                    completedRequests++;
+                    
+                    if (completedRequests === saleIds.length) {
+                        document.getElementById('eur-total').textContent = totalPayout.toFixed(2);
+                    }
+                });
+        });
+    }
+    
+    // Function to refresh only cryptocurrency balances
+    function refreshCryptoBalances() {
+        fetch('/dashboard/refresh-income/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update only cryptocurrency values in the UI
+                    document.getElementById('btc-total').textContent = data.income.BTC_TOTAL;
+                    document.getElementById('eth-total').textContent = data.income.ETH_TOTAL;
+                    document.getElementById('ltc-total').textContent = data.income.LTC_TOTAL;
+                    document.getElementById('sol-total').textContent = data.income.SOL_TOTAL;
+                    document.getElementById('usdt-trc20-total').textContent = data.income.USDT_TRC20_TOTAL;
+                    document.getElementById('usdt-erc20-total').textContent = data.income.USDT_ERC20_TOTAL;
+                    document.getElementById('usdt-bep20-total').textContent = data.income.USDT_BEP20_TOTAL;
+                    document.getElementById('usdt-sol-total').textContent = data.income.USDT_SOL_TOTAL;
+                    document.getElementById('usdt-prc20-total').textContent = data.income.USDT_PRC20_TOTAL;
+                    document.getElementById('ltct-total').textContent = data.income.LTCT_TOTAL;
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing crypto balances:', error);
+            });
+    }
+        
+        // Function to toggle sale details
+        function toggleSaleDetails(saleId) {
+        const detailsRow = document.getElementById(`details-${saleId}`);
+        const loadingSpinner = detailsRow.querySelector('.loading-spinner');
+        const feeDetails = detailsRow.querySelector('.fee-details');
+        const errorMessage = detailsRow.querySelector('.error-message');
+        
+        // Toggle visibility of the details row
+        if (detailsRow.classList.contains('hidden')) {
+            detailsRow.classList.remove('hidden');
+            
+            // Show loading spinner
+            loadingSpinner.classList.remove('hidden');
+            feeDetails.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            
+            console.log(`Fetching details for sale ID: ${saleId}`);
+            
+            // Use the products endpoint instead of dashboard endpoint to get accurate data
+            fetch(`/products/get-sale-details/${saleId}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Sale details data:", data); // Debug log
+                    
+                    // Hide loading spinner
+                    loadingSpinner.classList.add('hidden');
+                    
+                    // Get currency symbol based on the original currency
+                    let currencySymbol = '€';
+                    if (data.currency === 'USD') currencySymbol = '$';
+                    if (data.currency === 'GBP') currencySymbol = '£';
+                    
+                    // Format numbers properly and handle undefined values
+                    const formatAmount = (amount) => {
+                        if (amount === undefined || amount === null) return '0.00';
+                        // Handle string values that might be numbers
+                        const numValue = typeof amount === 'string' ? parseFloat(amount) : amount;
+                        return numValue.toFixed(2);
+                    };
+                    
+                    // Update fee details with the data from database
+                    feeDetails.querySelector('.gross-amount').textContent = `${currencySymbol}${formatAmount(data.amount)}`;
+                    
+                    const convertedAmountRow = feeDetails.querySelector('.converted-amount-row');
+                    const convertedAmount = feeDetails.querySelector('.converted-amount');
+                    
+                    // Always show converted amount for non-EUR currencies
+                    if (data.currency !== 'EUR') {
+                        convertedAmountRow.style.display = '';
+                        convertedAmount.textContent = `€${formatAmount(data.converted_amount_eur)}`;
+                    } else {
+                        // For EUR currency, hide the converted amount row as it's redundant
+                        convertedAmountRow.style.display = 'none';
+                    }
+                    
+                    // Always use the currency symbols based on the data
+                    feeDetails.querySelector('.stripe-fee').textContent = `-€${formatAmount(data.stripe_fee)}`;
+                    feeDetails.querySelector('.platform-fee').textContent = `-€${formatAmount(data.platform_fee)}`;
+                    feeDetails.querySelector('.payout-amount').textContent = `€${formatAmount(data.payout_amount)}`;
+                    
+                    // Show fee details
+                    feeDetails.classList.remove('hidden');
+                })
+                .catch(error => {
+                    // Hide loading spinner
+                    loadingSpinner.classList.add('hidden');
+                    
+                    // Show error message
+                    errorMessage.textContent = 'Failed to load sale details. Please try again.';
+                    errorMessage.classList.remove('hidden');
+                    console.error('Error fetching sale details:', error);
+                });
+        } else {
+            detailsRow.classList.add('hidden');
+        }
+    }
+    
+    // Initialize charts with default data
+    function initializeCharts() {
+        const chartType = chartTypeSelect.value;
+        updateCharts(chartType);
+        toggleChartDisplay();
+    }
+    
+    function fetchChartData() {
+        const daysValue = dateRangeSelect.value;
+        const currency = currencyTypeSelect.value;
+        currentCurrency = currency;
+        
+        // Show loading state
+        salesChartEl.classList.add('opacity-50');
+        viewsChartEl.classList.add('opacity-50');
+        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
+        if (combinedAnalyticsChart) {
+            combinedAnalyticsChart.classList.add('opacity-50');
+        }
+    
+    // Update URL to match the one in urls.py
+    fetch(`/dashboard/get-chart-data/?days=${daysValue}&currency=${currency}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update data variables
+            days = data.days;
+            totalSales = data.total_sales;
+            // Only update clicks when days range changes, never for currency changes
+            if (data.days.length !== totalClicks.length) {
+                totalClicks = data.total_clicks;
+                originalTotalClicks = data.total_clicks;  // Move this line inside the if block
+            }
+            currentCurrency = data.currency;
+            
+            // Update currency label in the chart title
+            document.querySelectorAll('.currency-label').forEach(el => {
+                el.textContent = currentCurrency;
+            });
+            
+            // Update charts with new data
+            updateCharts(chartTypeSelect.value);
+            
+            // Remove loading state
+            salesChartEl.classList.remove('opacity-50');
+            viewsChartEl.classList.remove('opacity-50');
+            if (combinedAnalyticsChart) {
+                combinedAnalyticsChart.classList.remove('opacity-50');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chart data:', error);
+            // Remove loading state
+            salesChartEl.classList.remove('opacity-50');
+            viewsChartEl.classList.remove('opacity-50');
+            if (combinedAnalyticsChart) {
+                combinedAnalyticsChart.classList.remove('opacity-50');
+            }
+        });
+    }
+
+    // Update all charts with current data
+    function updateCharts(chartType) {
+        if (!chartType) {
+            chartType = chartTypeSelect.value;
+        }
+        
+        // Destroy existing charts
+        if (salesChartInstance) salesChartInstance.destroy();
+        if (viewsChartInstance) viewsChartInstance.destroy();
+        if (combinedChartInstance) combinedChartInstance.destroy();
+        
+        // Create new charts
+        createSalesChart(chartType);
+        createViewsChart(chartType);
+        createCombinedChart(chartType);
+    }
+    
+        // Toggle between separate and combined chart views
+        function toggleChartDisplay() {
+        const displayType = displayTypeSelect.value;
+        const separateCharts = document.getElementById('separateCharts');
+        const combinedChartContainer = document.getElementById('combinedChart');
+        
+        if (displayType === 'separate') {
+            separateCharts.style.display = 'grid';
+            combinedChartContainer.style.display = 'none';
+        } else {
+            separateCharts.style.display = 'none';
+            combinedChartContainer.style.display = 'block';
+        }
+
+        // Trigger chart update to ensure proper rendering
+        updateCharts(chartTypeSelect.value);
+    }
+    
+    // Get currency symbol based on selected currency
+    function getCurrencySymbol() {
+        switch(currentCurrency) {
+            case 'USD': return '$';
+            case 'EUR': return '€';
+            case 'GBP': return '£';
+            default: return '$';
+        }
+    }
+    
+    // Create sales chart
+function createSalesChart(chartType) {
+    const ctx = salesChartEl.getContext('2d');
+    const isMobile = window.innerWidth < 768;
+    const currencySymbol = getCurrencySymbol();
+    
+    const chartConfig = {
+        type: chartType === 'area' ? 'line' : chartType,
+        data: {
+            labels: days,
+            datasets: [{
+                label: `Sales (${currentCurrency})`,
+                data: totalSales,
+                borderColor: '#359271',
+                backgroundColor: chartType === 'area' 
+                    ? 'rgba(53, 146, 113, 0.2)' 
+                    : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                borderWidth: isMobile ? 1 : 2,
+                tension: 0.4,
+                fill: chartType === 'area',
+                pointRadius: isMobile ? 2 : 3,
+                pointHoverRadius: isMobile ? 3 : 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: !isMobile,
+                    labels: { color: 'white' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        font: {
+                            size: isMobile ? 8 : 12
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        callback: function(value) {
+                            return currencySymbol + value.toFixed(2);
+                        },
+                        font: {
+                            size: isMobile ? 8 : 12
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+    salesChartInstance = new Chart(ctx, chartConfig);
+}
+
+    
+    // Create views chart
+    function createViewsChart(chartType) {
+        const ctx = viewsChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Views',
+                    data: totalClicks,
+                    borderColor: '#3b82f6',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(59, 130, 246, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        viewsChartInstance = new Chart(ctx, chartConfig);
+    }
+
+function createCombinedChart(chartType) {
+    const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
+    if (!combinedAnalyticsChart) return;
+    
+    const ctx = combinedAnalyticsChart.getContext('2d');
+    const isMobile = window.innerWidth < 768;
+    const currencySymbol = getCurrencySymbol();
+    
+    const chartConfig = {
+        type: chartType === 'area' ? 'line' : chartType,
+        data: {
+            labels: days,
+            datasets: [
+                {
+                    label: `Sales (${currentCurrency})`,
+                    data: totalSales,
+                    borderColor: '#359271',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(53, 146, 113, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Views',
+                    data: totalClicks,
+                    borderColor: '#3b82f6',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(59, 130, 246, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: !isMobile,
+                    labels: { color: 'white' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label.includes('Sales')) {
+                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                            }
+                            return `${context.dataset.label}: ${context.raw}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        font: {
+                            size: isMobile ? 8 : 12
+                        }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        callback: function(value) {
+                            return currencySymbol + value.toFixed(2);
+                        },
+                        font: {
+                            size: isMobile ? 8 : 12
+                        }
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: {
+                        drawOnChartArea: false
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        font: {
+                            size: isMobile ? 8 : 12
+                        }
+                    }
+                }
+            }
+        }
+    };
+    
+    combinedChartInstance = new Chart(ctx, chartConfig);
+}
+
+    function showConversionFeeWarning(currency) {
+        const warningElement = document.getElementById('conversion-fee-warning');
+        if (currency === 'EUR') {
+            warningElement.classList.add('hidden');
+        } else {
+            warningElement.classList.remove('hidden');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+        }
+    });
+
+    // Update currency display when currency type changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencyTypeSelect = document.getElementById('currencyType');
+        const currencyDisplay = document.getElementById('currencyDisplay');
+        
+        if (currencyTypeSelect && currencyDisplay) {
+            currencyTypeSelect.addEventListener('change', function() {
+                currencyDisplay.textContent = this.value;
+            });
+        }
+    });
+
+    // Date range filter with AJAX (single instance)
+    document.getElementById('dateRange').addEventListener('change', fetchChartData);
+    document.getElementById('currencyType').addEventListener('change', fetchChartData);
+    
+
+    // Date range filter with AJAX (single instance)
+    document.getElementById('dateRange').addEventListener('change', fetchChartData);
+    document.getElementById('currencyType').addEventListener('change', fetchChartData);
+    
+    async function fetchChartData() {
+        const daysRange = parseInt(document.getElementById('dateRange').value);
+        const currency = document.getElementById('currencyType').value;
+        
+        // Show loading states
+        document.getElementById('salesChart').classList.add('opacity-50');
+        const combinedChart = document.getElementById('combinedAnalyticsChart');
+        if (combinedChart) combinedChart.classList.add('opacity-50');
+        
+        try {
+            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}&currency=${currency}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            
+            // Update data and currency
+            days = data.days;
+            totalSales = data.total_sales;
+            currentCurrency = data.currency;
+            
+            // Only update views data when date range changes
+            if (data.days.length !== totalClicks.length) {
+                totalClicks = data.total_clicks;
+                originalTotalClicks = data.total_clicks;  // Store original data
+            } else {
+                // Use original views data when only currency changes
+                totalClicks = originalTotalClicks;
+            }
+            
+            // Update chart titles
+            document.querySelectorAll('.currency-label').forEach(el => {
+                el.textContent = currentCurrency;
+            });
+            
+            // Update charts
+            updateCharts(chartTypeSelect.value);
+            
+            // Remove loading states
+            document.getElementById('salesChart').classList.remove('opacity-50');
+            if (combinedChart) combinedChart.classList.remove('opacity-50');
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            // Remove loading states
+            document.getElementById('salesChart').classList.remove('opacity-50');
+            if (combinedChart) combinedChart.classList.remove('opacity-50');
+        }
+    }
+        
+    // Update all charts with current data
+    function updateCharts(chartType) {
+        if (!chartType) {
+            chartType = chartTypeSelect.value;
+        }
+        
+        // Destroy existing charts
+        if (salesChartInstance) salesChartInstance.destroy();
+        if (viewsChartInstance) viewsChartInstance.destroy();
+        if (combinedChartInstance) combinedChartInstance.destroy();
+        
+        // Create new charts
+        createSalesChart(chartType);
+        createViewsChart(chartType);
+        createCombinedChart(chartType);
+    }
+    
+   // Toggle between separate and combined chart views
+   function toggleChartDisplay() {
+        const displayType = displayTypeSelect.value;
+        const separateCharts = document.getElementById('separateCharts');
+        const combinedChartContainer = document.getElementById('combinedChart');
+        
+        if (displayType === 'separate') {
+            separateCharts.style.display = 'grid';
+            combinedChartContainer.style.display = 'none';
+        } else {
+            separateCharts.style.display = 'none';
+            combinedChartContainer.style.display = 'block';
+        }
+
+        // Trigger chart update to ensure proper rendering
+        updateCharts(chartTypeSelect.value);
+    }
+    
+    // Get currency symbol based on selected currency
+    function getCurrencySymbol() {
+        switch(currentCurrency) {
+            case 'USD': return '$';
+            case 'EUR': return '€';
+            case 'GBP': return '£';
+            default: return '$';
+        }
+    }
+    
+    
+
+    function createSalesChart(chartType) {
+        const ctx = salesChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        const currencySymbol = getCurrencySymbol();
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: `Sales (${currentCurrency})`,
+                    data: totalSales,
+                    borderColor: '#359271',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(53, 146, 113, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const symbol = getCurrencySymbol();
+                                return `${context.dataset.label}: ${symbol}${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                const symbol = getCurrencySymbol();
+                                return symbol + value.toFixed(2);
+                            },
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        salesChartInstance = new Chart(ctx, chartConfig);
+    }
+    
+    // Create views chart
+    function createViewsChart(chartType) {
+        const ctx = viewsChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Views',
+                    data: totalClicks,
+                    borderColor: '#3b82f6',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(59, 130, 246, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        viewsChartInstance = new Chart(ctx, chartConfig);
+    }
+    
+    // Create combined chart
+    function createCombinedChart(chartType) {
+        const ctx = document.getElementById('combinedAnalyticsChart').getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        const currencySymbol = getCurrencySymbol();
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: `Sales (${currentCurrency})`,
+                        data: totalSales,
+                        borderColor: '#359271',
+                        backgroundColor: chartType === 'area' 
+                            ? 'rgba(53, 146, 113, 0.2)' 
+                            : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                        borderWidth: isMobile ? 1 : 2,
+                        tension: 0.4,
+                        fill: chartType === 'area',
+                        pointRadius: isMobile ? 2 : 3,
+                        pointHoverRadius: isMobile ? 3 : 5,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Views',
+                        data: totalClicks,
+                        borderColor: '#3b82f6',
+                        backgroundColor: chartType === 'area' 
+                            ? 'rgba(59, 130, 246, 0.2)' 
+                            : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                        borderWidth: isMobile ? 1 : 2,
+                        tension: 0.4,
+                        fill: chartType === 'area',
+                        pointRadius: isMobile ? 2 : 3,
+                        pointHoverRadius: isMobile ? 3 : 5,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.label.includes('Sales')) {
+                                    return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                                }
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                const symbol = getCurrencySymbol();
+                                return symbol + value.toFixed(2);
+                            },
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        combinedChartInstance = new Chart(ctx, chartConfig);
+    }
+
+    function showConversionFeeWarning(currency) {
+        const warningElement = document.getElementById('conversion-fee-warning');
+        if (currency === 'EUR') {
+            warningElement.classList.add('hidden');
+        } else {
+            warningElement.classList.remove('hidden');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+        }
+    });
+
+    // Update currency display when currency type changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencyTypeSelect = document.getElementById('currencyType');
+        const currencyDisplay = document.getElementById('currencyDisplay');
+        
+        if (currencyTypeSelect && currencyDisplay) {
+            currencyTypeSelect.addEventListener('change', function() {
+                currencyDisplay.textContent = this.value;
+            });
+        }
+    });
+
+
+    // Update handleResize function to include currency information
+    function handleResize() {
+        const chartType = document.getElementById('chartType').value;
+        const currencySymbol = getCurrencySymbol(currentCurrency);
+        
+        if (salesChartInstance) salesChartInstance.destroy();
+        if (viewsChartInstance) viewsChartInstance.destroy();
+        if (combinedChartInstance) combinedChartInstance.destroy();
+        
+        salesChart = new Chart(
+            document.getElementById('salesChart'),
+            createChartConfig(chartType, days, totalSales, `Sales (${currentCurrency})`, '#359271', true, currencySymbol)
+        );
+        
+        viewsChart = new Chart(
+            document.getElementById('viewsChart'),
+            createChartConfig(chartType, days, totalClicks, 'Views', '#2d4b50', false)
+        );
+        
+        combinedChart = new Chart(
+            document.getElementById('combinedAnalyticsChart'),
+            {
+                type: chartType === 'area' ? 'line' : chartType,
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: `Sales (${currentCurrency})`,
+                            data: totalSales,
+                            borderColor: '#359271',
+                            backgroundColor: chartType === 'bar' ? '#35927199' : '#35927133',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: chartType === 'area',
+                            yAxisID: 'y-sales'
+                        },
+                        {
+                            label: 'Views',
+                            data: totalClicks,
+                            borderColor: '#2d4b50',
+                            backgroundColor: chartType === 'bar' ? '#2d4b5099' : '#2d4b5033',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: chartType === 'area',
+                            yAxisID: 'y-views'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.dataset.label.includes('Sales')) {
+                                        return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                                    }
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        'y-sales': {
+                            type: 'linear',
+                            position: 'left',
+                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
+                            ticks: { 
+                                color: '#359271',
+                                callback: function(value) {
+                                    return currencySymbol + value.toFixed(2);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: `Sales (${currentCurrency})`,
+                                color: '#359271'
+                            }
+                        },
+                        'y-views': {
+                            type: 'linear',
+                            position: 'right',
+                            grid: { display: false },
+                            ticks: { color: '#2d4b50' },
+                            title: {
+                                display: true,
+                                text: 'Views',
+                                color: '#2d4b50'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    // Helper function to get currency symbol
+    function getCurrencySymbol(currency) {
+        switch(currency) {
+            case 'USD': return '$';
+            case 'EUR': return '€';
+            case 'GBP': return '£';
+            default: return '$';
+        }
+    }
+
+    // Updated chart configuration factory
+    function createChartConfig(type, labels, data, label, color, isCurrency = false, currencySymbol = '$') {
         const chartType = type === 'area' ? 'line' : type;
         const isMobile = window.innerWidth < 768;
         return {
@@ -314,31 +1731,39 @@
                         padding: isMobile ? 6 : 10,
                         displayColors: false,
                         titleFont: { size: isMobile ? 10 : 14 },
-                        bodyFont: { size: isMobile ? 10 : 14 }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
-                            ticks: { 
-                                color: 'white',
-                                font: { size: isMobile ? 8 : 12 },
-                                maxTicksLimit: isMobile ? 5 : 8
+                        bodyFont: { size: isMobile ? 10 : 14 },
+                        callbacks: isCurrency ? {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
                             }
+                        } : undefined
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(53, 146, 113, 0.1)' },
+                        ticks: { 
+                            color: 'white',
+                            font: { size: isMobile ? 8 : 12 },
+                            maxTicksLimit: isMobile ? 5 : 8,
+                            callback: isCurrency ? function(value) {
+                                return currencySymbol + value.toFixed(2);
+                            } : undefined
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(53, 146, 113, 0.1)',
+                            display: (_, index) => labels[index] !== ''
                         },
-                        x: {
-                            grid: {
-                                color: 'rgba(53, 146, 113, 0.1)',
-                                display: (_, index) => labels[index] !== ''
-                            },
-                            ticks: { 
-                                color: 'white',
-                                font: { size: isMobile ? 8 : 12 },
-                                maxRotation: isMobile ? 45 : 0,
-                                autoSkip: false,
-                                callback: function(_, index) {
-                                    return labels[index] || '';
-                                }
+                        ticks: { 
+                            color: 'white',
+                            font: { size: isMobile ? 8 : 12 },
+                            maxRotation: isMobile ? 45 : 0,
+                            autoSkip: false,
+                            callback: function(_, index) {
+                                return labels[index] || '';
                             }
                         }
                     }
@@ -346,305 +1771,87 @@
             }
         };
     }
+    // Add event listener for currency selection in payout form
+    const currencySelect = document.getElementById('id_currency');
+    const conversionFeeWarning = document.getElementById('conversion-fee-warning');
 
-    // Initialize charts in the global scope
-    let salesChart = new Chart(
-        document.getElementById('salesChart'),
-        createChartConfig('line', days, totalSales, 'Sales (USD)', '#359271')
-    );
-    let viewsChart = new Chart(
-        document.getElementById('viewsChart'),
-        createChartConfig('line', days, totalClicks, 'Views', '#2d4b50')
-    );
-
-    // Initialize combined chart
-    let combinedChart = new Chart(
-        document.getElementById('combinedAnalyticsChart'),
-        {
-            type: 'line',
-            data: {
-                labels: days,
-                datasets: [
-                    {
-                        label: 'Sales (USD)',
-                        data: totalSales,
-                        borderColor: '#359271',
-                        backgroundColor: '#35927133',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        yAxisID: 'y-sales'
-                    },
-                    {
-                        label: 'Views',
-                        data: totalClicks,
-                        borderColor: '#2d4b50',
-                        backgroundColor: '#2d4b5033',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        yAxisID: 'y-views'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                scales: {
-                    'y-sales': {
-                        type: 'linear',
-                        position: 'left',
-                        grid: { color: 'rgba(53, 146, 113, 0.1)' },
-                        ticks: { color: '#359271' },
-                        title: {
-                            display: true,
-                            text: 'Sales (USD)',
-                            color: '#359271'
-                        }
-                    },
-                    'y-views': {
-                        type: 'linear',
-                        position: 'right',
-                        grid: { display: false },
-                        ticks: { color: '#2d4b50' },
-                        title: {
-                            display: true,
-                            text: 'Views',
-                            color: '#2d4b50'
-                        }
-                    }
-                }
+    if (currencySelect && conversionFeeWarning) {
+        currencySelect.addEventListener('change', function() {
+            const selectedCurrency = this.value;
+            if (selectedCurrency === 'USD' || selectedCurrency === 'GBP') {
+                conversionFeeWarning.classList.remove('hidden');
+            } else {
+                conversionFeeWarning.classList.add('hidden');
             }
+        });
+        
+        // Trigger on page load
+        const initialCurrency = currencySelect.value;
+        if (initialCurrency === 'USD' || initialCurrency === 'GBP') {
+            conversionFeeWarning.classList.remove('hidden');
         }
-    );
-
-    // Handle display type changes
-    document.getElementById('displayType').addEventListener('change', function(e) {
-        const separateCharts = document.getElementById('separateCharts');
-        const combinedChart = document.getElementById('combinedChart');
-        
-        if (e.target.value === 'combined') {
-            separateCharts.classList.add('hidden');
-            combinedChart.classList.remove('hidden');
-        } else {
-            separateCharts.classList.remove('hidden');
-            combinedChart.classList.add('hidden');
-        }
-        
-        // Update all charts
-        handleResize();
-    });
-
-    // Update handleResize function to include combined chart
-    function handleResize() {
-        const chartType = document.getElementById('chartType').value;
-        
-        if (salesChart) salesChart.destroy();
-        if (viewsChart) viewsChart.destroy();
-        if (combinedChart) combinedChart.destroy();
-        
-        salesChart = new Chart(
-            document.getElementById('salesChart'),
-            createChartConfig(chartType, days, totalSales, 'Sales (USD)', '#359271')
-        );
-        
-        viewsChart = new Chart(
-            document.getElementById('viewsChart'),
-            createChartConfig(chartType, days, totalClicks, 'Views', '#2d4b50')
-        );
-        
-        combinedChart = new Chart(
-            document.getElementById('combinedAnalyticsChart'),
-            {
-                type: chartType === 'area' ? 'line' : chartType,
-                data: {
-                    labels: days,
-                    datasets: [
-                        {
-                            label: 'Sales (USD)',
-                            data: totalSales,
-                            borderColor: '#359271',
-                            backgroundColor: chartType === 'bar' ? '#35927199' : '#35927133',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: chartType === 'area',
-                            yAxisID: 'y-sales'
-                        },
-                        {
-                            label: 'Views',
-                            data: totalClicks,
-                            borderColor: '#2d4b50',
-                            backgroundColor: chartType === 'bar' ? '#2d4b5099' : '#2d4b5033',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: chartType === 'area',
-                            yAxisID: 'y-views'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    scales: {
-                        'y-sales': {
-                            type: 'linear',
-                            position: 'left',
-                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
-                            ticks: { color: '#359271' },
-                            title: {
-                                display: true,
-                                text: 'Sales (USD)',
-                                color: '#359271'
-                            }
-                        },
-                        'y-views': {
-                            type: 'linear',
-                            position: 'right',
-                            grid: { display: false },
-                            ticks: { color: '#2d4b50' },
-                            title: {
-                                display: true,
-                                text: 'Views',
-                                color: '#2d4b50'
-                            }
-                        }
-                    }
-                }
-            }
-        );
     }
 
-    // Add resize event listener with debounce
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(handleResize, 250);
-    });
-
-    // Handle chart type changes
-    document.getElementById('chartType').addEventListener('change', () => {
-        handleResize();
-    });
-
-    // Date range filter with AJAX (single instance)
-    document.getElementById('dateRange').addEventListener('change', async (e) => {
-        const daysRange = parseInt(e.target.value);
-        try {
-            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            
-            // Update separate charts
-            salesChart.data.labels = data.days;
-            salesChart.data.datasets[0].data = data.total_sales;
-            salesChart.update();
-            
-            viewsChart.data.labels = data.days;
-            viewsChart.data.datasets[0].data = data.total_clicks;
-            viewsChart.update();
-    // Update combined chart
-    combinedChart.data.labels = data.days;
-    combinedChart.data.datasets[0].data = data.total_sales;
-    combinedChart.data.datasets[1].data = data.total_clicks;
-    combinedChart.update();
-    } catch (error) {
-        console.error('Error fetching chart data:', error);
-    }
-    });
-
-    // Sales pagination functionality
+    // Pagination for sales table
     document.addEventListener('DOMContentLoaded', function() {
-        const salesRows = document.querySelectorAll('#salesTableBody tr');
-        const viewAllBtn = document.getElementById('viewAllSalesBtn');
+        const salesRows = document.querySelectorAll('.sale-row');
+        const pageIndicator = document.getElementById('currentPage');
+        const totalPagesIndicator = document.getElementById('totalPages');
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
-        const currentPageEl = document.getElementById('currentPage');
-        const totalPagesEl = document.getElementById('totalPages');
-        const paginationEl = document.getElementById('salesPagination');
-        const salesTableContainer = document.getElementById('salesTableContainer');
+        const rowsPerPage = 5;
         
-        // Adjust rows per page based on screen size
-        const isMobile = window.innerWidth < 768;
-        const rowsPerPage = isMobile ? 5 : 10;
-        
-        let currentPage = 1;
-        const totalRows = salesRows.length;
-        const totalPages = Math.ceil(totalRows / rowsPerPage);
-        let isExpanded = false;
-        
-        totalPagesEl.textContent = totalPages;
-        
-        // Initial state - show only first 5 rows
-        function initializeTable() {
-            salesRows.forEach((row, index) => {
-                if (index < 5) {
-                    row.classList.remove('hidden');
-                } else {
-                    row.classList.add('hidden');
-                }
-            });
-            // Set fixed height for collapsed view
-            salesTableContainer.style.maxHeight = isMobile ? '250px' : '300px';
-            // Hide pagination initially
-            paginationEl.classList.add('hidden');
+        if (salesRows.length > 0) {
+            let currentPage = 1;
+            const totalPages = Math.ceil(salesRows.length / rowsPerPage);
+            
+            // Update page indicators
+            if (pageIndicator) pageIndicator.textContent = currentPage;
+            if (totalPagesIndicator) totalPagesIndicator.textContent = totalPages;
+            
+            // Function to show rows for current page
+            function showPage(page) {
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                
+                salesRows.forEach((row, index) => {
+                    if (index >= start && index < end) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+                
+                // Update buttons state
+                if (prevPageBtn) prevPageBtn.disabled = page === 1;
+                if (nextPageBtn) nextPageBtn.disabled = page === totalPages;
+            }
+            
+            // Add event listeners to pagination buttons
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        showPage(currentPage);
+                        if (pageIndicator) pageIndicator.textContent = currentPage;
+                    }
+                });
+            }
+            
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        showPage(currentPage);
+                        if (pageIndicator) pageIndicator.textContent = currentPage;
+                    }
+                });
+            }
+            
+            // Initialize first page
+            showPage(currentPage);
         }
-        
-        // Show page of results
-        function showPage(page) {
-            const start = (page - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-            salesRows.forEach(row => row.classList.add('hidden'));
-            for (let i = start; i < end && i < totalRows; i++) {
-                salesRows[i].classList.remove('hidden');
-            }
-            currentPageEl.textContent = page;
-            prevPageBtn.disabled = page === 1;
-            nextPageBtn.disabled = page === totalPages;
-        }
-        
-        // View All button click
-        viewAllBtn.addEventListener('click', function() {
-            isExpanded = !isExpanded;
-            if (isExpanded) {
-                paginationEl.classList.remove('hidden');
-                showPage(1);
-                currentPage = 1;
-                viewAllBtn.querySelector('span:last-child').textContent = 'Show Less';
-                viewAllBtn.querySelector('span:first-child').textContent = 'unfold_less';
-            } else {
-                viewAllBtn.querySelector('span:last-child').textContent = 'View All';
-                viewAllBtn.querySelector('span:first-child').textContent = 'visibility';
-                initializeTable();
-                paginationEl.classList.add('hidden');
-            }
-        });
-        
-        // Pagination controls
-        prevPageBtn.addEventListener('click', function() {
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-            }
-        });
-        
-        nextPageBtn.addEventListener('click', function() {
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-            }
-        });
-        
-        // Initialize the table
-        initializeTable();
     });
 </script>
 
 {% endblock content %}
-    
