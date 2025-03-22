@@ -204,8 +204,8 @@
         </h2>
     </div>
         
-        <!-- EUR Income Card -->
-    <div class="income-card bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
+    <!-- EUR Income Card -->
+    <div class="income-card bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20 mb-6">
         <div class="flex items-center justify-between">
             <div>
                 <h3 class="text-gray-400 text-sm">Total Income</h3>
@@ -220,169 +220,168 @@
             </div>
         </div>
     </div>
+    
     <!-- Cryptocurrency Balances -->
     <h3 class="text-xl font-bold text-[#359271] mb-4 flex items-center gap-2">
         <span class="material-icons">currency_bitcoin</span>
         Cryptocurrency Balances
     </h3>
     
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <!-- Bitcoin -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="btc-total" class="text-2xl font-bold text-white">{{ formatted_income.BTC_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">BTC</span>
-                </div>
-                <div class="bg-[#f7931a]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#f7931a]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#f7931a]">currency_bitcoin</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="btc-total" class="text-xl font-bold text-white">
+                            {% if formatted_income.BTC_TOTAL == "0E-8" %}0.00{% else %}{{ formatted_income.BTC_TOTAL }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="text-xs text-gray-400">BTC</span>
                 </div>
             </div>
         </div>
         
         <!-- Ethereum -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="eth-total" class="text-2xl font-bold text-white">{{ formatted_income.ETH_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">ETH</span>
-                </div>
-                <div class="bg-[#627eea]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#627eea]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#627eea]">diamond</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="eth-total" class="text-xl font-bold text-white">
+                            {% if formatted_income.ETH_TOTAL == "0E-8" %}0.00{% else %}{{ formatted_income.ETH_TOTAL }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="text-xs text-gray-400">ETH</span>
                 </div>
             </div>
         </div>
         
         <!-- Litecoin -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="ltc-total" class="text-2xl font-bold text-white">{{ formatted_income.LTC_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">LTC</span>
-                </div>
-                <div class="bg-[#b8b8b8]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#b8b8b8]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#b8b8b8]">monetization_on</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="ltc-total" class="text-xl font-bold text-white">
+                            {% if formatted_income.LTC_TOTAL == "0E-8" %}0.00{% else %}{{ formatted_income.LTC_TOTAL }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="text-xs text-gray-400">LTC</span>
                 </div>
             </div>
         </div>
         
         <!-- Solana -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="sol-total" class="text-2xl font-bold text-white">{{ formatted_income.SOL_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">SOL</span>
-                </div>
-                <div class="bg-[#00ffbd]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#00ffbd]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#00ffbd]">bolt</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="sol-total" class="text-xl font-bold text-white">
+                            {% if formatted_income.SOL_TOTAL == "0E-8" %}0.00{% else %}{{ formatted_income.SOL_TOTAL }}{% endif %}
+                        </span>
+                    </div>
+                    <span class="text-xs text-gray-400">SOL</span>
                 </div>
             </div>
         </div>
         
         <!-- USDT TRC20 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="usdt-trc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_TRC20_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">USDT (TRC20)</span>
-                </div>
-                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#26a17b]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="usdt-trc20-total" class="text-xl font-bold text-white">{{ formatted_income.USDT_TRC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">USDT (TRC20)</span>
                 </div>
             </div>
         </div>
         
         <!-- USDT ERC20 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="usdt-erc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_ERC20_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">USDT (ERC20)</span>
-                </div>
-                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#26a17b]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="usdt-erc20-total" class="text-xl font-bold text-white">{{ formatted_income.USDT_ERC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">USDT (ERC20)</span>
                 </div>
             </div>
         </div>
         
         <!-- USDT BEP20 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="usdt-bep20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_BEP20_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">USDT (BEP20)</span>
-                </div>
-                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#26a17b]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="usdt-bep20-total" class="text-xl font-bold text-white">{{ formatted_income.USDT_BEP20_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">USDT (BEP20)</span>
                 </div>
             </div>
         </div>
         
         <!-- USDT SOL -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="usdt-sol-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_SOL_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">USDT (SOL)</span>
-                </div>
-                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#26a17b]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="usdt-sol-total" class="text-xl font-bold text-white">{{ formatted_income.USDT_SOL_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">USDT (SOL)</span>
                 </div>
             </div>
         </div>
         
         <!-- USDT PRC20 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="usdt-prc20-total" class="text-2xl font-bold text-white">{{ formatted_income.USDT_PRC20_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">USDT (PRC20)</span>
-                </div>
-                <div class="bg-[#26a17b]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#26a17b]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#26a17b]">toll</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="usdt-prc20-total" class="text-xl font-bold text-white">{{ formatted_income.USDT_PRC20_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">USDT (PRC20)</span>
                 </div>
             </div>
         </div>
         
         <!-- LTCT -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-gray-400 text-sm">Balance</h3>
-                    <div class="flex items-baseline mt-1">
-                        <span id="ltct-total" class="text-2xl font-bold text-white">{{ formatted_income.LTCT_TOTAL }}</span>
-                    </div>
-                    <span class="text-sm text-gray-400">LTCT</span>
-                </div>
-                <div class="bg-[#b8b8b8]/20 p-3 rounded-full">
+        <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
+            <div class="flex items-center gap-3">
+                <div class="bg-[#b8b8b8]/20 p-2 rounded-full flex-shrink-0">
                     <span class="material-icons text-[#b8b8b8]">monetization_on</span>
+                </div>
+                <div>
+                    <div class="flex items-baseline">
+                        <span id="ltct-total" class="text-xl font-bold text-white">{{ formatted_income.LTCT_TOTAL }}</span>
+                    </div>
+                    <span class="text-xs text-gray-400">LTCT</span>
                 </div>
             </div>
         </div>
@@ -804,8 +803,8 @@
         }
     }
 
-    // Add event listeners to details buttons using event delegation
-    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to details buttons using event delegation
+        document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('salesTableBody').addEventListener('click', function(e) {
             const detailsBtn = e.target.closest('.details-btn');
             if (detailsBtn) {
@@ -813,8 +812,28 @@
                 toggleSaleDetails(saleId);
             }
         });
-    });
         
+        // Add event listener for View All button and hide it if fewer than 10 sales
+        const viewAllBtn = document.getElementById('viewAllSalesBtn');
+        const hiddenSales = document.querySelectorAll('.sale-row.hidden');
+        
+        if (viewAllBtn) {
+            // Hide the button if there are no hidden sales or less than 10 total sales
+            if (hiddenSales.length === 0) {
+                viewAllBtn.style.display = 'none';
+            }
+            
+            viewAllBtn.addEventListener('click', function() {
+                hiddenSales.forEach(row => {
+                    row.classList.remove('hidden');
+                });
+                
+                // Hide the View All button after showing all sales
+                this.style.display = 'none';
+            });
+        }
+    });
+    
     // Initialize charts with default data
     function initializeCharts() {
         const chartType = chartTypeSelect.value;
@@ -937,21 +956,6 @@
             });
         }
     });
-
-    // Update all charts with current data
-    function updateCharts() {
-        const chartType = chartTypeSelect.value;
-        
-        // Destroy existing charts
-        if (salesChartInstance) salesChartInstance.destroy();
-        if (viewsChartInstance) viewsChartInstance.destroy();
-        if (combinedChartInstance) combinedChartInstance.destroy();
-        
-        // Create new charts
-        createSalesChart(chartType);
-        createViewsChart(chartType);
-        createCombinedChart(chartType);
-    }
     
     // Toggle between separate and combined chart views
     function toggleChartDisplay() {
@@ -969,16 +973,6 @@
 
         // Trigger chart update to ensure proper rendering
         updateCharts();
-    }
-    
-    // Get currency symbol based on selected currency
-    function getCurrencySymbol() {
-        switch(currentCurrency) {
-            case 'USD': return '$';
-            case 'EUR': return '€';
-            case 'GBP': return '£';
-            default: return '$';
-        }
     }
     
     // Create sales chart
@@ -1348,314 +1342,11 @@
         createViewsChart(chartType);
         createCombinedChart(chartType);
     }
-    
-   // Toggle between separate and combined chart views
-   function toggleChartDisplay() {
-        const displayType = displayTypeSelect.value;
-        const separateCharts = document.getElementById('separateCharts');
-        const combinedChartContainer = document.getElementById('combinedChart');
-        
-        if (displayType === 'separate') {
-            separateCharts.style.display = 'grid';
-            combinedChartContainer.style.display = 'none';
-        } else {
-            separateCharts.style.display = 'none';
-            combinedChartContainer.style.display = 'block';
-        }
-
-        // Trigger chart update to ensure proper rendering
-        updateCharts(chartTypeSelect.value);
-    }
-    
-    // Get currency symbol based on selected currency
-    function getCurrencySymbol() {
-        switch(currentCurrency) {
-            case 'USD': return '$';
-            case 'EUR': return '€';
-            case 'GBP': return '£';
-            default: return '$';
-        }
-    }
-    
-    // Create sales chart
-    function createSalesChart(chartType) {
-        const ctx = salesChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        const currencySymbol = getCurrencySymbol();
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: `Sales (${currentCurrency})`,
-                    data: totalSales,
-                    borderColor: '#359271',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(53, 146, 113, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            callback: function(value) {
-                                return currencySymbol + value.toFixed(2);
-                            },
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        salesChartInstance = new Chart(ctx, chartConfig);
-    }
-    
-    // Create views chart
-    function createViewsChart(chartType) {
-        const ctx = viewsChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Views',
-                    data: totalClicks,
-                    borderColor: '#3b82f6',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(59, 130, 246, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        viewsChartInstance = new Chart(ctx, chartConfig);
-    }
-    
-    // Create combined chart
-    function createCombinedChart(chartType) {
-        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
-        if (!combinedAnalyticsChart) return;
-        
-        const ctx = combinedAnalyticsChart.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        const currencySymbol = getCurrencySymbol();
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [
-                    {
-                        label: `Sales (${currentCurrency})`,
-                        data: totalSales,
-                        borderColor: '#359271',
-                        backgroundColor: chartType === 'area' 
-                            ? 'rgba(53, 146, 113, 0.2)' 
-                            : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                        borderWidth: isMobile ? 1 : 2,
-                        tension: 0.4,
-                        fill: chartType === 'area',
-                        pointRadius: isMobile ? 2 : 3,
-                        pointHoverRadius: isMobile ? 3 : 5,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Views',
-                        data: totalClicks,
-                        borderColor: '#3b82f6',
-                        backgroundColor: chartType === 'area' 
-                            ? 'rgba(59, 130, 246, 0.2)' 
-                            : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                        borderWidth: isMobile ? 1 : 2,
-                        tension: 0.4,
-                        fill: chartType === 'area',
-                        pointRadius: isMobile ? 2 : 3,
-                        pointHoverRadius: isMobile ? 3 : 5,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.label.includes('Sales')) {
-                                    return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                                }
-                                return `${context.dataset.label}: ${context.raw}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            callback: function(value) {
-                                return currencySymbol + value.toFixed(2);
-                            },
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: true,
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        combinedChartInstance = new Chart(ctx, chartConfig);
-    }
-
-    function showConversionFeeWarning(currency) {
-        const warningElement = document.getElementById('conversion-fee-warning');
-        if (warningElement) {
-            if (currency === 'EUR') {
-                warningElement.classList.add('hidden');
-            } else {
-                warningElement.classList.remove('hidden');
-            }
-        }
-    }
-
-    // Initialize on page load
+        // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
         const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
         if (currencySelect) {
             showConversionFeeWarning(currencySelect.value);
-        }
-    });
-
-    // Update currency display when currency type changes
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencyTypeSelect = document.getElementById('currencyType');
-        const currencyDisplay = document.getElementById('currencyDisplay');
-        
-        if (currencyTypeSelect && currencyDisplay) {
-            currencyTypeSelect.addEventListener('change', function() {
-                currencyDisplay.textContent = this.value;
-            });
         }
     });
 
