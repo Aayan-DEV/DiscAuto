@@ -579,16 +579,16 @@
 
 <script>
     // Initial data from the server
-    const days = {{ days|safe }};
-    const totalSales = {{ total_sales|safe }};
-    const totalClicks = {{ total_clicks|safe }};
+    let days = {{ days|safe }};
+    let totalSales = {{ total_sales|safe }};
+    let totalClicks = {{ total_clicks|safe }};
     let currentCurrency = 'USD';
     
     // Chart instances
     let salesChartInstance = null;
     let viewsChartInstance = null;
     let combinedChartInstance = null;
-    const originalTotalClicks = [...totalClicks]; 
+    let originalTotalClicks = [...totalClicks]; 
     
     // DOM elements
     const salesChartEl = document.getElementById('salesChart');
@@ -603,9 +603,12 @@
     
     // Initialize charts on page load
     document.addEventListener('DOMContentLoaded', function() {
+        // Ensure we're using the correct date format based on range
+        formatDatesIfNeeded();
+        
         initializeCharts();
         
-        // Add event listeners to controls
+        // Add event listeners to controls - ONLY ONCE
         dateRangeSelect.addEventListener('change', fetchChartData);
         chartTypeSelect.addEventListener('change', updateCharts);
         displayTypeSelect.addEventListener('change', toggleChartDisplay);
@@ -619,12 +622,35 @@
             });
         });
         
-        // Fetch the total net payout instead of using refreshIncomeData
+        // Fetch the total net payout
         fetchTotalNetPayout();
         
-        // Still refresh other cryptocurrency balances
+        // Refresh cryptocurrency balances
         refreshCryptoBalances();
+        
+        // Initialize currency warning for payout form
+        const currencySelect = document.getElementById('id_currency');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+            currencySelect.addEventListener('change', function() {
+                showConversionFeeWarning(this.value);
+            });
+        }
     });
+
+    // Function to format dates if needed
+    function formatDatesIfNeeded() {
+        // Check if we're in 7-day view (default)
+        if (dateRangeSelect.value === '7' && days.length <= 7) {
+            // If dates are in ISO format (YYYY-MM-DD), convert to day names
+            if (days.some(day => day.includes('-'))) {
+                days = days.map(day => {
+                    const date = new Date(day);
+                    return date.toLocaleDateString('en-US', { weekday: 'short' });
+                });
+            }
+        }
+    }
 
     // Function to fetch total net payout using existing get-sale-details endpoint
     function fetchTotalNetPayout() {
@@ -708,7 +734,7 @@
     }
         
         // Function to toggle sale details
-        function toggleSaleDetails(saleId) {
+    function toggleSaleDetails(saleId) {
         const detailsRow = document.getElementById(`details-${saleId}`);
         const loadingSpinner = detailsRow.querySelector('.loading-spinner');
         const feeDetails = detailsRow.querySelector('.fee-details');
@@ -796,6 +822,7 @@
         toggleChartDisplay();
     }
     
+        // Function to fetch chart data from the server
     function fetchChartData() {
         const daysValue = dateRangeSelect.value;
         const currency = currencyTypeSelect.value;
@@ -804,61 +831,116 @@
         // Show loading state
         salesChartEl.classList.add('opacity-50');
         viewsChartEl.classList.add('opacity-50');
-        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
-        if (combinedAnalyticsChart) {
-            combinedAnalyticsChart.classList.add('opacity-50');
+        if (combinedChartEl) {
+            combinedChartEl.classList.add('opacity-50');
         }
     
-    // Update URL to match the one in urls.py
-    fetch(`/dashboard/get-chart-data/?days=${daysValue}&currency=${currency}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Update data variables
-            days = data.days;
-            totalSales = data.total_sales;
-            // Only update clicks when days range changes, never for currency changes
-            if (data.days.length !== totalClicks.length) {
-                totalClicks = data.total_clicks;
-                originalTotalClicks = data.total_clicks;  // Move this line inside the if block
-            }
-            currentCurrency = data.currency;
-            
-            // Update currency label in the chart title
-            document.querySelectorAll('.currency-label').forEach(el => {
-                el.textContent = currentCurrency;
+        // Fetch data from the server
+        fetch(`/dashboard/get-chart-data/?days=${daysValue}&currency=${currency}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Format dates if they are in ISO format (YYYY-MM-DD)
+                if (daysValue === '7' && data.days && data.days.length > 0) {
+                    // Check if the dates are in ISO format
+                    const isISOFormat = data.days.some(day => day.includes('-'));
+                    
+                    if (isISOFormat) {
+                        // Convert ISO dates to day names
+                        data.days = data.days.map(day => {
+                            const date = new Date(day);
+                            return date.toLocaleDateString('en-US', { weekday: 'short' });
+                        });
+                    }
+                }
+                
+                // Update data variables
+                days = data.days;
+                totalSales = data.total_sales;
+                
+                // Only update clicks when days range changes, not for currency changes
+                if (data.days.length !== totalClicks.length) {
+                    totalClicks = data.total_clicks;
+                    originalTotalClicks = [...data.total_clicks];
+                }
+                
+                currentCurrency = data.currency;
+                
+                // Update currency label in the chart title
+                document.querySelectorAll('.currency-label').forEach(el => {
+                    el.textContent = currentCurrency;
+                });
+                
+                // Update charts with new data
+                updateCharts();
+                
+                // Remove loading state
+                salesChartEl.classList.remove('opacity-50');
+                viewsChartEl.classList.remove('opacity-50');
+                if (combinedChartEl) {
+                    combinedChartEl.classList.remove('opacity-50');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching chart data:', error);
+                // Remove loading state
+                salesChartEl.classList.remove('opacity-50');
+                viewsChartEl.classList.remove('opacity-50');
+                if (combinedChartEl) {
+                    combinedChartEl.classList.remove('opacity-50');
+                }
             });
-            
-            // Update charts with new data
-            updateCharts(chartTypeSelect.value);
-            
-            // Remove loading state
-            salesChartEl.classList.remove('opacity-50');
-            viewsChartEl.classList.remove('opacity-50');
-            if (combinedAnalyticsChart) {
-                combinedAnalyticsChart.classList.remove('opacity-50');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching chart data:', error);
-            // Remove loading state
-            salesChartEl.classList.remove('opacity-50');
-            viewsChartEl.classList.remove('opacity-50');
-            if (combinedAnalyticsChart) {
-                combinedAnalyticsChart.classList.remove('opacity-50');
-            }
-        });
     }
 
-    // Update all charts with current data
-    function updateCharts(chartType) {
-        if (!chartType) {
-            chartType = chartTypeSelect.value;
+    // Initialize charts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format initial dates if they are in ISO format
+        if (days && days.length > 0 && days[0].includes('-')) {
+            days = days.map(day => {
+                const date = new Date(day);
+                return date.toLocaleDateString('en-US', { weekday: 'short' });
+            });
         }
+        
+        initializeCharts();
+        
+        // Add event listeners to controls - ONLY ONCE
+        dateRangeSelect.addEventListener('change', fetchChartData);
+        chartTypeSelect.addEventListener('change', updateCharts);
+        displayTypeSelect.addEventListener('change', toggleChartDisplay);
+        currencyTypeSelect.addEventListener('change', fetchChartData);
+        
+        // Add event listeners to details buttons
+        document.querySelectorAll('.details-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.getAttribute('data-sale-id');
+                toggleSaleDetails(saleId);
+            });
+        });
+        
+        // Fetch the total net payout
+        fetchTotalNetPayout();
+        
+        // Refresh cryptocurrency balances
+        refreshCryptoBalances();
+        
+        // Initialize currency warning for payout form
+        const currencySelect = document.getElementById('id_currency');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+            currencySelect.addEventListener('change', function() {
+                showConversionFeeWarning(this.value);
+            });
+        }
+    });
+
+    // Update all charts with current data
+    function updateCharts() {
+        const chartType = chartTypeSelect.value;
         
         // Destroy existing charts
         if (salesChartInstance) salesChartInstance.destroy();
@@ -871,8 +953,8 @@
         createCombinedChart(chartType);
     }
     
-        // Toggle between separate and combined chart views
-        function toggleChartDisplay() {
+    // Toggle between separate and combined chart views
+    function toggleChartDisplay() {
         const displayType = displayTypeSelect.value;
         const separateCharts = document.getElementById('separateCharts');
         const combinedChartContainer = document.getElementById('combinedChart');
@@ -886,7 +968,7 @@
         }
 
         // Trigger chart update to ensure proper rendering
-        updateCharts(chartTypeSelect.value);
+        updateCharts();
     }
     
     // Get currency symbol based on selected currency
@@ -900,80 +982,79 @@
     }
     
     // Create sales chart
-function createSalesChart(chartType) {
-    const ctx = salesChartEl.getContext('2d');
-    const isMobile = window.innerWidth < 768;
-    const currencySymbol = getCurrencySymbol();
-    
-    const chartConfig = {
-        type: chartType === 'area' ? 'line' : chartType,
-        data: {
-            labels: days,
-            datasets: [{
-                label: `Sales (${currentCurrency})`,
-                data: totalSales,
-                borderColor: '#359271',
-                backgroundColor: chartType === 'area' 
-                    ? 'rgba(53, 146, 113, 0.2)' 
-                    : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                borderWidth: isMobile ? 1 : 2,
-                tension: 0.4,
-                fill: chartType === 'area',
-                pointRadius: isMobile ? 2 : 3,
-                pointHoverRadius: isMobile ? 3 : 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: !isMobile,
-                    labels: { color: 'white' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                        }
-                    }
-                }
+    function createSalesChart(chartType) {
+        const ctx = salesChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        const currencySymbol = getCurrencySymbol();
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: `Sales (${currentCurrency})`,
+                    data: totalSales,
+                    borderColor: '#359271',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(53, 146, 113, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
             },
-            scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
                     },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        font: {
-                            size: isMobile ? 8 : 12
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                            }
                         }
                     }
                 },
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        callback: function(value) {
-                            return currencySymbol + value.toFixed(2);
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
                         },
-                        font: {
-                            size: isMobile ? 8 : 12
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                return currencySymbol + value.toFixed(2);
+                            },
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
                         }
                     }
                 }
             }
-        }
-    };
-    
-    salesChartInstance = new Chart(ctx, chartConfig);
-}
+        };
+        
+        salesChartInstance = new Chart(ctx, chartConfig);
+    }
 
-    
     // Create views chart
     function createViewsChart(chartType) {
         const ctx = viewsChartEl.getContext('2d');
@@ -1044,393 +1125,11 @@ function createSalesChart(chartType) {
         viewsChartInstance = new Chart(ctx, chartConfig);
     }
 
-function createCombinedChart(chartType) {
-    const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
-    if (!combinedAnalyticsChart) return;
-    
-    const ctx = combinedAnalyticsChart.getContext('2d');
-    const isMobile = window.innerWidth < 768;
-    const currencySymbol = getCurrencySymbol();
-    
-    const chartConfig = {
-        type: chartType === 'area' ? 'line' : chartType,
-        data: {
-            labels: days,
-            datasets: [
-                {
-                    label: `Sales (${currentCurrency})`,
-                    data: totalSales,
-                    borderColor: '#359271',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(53, 146, 113, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Views',
-                    data: totalClicks,
-                    borderColor: '#3b82f6',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(59, 130, 246, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5,
-                    yAxisID: 'y1'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: !isMobile,
-                    labels: { color: 'white' }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            if (context.dataset.label.includes('Sales')) {
-                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                            }
-                            return `${context.dataset.label}: ${context.raw}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        font: {
-                            size: isMobile ? 8 : 12
-                        }
-                    }
-                },
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        callback: function(value) {
-                            return currencySymbol + value.toFixed(2);
-                        },
-                        font: {
-                            size: isMobile ? 8 : 12
-                        }
-                    }
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    beginAtZero: true,
-                    grid: {
-                        drawOnChartArea: false
-                    },
-                    ticks: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                        font: {
-                            size: isMobile ? 8 : 12
-                        }
-                    }
-                }
-            }
-        }
-    };
-    
-    combinedChartInstance = new Chart(ctx, chartConfig);
-}
-
-    function showConversionFeeWarning(currency) {
-        const warningElement = document.getElementById('conversion-fee-warning');
-        if (currency === 'EUR') {
-            warningElement.classList.add('hidden');
-        } else {
-            warningElement.classList.remove('hidden');
-        }
-    }
-
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
-        if (currencySelect) {
-            showConversionFeeWarning(currencySelect.value);
-        }
-    });
-
-    // Update currency display when currency type changes
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencyTypeSelect = document.getElementById('currencyType');
-        const currencyDisplay = document.getElementById('currencyDisplay');
-        
-        if (currencyTypeSelect && currencyDisplay) {
-            currencyTypeSelect.addEventListener('change', function() {
-                currencyDisplay.textContent = this.value;
-            });
-        }
-    });
-
-    // Date range filter with AJAX (single instance)
-    document.getElementById('dateRange').addEventListener('change', fetchChartData);
-    document.getElementById('currencyType').addEventListener('change', fetchChartData);
-    
-
-    // Date range filter with AJAX (single instance)
-    document.getElementById('dateRange').addEventListener('change', fetchChartData);
-    document.getElementById('currencyType').addEventListener('change', fetchChartData);
-    
-    async function fetchChartData() {
-        const daysRange = parseInt(document.getElementById('dateRange').value);
-        const currency = document.getElementById('currencyType').value;
-        
-        // Show loading states
-        document.getElementById('salesChart').classList.add('opacity-50');
-        const combinedChart = document.getElementById('combinedAnalyticsChart');
-        if (combinedChart) combinedChart.classList.add('opacity-50');
-        
-        try {
-            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}&currency=${currency}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            
-            // Update data and currency
-            days = data.days;
-            totalSales = data.total_sales;
-            currentCurrency = data.currency;
-            
-            // Only update views data when date range changes
-            if (data.days.length !== totalClicks.length) {
-                totalClicks = data.total_clicks;
-                originalTotalClicks = data.total_clicks;  // Store original data
-            } else {
-                // Use original views data when only currency changes
-                totalClicks = originalTotalClicks;
-            }
-            
-            // Update chart titles
-            document.querySelectorAll('.currency-label').forEach(el => {
-                el.textContent = currentCurrency;
-            });
-            
-            // Update charts
-            updateCharts(chartTypeSelect.value);
-            
-            // Remove loading states
-            document.getElementById('salesChart').classList.remove('opacity-50');
-            if (combinedChart) combinedChart.classList.remove('opacity-50');
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            // Remove loading states
-            document.getElementById('salesChart').classList.remove('opacity-50');
-            if (combinedChart) combinedChart.classList.remove('opacity-50');
-        }
-    }
-        
-    // Update all charts with current data
-    function updateCharts(chartType) {
-        if (!chartType) {
-            chartType = chartTypeSelect.value;
-        }
-        
-        // Destroy existing charts
-        if (salesChartInstance) salesChartInstance.destroy();
-        if (viewsChartInstance) viewsChartInstance.destroy();
-        if (combinedChartInstance) combinedChartInstance.destroy();
-        
-        // Create new charts
-        createSalesChart(chartType);
-        createViewsChart(chartType);
-        createCombinedChart(chartType);
-    }
-    
-   // Toggle between separate and combined chart views
-   function toggleChartDisplay() {
-        const displayType = displayTypeSelect.value;
-        const separateCharts = document.getElementById('separateCharts');
-        const combinedChartContainer = document.getElementById('combinedChart');
-        
-        if (displayType === 'separate') {
-            separateCharts.style.display = 'grid';
-            combinedChartContainer.style.display = 'none';
-        } else {
-            separateCharts.style.display = 'none';
-            combinedChartContainer.style.display = 'block';
-        }
-
-        // Trigger chart update to ensure proper rendering
-        updateCharts(chartTypeSelect.value);
-    }
-    
-    // Get currency symbol based on selected currency
-    function getCurrencySymbol() {
-        switch(currentCurrency) {
-            case 'USD': return '$';
-            case 'EUR': return '€';
-            case 'GBP': return '£';
-            default: return '$';
-        }
-    }
-    
-    
-
-    function createSalesChart(chartType) {
-        const ctx = salesChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        const currencySymbol = getCurrencySymbol();
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: `Sales (${currentCurrency})`,
-                    data: totalSales,
-                    borderColor: '#359271',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(53, 146, 113, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const symbol = getCurrencySymbol();
-                                return `${context.dataset.label}: ${symbol}${context.raw.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            callback: function(value) {
-                                const symbol = getCurrencySymbol();
-                                return symbol + value.toFixed(2);
-                            },
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        salesChartInstance = new Chart(ctx, chartConfig);
-    }
-    
-    // Create views chart
-    function createViewsChart(chartType) {
-        const ctx = viewsChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Views',
-                    data: totalClicks,
-                    borderColor: '#3b82f6',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(59, 130, 246, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        viewsChartInstance = new Chart(ctx, chartConfig);
-    }
-    
-    // Create combined chart
     function createCombinedChart(chartType) {
-        const ctx = document.getElementById('combinedAnalyticsChart').getContext('2d');
+        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
+        if (!combinedAnalyticsChart) return;
+        
+        const ctx = combinedAnalyticsChart.getContext('2d');
         const isMobile = window.innerWidth < 768;
         const currencySymbol = getCurrencySymbol();
         
@@ -1511,8 +1210,7 @@ function createCombinedChart(chartType) {
                         ticks: {
                             color: 'rgba(255, 255, 255, 0.7)',
                             callback: function(value) {
-                                const symbol = getCurrencySymbol();
-                                return symbol + value.toFixed(2);
+                                return currencySymbol + value.toFixed(2);
                             },
                             font: {
                                 size: isMobile ? 8 : 12
@@ -1547,6 +1245,397 @@ function createCombinedChart(chartType) {
             warningElement.classList.add('hidden');
         } else {
             warningElement.classList.remove('hidden');
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+        }
+    });
+
+    // Update currency display when currency type changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const currencyTypeSelect = document.getElementById('currencyType');
+        const currencyDisplay = document.getElementById('currencyDisplay');
+        
+        if (currencyTypeSelect && currencyDisplay) {
+            currencyTypeSelect.addEventListener('change', function() {
+                currencyDisplay.textContent = this.value;
+            });
+        }
+    });
+
+    // Date range filter with AJAX (single instance)
+    document.getElementById('dateRange').addEventListener('change', fetchChartData);
+    document.getElementById('currencyType').addEventListener('change', fetchChartData);
+    
+
+    // Date range filter with AJAX (single instance)
+    document.getElementById('dateRange').addEventListener('change', fetchChartData);
+    document.getElementById('currencyType').addEventListener('change', fetchChartData);
+    
+    async function fetchChartData() {
+        const daysRange = parseInt(document.getElementById('dateRange').value);
+        const currency = document.getElementById('currencyType').value;
+        
+        // Show loading states
+        document.getElementById('salesChart').classList.add('opacity-50');
+        document.getElementById('viewsChart').classList.add('opacity-50');
+        const combinedChart = document.getElementById('combinedAnalyticsChart');
+        if (combinedChart) combinedChart.classList.add('opacity-50');
+        
+        try {
+            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}&currency=${currency}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            
+            // Update data and currency
+            days = data.days;
+            totalSales = data.total_sales;
+            totalClicks = data.total_clicks;
+            originalTotalClicks = [...data.total_clicks];  // Store original data
+            currentCurrency = data.currency;
+            
+            // Format dates for 7-day view
+            if (daysRange === 7) {
+                // Check if dates are in ISO format
+                if (days.some(day => day.includes('-'))) {
+                    days = days.map(day => {
+                        const date = new Date(day);
+                        return date.toLocaleDateString('en-US', { weekday: 'short' });
+                    });
+                }
+            }
+            
+            // Update chart titles
+            document.querySelectorAll('.currency-label').forEach(el => {
+                el.textContent = currentCurrency;
+            });
+            
+            // Update charts
+            updateCharts(chartTypeSelect.value);
+            
+            // Remove loading states
+            document.getElementById('salesChart').classList.remove('opacity-50');
+            document.getElementById('viewsChart').classList.remove('opacity-50');
+            if (combinedChart) combinedChart.classList.remove('opacity-50');
+        } catch (error) {
+            console.error('Error fetching chart data:', error);
+            // Remove loading states
+            document.getElementById('salesChart').classList.remove('opacity-50');
+            document.getElementById('viewsChart').classList.remove('opacity-50');
+            if (combinedChart) combinedChart.classList.remove('opacity-50');
+        }
+    }
+        
+    // Update all charts with current data
+    function updateCharts(chartType) {
+        if (!chartType) {
+            chartType = chartTypeSelect.value;
+        }
+        
+        // Destroy existing charts
+        if (salesChartInstance) salesChartInstance.destroy();
+        if (viewsChartInstance) viewsChartInstance.destroy();
+        if (combinedChartInstance) combinedChartInstance.destroy();
+        
+        // Create new charts
+        createSalesChart(chartType);
+        createViewsChart(chartType);
+        createCombinedChart(chartType);
+    }
+    
+   // Toggle between separate and combined chart views
+   function toggleChartDisplay() {
+        const displayType = displayTypeSelect.value;
+        const separateCharts = document.getElementById('separateCharts');
+        const combinedChartContainer = document.getElementById('combinedChart');
+        
+        if (displayType === 'separate') {
+            separateCharts.style.display = 'grid';
+            combinedChartContainer.style.display = 'none';
+        } else {
+            separateCharts.style.display = 'none';
+            combinedChartContainer.style.display = 'block';
+        }
+
+        // Trigger chart update to ensure proper rendering
+        updateCharts(chartTypeSelect.value);
+    }
+    
+    // Get currency symbol based on selected currency
+    function getCurrencySymbol() {
+        switch(currentCurrency) {
+            case 'USD': return '$';
+            case 'EUR': return '€';
+            case 'GBP': return '£';
+            default: return '$';
+        }
+    }
+    
+    // Create sales chart
+    function createSalesChart(chartType) {
+        const ctx = salesChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        const currencySymbol = getCurrencySymbol();
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: `Sales (${currentCurrency})`,
+                    data: totalSales,
+                    borderColor: '#359271',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(53, 146, 113, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                return currencySymbol + value.toFixed(2);
+                            },
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        salesChartInstance = new Chart(ctx, chartConfig);
+    }
+    
+    // Create views chart
+    function createViewsChart(chartType) {
+        const ctx = viewsChartEl.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [{
+                    label: 'Views',
+                    data: totalClicks,
+                    borderColor: '#3b82f6',
+                    backgroundColor: chartType === 'area' 
+                        ? 'rgba(59, 130, 246, 0.2)' 
+                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                    borderWidth: isMobile ? 1 : 2,
+                    tension: 0.4,
+                    fill: chartType === 'area',
+                    pointRadius: isMobile ? 2 : 3,
+                    pointHoverRadius: isMobile ? 3 : 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        viewsChartInstance = new Chart(ctx, chartConfig);
+    }
+    
+    // Create combined chart
+    function createCombinedChart(chartType) {
+        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
+        if (!combinedAnalyticsChart) return;
+        
+        const ctx = combinedAnalyticsChart.getContext('2d');
+        const isMobile = window.innerWidth < 768;
+        const currencySymbol = getCurrencySymbol();
+        
+        const chartConfig = {
+            type: chartType === 'area' ? 'line' : chartType,
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: `Sales (${currentCurrency})`,
+                        data: totalSales,
+                        borderColor: '#359271',
+                        backgroundColor: chartType === 'area' 
+                            ? 'rgba(53, 146, 113, 0.2)' 
+                            : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
+                        borderWidth: isMobile ? 1 : 2,
+                        tension: 0.4,
+                        fill: chartType === 'area',
+                        pointRadius: isMobile ? 2 : 3,
+                        pointHoverRadius: isMobile ? 3 : 5,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Views',
+                        data: totalClicks,
+                        borderColor: '#3b82f6',
+                        backgroundColor: chartType === 'area' 
+                            ? 'rgba(59, 130, 246, 0.2)' 
+                            : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
+                        borderWidth: isMobile ? 1 : 2,
+                        tension: 0.4,
+                        fill: chartType === 'area',
+                        pointRadius: isMobile ? 2 : 3,
+                        pointHoverRadius: isMobile ? 3 : 5,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: !isMobile,
+                        labels: { color: 'white' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.label.includes('Sales')) {
+                                    return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
+                                }
+                                return `${context.dataset.label}: ${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            callback: function(value) {
+                                return currencySymbol + value.toFixed(2);
+                            },
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: {
+                                size: isMobile ? 8 : 12
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        
+        combinedChartInstance = new Chart(ctx, chartConfig);
+    }
+
+    function showConversionFeeWarning(currency) {
+        const warningElement = document.getElementById('conversion-fee-warning');
+        if (warningElement) {
+            if (currency === 'EUR') {
+                warningElement.classList.add('hidden');
+            } else {
+                warningElement.classList.remove('hidden');
+            }
         }
     }
 
@@ -1792,64 +1881,84 @@ function createCombinedChart(chartType) {
         }
     }
 
-    // Pagination for sales table
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        const salesRows = document.querySelectorAll('.sale-row');
-        const pageIndicator = document.getElementById('currentPage');
-        const totalPagesIndicator = document.getElementById('totalPages');
+        const currencySelect = document.getElementById('id_currency');
+        if (currencySelect) {
+            showConversionFeeWarning(currencySelect.value);
+            currencySelect.addEventListener('change', function() {
+                showConversionFeeWarning(this.value);
+            });
+        }
+    });
+
+    // Pagination functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const salesTable = document.getElementById('salesTable');
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
-        const rowsPerPage = 5;
+        const currentPageEl = document.getElementById('currentPage');
+        const totalPagesEl = document.getElementById('totalPages');
         
-        if (salesRows.length > 0) {
+        if (salesTable && prevPageBtn && nextPageBtn) {
+            const rows = Array.from(salesTable.querySelectorAll('tbody tr:not([id^="details-"])'));
+            const rowsPerPage = 5;
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
             let currentPage = 1;
-            const totalPages = Math.ceil(salesRows.length / rowsPerPage);
             
-            // Update page indicators
-            if (pageIndicator) pageIndicator.textContent = currentPage;
-            if (totalPagesIndicator) totalPagesIndicator.textContent = totalPages;
+            // Update pagination display
+            totalPagesEl.textContent = totalPages;
             
             // Function to show rows for current page
             function showPage(page) {
                 const start = (page - 1) * rowsPerPage;
                 const end = start + rowsPerPage;
                 
-                salesRows.forEach((row, index) => {
+                rows.forEach((row, index) => {
+                    // Get the corresponding details row
+                    const saleId = row.querySelector('.details-btn')?.getAttribute('data-sale-id');
+                    const detailsRow = saleId ? document.getElementById(`details-${saleId}`) : null;
+                    
                     if (index >= start && index < end) {
                         row.classList.remove('hidden');
+                        // If details row is open, show it too
+                        if (detailsRow && !detailsRow.classList.contains('hidden')) {
+                            detailsRow.classList.remove('hidden');
+                        }
                     } else {
                         row.classList.add('hidden');
+                        // Always hide details row for hidden sales
+                        if (detailsRow) {
+                            detailsRow.classList.add('hidden');
+                        }
                     }
                 });
                 
-                // Update buttons state
-                if (prevPageBtn) prevPageBtn.disabled = page === 1;
-                if (nextPageBtn) nextPageBtn.disabled = page === totalPages;
+                // Update current page display
+                currentPageEl.textContent = page;
+                
+                // Update button states
+                prevPageBtn.disabled = page === 1;
+                nextPageBtn.disabled = page === totalPages;
             }
+            
+            // Initialize with first page
+            showPage(currentPage);
             
             // Add event listeners to pagination buttons
-            if (prevPageBtn) {
-                prevPageBtn.addEventListener('click', function() {
-                    if (currentPage > 1) {
-                        currentPage--;
-                        showPage(currentPage);
-                        if (pageIndicator) pageIndicator.textContent = currentPage;
-                    }
-                });
-            }
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
             
-            if (nextPageBtn) {
-                nextPageBtn.addEventListener('click', function() {
-                    if (currentPage < totalPages) {
-                        currentPage++;
-                        showPage(currentPage);
-                        if (pageIndicator) pageIndicator.textContent = currentPage;
-                    }
-                });
-            }
-            
-            // Initialize first page
-            showPage(currentPage);
+            nextPageBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
         }
     });
 </script>

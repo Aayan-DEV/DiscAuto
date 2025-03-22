@@ -1316,6 +1316,16 @@ def one_time_checkout_success(request):
         else:
             converted_amount_eur = Decimal(str(amount)).quantize(Decimal('0.01'))
 
+        # Prepare context for the template
+        context = {
+            'customer_name': customer_name,
+            'product': product,
+            'amount': amount,
+            'currency': currency,
+            'product_content': product.product_content,
+            'session_id': session_id
+        }
+
         # Here we create a new record of the sale in the ProductSale model.
         sale = ProductSale.objects.create(
             user=product.category.user,  
@@ -1349,8 +1359,8 @@ def one_time_checkout_success(request):
             "customer_name": customer_name,
             "product_title": product.title,
             "product_content": product.product_content, 
-            "amount": session.amount_total / 100,
-            "currency": session.currency.upper(),
+            "amount": amount,
+            "currency": currency,
             "unique_hash": unique_hash
         })
         customer_email_message = EmailMultiAlternatives(
@@ -1365,25 +1375,25 @@ def one_time_checkout_success(request):
         # Send notification email to product owner
         owner_subject = f"New Order for {product.title} from {customer_name}"
         owner_html_content = render_to_string("emails/one_time_product_sale_notification.html", {
-            "username": product.category.user.username,
+            "username": user.username,
             "product_title": product.title,
             "customer_name": customer_name,
             "customer_email": customer_email,
-            "amount": session.amount_total / 100,
-            "currency": session.currency.upper(),
+            "amount": amount,
+            "currency": currency,
             "unique_hash": unique_hash
         })
         owner_email_message = EmailMultiAlternatives(
             subject=owner_subject,
-            body=f"Congratulations on your sale {product.category.user.username}!",
+            body=f"Congratulations on your sale {user.username}!",
             from_email=f"Mystorelink <{EMAIL_HOST_USER}>",
-            to=[product.category.user.email]
+            to=[user.email]
         )
         owner_email_message.attach_alternative(owner_html_content, "text/html")
         owner_email_message.send()
 
         # Send Pushover notification if enabled
-        profile, created = UserProfile.objects.get_or_create(user=product.category.user)
+        profile, created = UserProfile.objects.get_or_create(user=user)
         owner_pushover_key = profile.pushover_user_key
         if owner_pushover_key:
             message = f"🎉 {customer_name} ordered 1 item from your store!"
@@ -1392,14 +1402,16 @@ def one_time_checkout_success(request):
         # Archive the Stripe product and delete the one-time product
         try:
             stripe.Product.modify(product.stripe_product_id, active=False)
+            product.delete()
         except stripe.error.StripeError as e:
             print(f"Error archiving product on Stripe: {e}")
+            return render(request, 'checkout/checkout_success.html', {'error': f'Error archiving product: {str(e)}'})
+        except Exception as e:
+            print(f"Error deleting one-time product: {str(e)}")
+            return render(request, 'checkout/checkout_success.html', {'error': 'Error processing your purchase'})
 
-        product.delete()
-
-        # Redirect to previous page
-        previous_url = request.session.get('previous_url', '/')
-        return redirect(previous_url)
+        # Render the success template with context
+        return render(request, 'checkout/checkout_success.html', context)
         
     except stripe.error.StripeError as e:
         print(f"Stripe error in one_time_checkout_success: {str(e)}")
@@ -1408,6 +1420,43 @@ def one_time_checkout_success(request):
         print(f"Error in one_time_checkout_success: {str(e)}")
         print(traceback.format_exc())
         return render(request, 'checkout/checkout_success.html', {'error': 'An unexpected error occurred'})
+
+def one_time_checkout_cancel(request):
+    """
+    Handle cancellation of one-time product checkout.
+    This view is called when a customer cancels the checkout process for a one-time product.
+    """
+    try:
+        # Store the previous URL in session for potential redirect
+        previous_url = request.META.get('HTTP_REFERER', '/')
+        request.session['previous_url'] = previous_url
+        
+        # Get the product ID from the session if available
+        product_id = request.session.get('one_time_product_id')
+        
+        # If we have a product ID, we can log the cancellation
+        if product_id:
+            try:
+                product = OneTimeProduct.objects.get(id=product_id)
+                print(f"Checkout cancelled for one-time product: {product.title} (ID: {product_id})")
+            except OneTimeProduct.DoesNotExist:
+                print(f"Could not find one-time product with ID: {product_id}")
+            
+            # Clear the product ID from the session
+            del request.session['one_time_product_id']
+        
+        # Check if we should redirect back to the previous page
+        if request.GET.get('redirect', 'false').lower() == 'true':
+            return redirect(previous_url)
+        
+        # Otherwise render the cancel template
+        return render(request, 'checkout/cancel.html')
+        
+    except Exception as e:
+        print(f"Error in one_time_checkout_cancel: {str(e)}")
+        print(traceback.format_exc())
+        # In case of any error, still render the cancel template
+        return render(request, 'checkout/cancel.html')
 
 
 def calculate_stripe_sale_details(sale, session_id=None):

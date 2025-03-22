@@ -16,17 +16,18 @@
         <div class="max-w-2xl w-full">
             <div class="bg-gray-800/50 backdrop-blur-sm shadow-xl rounded-2xl border border-[#359271]/20 p-8">
                 <!-- Add this where you want to display errors -->
-                {% if error_message %}
+                {% if error %}
                 <div class="text-center space-y-6">
                     <div class="flex justify-center">
                         <span class="material-icons text-6xl text-red-500 animate-bounce">error_outline</span>
                     </div>
                     <h1 class="text-2xl font-bold text-red-500">Payment Error</h1>
-                    <p class="text-gray-400">{{ error_message }}</p>
-                    <a
+                    <p class="text-gray-400">{{ error }}</p>
+                    <a href="javascript:history.go(-4)"
                        class="inline-flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#359271] to-[#2d4b50] 
                               text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 transform hover:scale-[0.98]">
-                        <span class="material-icons">Back to Product Page!</span>
+                        <span class="material-icons">arrow_back</span>
+                        Back to Product Page
                     </a>
                 </div>
                 {% else %}
@@ -47,7 +48,9 @@
                             <div class="space-y-3 text-gray-300">
                                 <p><span class="font-medium">Product:</span> {{ product.title }}</p>
                                 <p><span class="font-medium">Amount:</span> {{ amount }} {{ currency }}</p>
+                                
                                 {% if product.link %}
+                                <!-- For unlimited products with download link -->
                                 <div class="mt-6">
                                     <a href="{{ product.link }}" 
                                        class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#359271] to-[#2d4b50] 
@@ -56,17 +59,23 @@
                                         Download Product
                                     </a>
                                 </div>
+                                {% elif product_content %}
+                                <!-- For one-time products with content -->
+                                <div class="mt-4 p-4 bg-gray-800/70 rounded-lg">
+                                    <h3 class="text-lg font-medium text-[#359271] mb-2">Your Product Content:</h3>
+                                    <div class="text-gray-300 break-words whitespace-pre-wrap">{{ product_content }}</div>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
                         {% endif %}
                         
                         <div class="mt-8">
-                            <a 
+                            <a href="javascript:history.back()"
                                class="inline-flex items-center justify-center gap-2 w-full py-4 bg-gray-700 text-white rounded-xl 
                                       hover:bg-gray-600 transition-all duration-300">
                                 <span class="material-icons">arrow_back</span>
-                                <button onclick="window.history.go(-3)">Return Back</button>
+                                Return Back
                             </a>
                         </div>
                     </div>
