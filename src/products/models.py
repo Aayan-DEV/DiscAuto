@@ -99,18 +99,24 @@ class ProductSale(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(OneTimeProduct, on_delete=models.SET_NULL, null=True, blank=True)
     unlimited_product = models.ForeignKey(UnlimitedProduct, on_delete=models.SET_NULL, null=True, blank=True)
+    product_name = models.CharField(max_length=255, null=True, blank=True)  # Add this field
     stripe_session_id = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10)
     customer_name = models.CharField(max_length=255)
     customer_email = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Fee details
     stripe_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     platform_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     payout_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    fee_details_fetched = models.BooleanField(default=False)
     converted_amount_eur = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    payout_processed = models.BooleanField(default=False)  
+    fee_details_fetched = models.BooleanField(default=False)
+    
+    def __str__(self):
+        product_info = self.product_name or "Unknown Product"
+        return f"{product_info} - {self.customer_name} - {self.amount} {self.currency}"
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

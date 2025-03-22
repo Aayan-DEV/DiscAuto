@@ -1104,6 +1104,7 @@ def checkout_success(request):
             user=user,
             product=product if product_type == 'one_time' else None,
             unlimited_product=product if product_type == 'unlimited' else None,
+            product_name=product.title,
             stripe_session_id=session_id,
             amount=session.amount_total / 100,
             currency=session.currency.upper(),
@@ -1330,6 +1331,7 @@ def one_time_checkout_success(request):
         sale = ProductSale.objects.create(
             user=product.category.user,  
             product=product, 
+            product_name=product.title,
             stripe_session_id=session_id,
             amount=amount,  
             currency=currency,
@@ -1583,9 +1585,19 @@ def get_sale_details(request, sale_id):
                 print(f"Warning: Failed to calculate fee details: {calculation_result.get('error')}")
                 return JsonResponse({'error': 'Failed to retrieve fee details'}, status=500)
         
+        # Get product name - first check if we have it stored directly
+        product_name = "Unknown Product"
+        if sale.product_name:
+            product_name = sale.product_name
+        elif sale.unlimited_product:
+            product_name = sale.unlimited_product.title
+        elif sale.product:
+            product_name = sale.product.title
+        
         # Prepare the response data from the database
         response_data = {
             'id': sale.id,
+            'product_name': product_name,
             'currency': sale.currency,
             'amount': float(sale.amount),
             'customer_name': sale.customer_name,

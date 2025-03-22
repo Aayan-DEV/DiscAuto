@@ -125,10 +125,14 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="truncate max-w-[100px] sm:max-w-none">
-                                {% if sale.product %}
+                                {% if sale.product_name %}
+                                    {{ sale.product_name }}
+                                {% elif sale.product %}
                                     {{ sale.product.title }}
-                                {% else %}
+                                {% elif sale.unlimited_product %}
                                     {{ sale.unlimited_product.title }} (Unlimited)
+                                {% else %}
+                                    Unknown Product
                                 {% endif %}
                                 </div>
                             </td>
@@ -732,15 +736,14 @@
                 console.error('Error refreshing crypto balances:', error);
             });
     }
-        
-        // Function to toggle sale details
+    
+
     function toggleSaleDetails(saleId) {
         const detailsRow = document.getElementById(`details-${saleId}`);
         const loadingSpinner = detailsRow.querySelector('.loading-spinner');
         const feeDetails = detailsRow.querySelector('.fee-details');
         const errorMessage = detailsRow.querySelector('.error-message');
         
-        // Toggle visibility of the details row
         if (detailsRow.classList.contains('hidden')) {
             detailsRow.classList.remove('hidden');
             
@@ -749,9 +752,7 @@
             feeDetails.classList.add('hidden');
             errorMessage.classList.add('hidden');
             
-            console.log(`Fetching details for sale ID: ${saleId}`);
-            
-            // Use the products endpoint instead of dashboard endpoint to get accurate data
+            // Fetch sale details
             fetch(`/products/get-sale-details/${saleId}/`)
                 .then(response => {
                     if (!response.ok) {
@@ -760,9 +761,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Sale details data:", data); // Debug log
-                    
-                    // Hide loading spinner
+                    console.log("Received sale details:", data);
                     loadingSpinner.classList.add('hidden');
                     
                     // Get currency symbol based on the original currency
@@ -770,51 +769,52 @@
                     if (data.currency === 'USD') currencySymbol = '$';
                     if (data.currency === 'GBP') currencySymbol = '£';
                     
-                    // Format numbers properly and handle undefined values
-                    const formatAmount = (amount) => {
-                        if (amount === undefined || amount === null) return '0.00';
-                        // Handle string values that might be numbers
-                        const numValue = typeof amount === 'string' ? parseFloat(amount) : amount;
-                        return numValue.toFixed(2);
-                    };
+                    // Update fee details
+                    const productNameElement = feeDetails.querySelector('.product-name');
+                    if (productNameElement) {
+                        productNameElement.textContent = data.product_name || "Unknown Product";
+                    }
                     
-                    // Update fee details with the data from database
-                    feeDetails.querySelector('.gross-amount').textContent = `${currencySymbol}${formatAmount(data.amount)}`;
+                    feeDetails.querySelector('.gross-amount').textContent = `${currencySymbol}${parseFloat(data.amount).toFixed(2)}`;
                     
                     const convertedAmountRow = feeDetails.querySelector('.converted-amount-row');
                     const convertedAmount = feeDetails.querySelector('.converted-amount');
                     
-                    // Always show converted amount for non-EUR currencies
                     if (data.currency !== 'EUR') {
                         convertedAmountRow.style.display = '';
-                        convertedAmount.textContent = `€${formatAmount(data.converted_amount_eur)}`;
+                        convertedAmount.textContent = `€${parseFloat(data.converted_amount_eur).toFixed(2)}`;
                     } else {
-                        // For EUR currency, hide the converted amount row as it's redundant
                         convertedAmountRow.style.display = 'none';
                     }
                     
-                    // Always use the currency symbols based on the data
-                    feeDetails.querySelector('.stripe-fee').textContent = `-€${formatAmount(data.stripe_fee)}`;
-                    feeDetails.querySelector('.platform-fee').textContent = `-€${formatAmount(data.platform_fee)}`;
-                    feeDetails.querySelector('.payout-amount').textContent = `€${formatAmount(data.payout_amount)}`;
+                    feeDetails.querySelector('.stripe-fee').textContent = `-€${parseFloat(data.stripe_fee).toFixed(2)}`;
+                    feeDetails.querySelector('.platform-fee').textContent = `-€${parseFloat(data.platform_fee).toFixed(2)}`;
+                    feeDetails.querySelector('.payout-amount').textContent = `€${parseFloat(data.payout_amount).toFixed(2)}`;
                     
-                    // Show fee details
                     feeDetails.classList.remove('hidden');
                 })
                 .catch(error => {
-                    // Hide loading spinner
+                    console.error('Error fetching sale details:', error);
                     loadingSpinner.classList.add('hidden');
-                    
-                    // Show error message
                     errorMessage.textContent = 'Failed to load sale details. Please try again.';
                     errorMessage.classList.remove('hidden');
-                    console.error('Error fetching sale details:', error);
                 });
         } else {
             detailsRow.classList.add('hidden');
         }
     }
-    
+
+    // Add event listeners to details buttons using event delegation
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('salesTableBody').addEventListener('click', function(e) {
+            const detailsBtn = e.target.closest('.details-btn');
+            if (detailsBtn) {
+                const saleId = detailsBtn.getAttribute('data-sale-id');
+                toggleSaleDetails(saleId);
+            }
+        });
+    });
+        
     // Initialize charts with default data
     function initializeCharts() {
         const chartType = chartTypeSelect.value;
