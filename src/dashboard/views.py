@@ -442,97 +442,32 @@ def dashboard_view(request):
 
 @login_required
 def refresh_income(request):
-    """
-    AJAX endpoint to refresh user income data
-    """
-    user = request.user
-    print(f"Refreshing income for user: {user.username}")
-    
-    # Get all sales for the user
-    sales = ProductSale.objects.filter(
-        user=user,
-        payout_amount__isnull=False,
-        payout_processed=False
-    )
-    print(f"Found {sales.count()} unprocessed sales with payout amounts")
-    
-    # Debug counters
-    eur_sales_count = sales.filter(currency='EUR').count()
-    usd_sales_count = sales.filter(currency='USD').count()
-    gbp_sales_count = sales.filter(currency='GBP').count()
-    sales_with_payout = sales.filter(payout_amount__isnull=False).count()
-    total_sales = sales.count()
-    
-    # Get or create user income record
     try:
-        income, created = UserIncome.objects.get_or_create(user=user)
-        print(f"User income {'created' if created else 'retrieved'} for {user.username}")
-        print(f"Current EUR balance: {income.EUR_TOTAL}")
-    except Exception as e:
-        print(f"Error getting user income: {e}")
-        return JsonResponse({'success': False, 'error': str(e)})
-    
-    # Process each sale and update income
-    for sale in sales:
-        try:
-            print(f"Processing sale {sale.id}: {sale.payout_amount} {sale.currency}")
-            
-            # For fiat currencies, directly add to EUR_TOTAL without conversion
-            if sale.currency in ['USD', 'EUR', 'GBP']:
-                print(f"Before update: EUR_TOTAL = {income.EUR_TOTAL}")
-                income.EUR_TOTAL += sale.payout_amount
-                print(f"After update: EUR_TOTAL = {income.EUR_TOTAL}")
-            else:
-                # For cryptocurrencies, update the corresponding field
-                crypto_field = f"{sale.currency.replace('.', '_')}_TOTAL"
-                print(f"Crypto currency detected, field to update: {crypto_field}")
-                
-                if hasattr(income, crypto_field):
-                    current_value = getattr(income, crypto_field)
-                    print(f"Current value of {crypto_field}: {current_value}")
-                    setattr(income, crypto_field, current_value + sale.payout_amount)
-                    print(f"New value of {crypto_field}: {getattr(income, crypto_field)}")
-                else:
-                    print(f"Warning: Field {crypto_field} not found in UserIncome model")
-            
-            # Mark sale as processed
-            sale.payout_processed = True
-            sale.save(update_fields=['payout_processed'])
-            print(f"Sale {sale.id} marked as processed")
-            
-        except Exception as e:
-            print(f"Error processing sale {sale.id}: {e}")
-            import traceback
-            print(traceback.format_exc())
-    
-    # Save the updated income
-    income.save()
-    print(f"Income saved. New EUR balance: {income.EUR_TOTAL}")
-    
-    # Format the income for the response
-    formatted_income = {
-        'EUR_TOTAL': str(format_decimal(income.EUR_TOTAL.quantize(Decimal('0.01')))),
-        'BTC_TOTAL': str(format_decimal(income.BTC_TOTAL)),
-        'ETH_TOTAL': str(format_decimal(income.ETH_TOTAL)),
-        'LTC_TOTAL': str(format_decimal(income.LTC_TOTAL)),
-        'SOL_TOTAL': str(format_decimal(income.SOL_TOTAL)),
-        'USDT_TRC20_TOTAL': str(format_decimal(income.USDT_TRC20_TOTAL)),
-        'USDT_ERC20_TOTAL': str(format_decimal(income.USDT_ERC20_TOTAL)),
-        'USDT_BEP20_TOTAL': str(format_decimal(income.USDT_BEP20_TOTAL)),
-        'USDT_SOL_TOTAL': str(format_decimal(income.USDT_SOL_TOTAL)),
-        'USDT_PRC20_TOTAL': str(format_decimal(income.USDT_PRC20_TOTAL)),
-        'LTCT_TOTAL': str(format_decimal(income.LTCT_TOTAL)),
-    }
-    
-    return JsonResponse({
-        'success': True,
-        'income': formatted_income,
-        'debug': {
-            'eur_sales_count': eur_sales_count,
-            'usd_sales_count': usd_sales_count,
-            'gbp_sales_count': gbp_sales_count,
-            'sales_with_payout': sales_with_payout,
-            'total_sales': total_sales,
-            'eur_balance': str(income.EUR_TOTAL)
+        # Get the user's income record
+        user_income, created = UserIncome.objects.get_or_create(user=request.user)
+        
+        # Format the cryptocurrency balances using correct field names
+        formatted_income = {
+            'BTC_TOTAL': str(user_income.BTC_TOTAL) if user_income.BTC_TOTAL else "0.00",
+            'ETH_TOTAL': str(user_income.ETH_TOTAL) if user_income.ETH_TOTAL else "0.00",
+            'LTC_TOTAL': str(user_income.LTC_TOTAL) if user_income.LTC_TOTAL else "0.00",
+            'SOL_TOTAL': str(user_income.SOL_TOTAL) if user_income.SOL_TOTAL else "0.00",
+            'USDT_TRC20_TOTAL': str(user_income.USDT_TRC20_TOTAL) if user_income.USDT_TRC20_TOTAL else "0.00",
+            'USDT_ERC20_TOTAL': str(user_income.USDT_ERC20_TOTAL) if user_income.USDT_ERC20_TOTAL else "0.00",
+            'USDT_BEP20_TOTAL': str(user_income.USDT_BEP20_TOTAL) if user_income.USDT_BEP20_TOTAL else "0.00",
+            'USDT_SOL_TOTAL': str(user_income.USDT_SOL_TOTAL) if user_income.USDT_SOL_TOTAL else "0.00",
+            'USDT_PRC20_TOTAL': str(user_income.USDT_PRC20_TOTAL) if user_income.USDT_PRC20_TOTAL else "0.00",
+            'LTCT_TOTAL': str(user_income.LTCT_TOTAL) if user_income.LTCT_TOTAL else "0.00"
         }
-    })
+
+        return JsonResponse({
+            'success': True,
+            'income': formatted_income
+        })
+        
+    except Exception as e:
+        print(f"Error in refresh_income: {str(e)}")  # Add logging for debugging
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

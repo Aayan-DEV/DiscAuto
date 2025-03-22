@@ -840,80 +840,6 @@
         updateCharts(chartType);
         toggleChartDisplay();
     }
-    
-        // Function to fetch chart data from the server
-    function fetchChartData() {
-        const daysValue = dateRangeSelect.value;
-        const currency = currencyTypeSelect.value;
-        currentCurrency = currency;
-        
-        // Show loading state
-        salesChartEl.classList.add('opacity-50');
-        viewsChartEl.classList.add('opacity-50');
-        if (combinedChartEl) {
-            combinedChartEl.classList.add('opacity-50');
-        }
-    
-        // Fetch data from the server
-        fetch(`/dashboard/get-chart-data/?days=${daysValue}&currency=${currency}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Format dates if they are in ISO format (YYYY-MM-DD)
-                if (daysValue === '7' && data.days && data.days.length > 0) {
-                    // Check if the dates are in ISO format
-                    const isISOFormat = data.days.some(day => day.includes('-'));
-                    
-                    if (isISOFormat) {
-                        // Convert ISO dates to day names
-                        data.days = data.days.map(day => {
-                            const date = new Date(day);
-                            return date.toLocaleDateString('en-US', { weekday: 'short' });
-                        });
-                    }
-                }
-                
-                // Update data variables
-                days = data.days;
-                totalSales = data.total_sales;
-                
-                // Only update clicks when days range changes, not for currency changes
-                if (data.days.length !== totalClicks.length) {
-                    totalClicks = data.total_clicks;
-                    originalTotalClicks = [...data.total_clicks];
-                }
-                
-                currentCurrency = data.currency;
-                
-                // Update currency label in the chart title
-                document.querySelectorAll('.currency-label').forEach(el => {
-                    el.textContent = currentCurrency;
-                });
-                
-                // Update charts with new data
-                updateCharts();
-                
-                // Remove loading state
-                salesChartEl.classList.remove('opacity-50');
-                viewsChartEl.classList.remove('opacity-50');
-                if (combinedChartEl) {
-                    combinedChartEl.classList.remove('opacity-50');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching chart data:', error);
-                // Remove loading state
-                salesChartEl.classList.remove('opacity-50');
-                viewsChartEl.classList.remove('opacity-50');
-                if (combinedChartEl) {
-                    combinedChartEl.classList.remove('opacity-50');
-                }
-            });
-    }
 
     // Initialize charts on page load
     document.addEventListener('DOMContentLoaded', function() {
@@ -974,6 +900,7 @@
         // Trigger chart update to ensure proper rendering
         updateCharts();
     }
+
     
     // Create sales chart
     function createSalesChart(chartType) {
@@ -1051,6 +978,11 @@
 
     // Create views chart
     function createViewsChart(chartType) {
+        console.log('Creating views chart with data:', {
+        chartType,
+        days,
+        totalClicks
+        });
         const ctx = viewsChartEl.getContext('2d');
         const isMobile = window.innerWidth < 768;
         
@@ -1260,16 +1192,10 @@
                 currencyDisplay.textContent = this.value;
             });
         }
+
+        document.getElementById('dateRange').addEventListener('change', fetchChartData);
+        document.getElementById('currencyType').addEventListener('change', fetchChartData);
     });
-
-    // Date range filter with AJAX (single instance)
-    document.getElementById('dateRange').addEventListener('change', fetchChartData);
-    document.getElementById('currencyType').addEventListener('change', fetchChartData);
-    
-
-    // Date range filter with AJAX (single instance)
-    document.getElementById('dateRange').addEventListener('change', fetchChartData);
-    document.getElementById('currencyType').addEventListener('change', fetchChartData);
     
     async function fetchChartData() {
         const daysRange = parseInt(document.getElementById('dateRange').value);
@@ -1287,22 +1213,28 @@
             
             const data = await response.json();
             
+            // Clean and process the data
+            const cleanData = {
+                days: data.days.filter(day => day !== ''),
+                totalSales: data.total_sales.filter((_, index) => data.days[index] !== ''),
+                totalClicks: data.total_clicks.filter((_, index) => data.days[index] !== '')
+            };
+            
             // Update data and currency
-            days = data.days;
-            totalSales = data.total_sales;
-            totalClicks = data.total_clicks;
-            originalTotalClicks = [...data.total_clicks];  // Store original data
+            days = [...cleanData.days];
+            totalSales = [...cleanData.totalSales];
+            totalClicks = [...cleanData.totalClicks];
             currentCurrency = data.currency;
             
             // Format dates for 7-day view
             if (daysRange === 7) {
-                // Check if dates are in ISO format
-                if (days.some(day => day.includes('-'))) {
-                    days = days.map(day => {
+                days = days.map(day => {
+                    if (day.includes('-')) {
                         const date = new Date(day);
-                        return date.toLocaleDateString('en-US', { weekday: 'short' });
-                    });
-                }
+                        return date.toLocaleDateString('en-US', { weekday: 'long' });
+                    }
+                    return day;
+                });
             }
             
             // Update chart titles
@@ -1310,8 +1242,9 @@
                 el.textContent = currentCurrency;
             });
             
-            // Update charts
-            updateCharts(chartTypeSelect.value);
+            // Update charts with current chart type
+            const currentChartType = document.getElementById('chartType').value;
+            updateCharts(currentChartType);
             
             // Remove loading states
             document.getElementById('salesChart').classList.remove('opacity-50');
@@ -1328,6 +1261,12 @@
         
     // Update all charts with current data
     function updateCharts(chartType) {
+        console.log('updateCharts called with:', {
+            chartType,
+            totalClicks,
+            days
+        });
+        
         if (!chartType) {
             chartType = chartTypeSelect.value;
         }
