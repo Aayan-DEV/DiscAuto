@@ -20,8 +20,8 @@ urlpatterns = [
     path('auto-sell/delete/<int:auto_sell_id>/', autosell_views.delete_lander, name='delete_lander'),  # Delete page
     path("hello-world/", home_view),
     path("", landing_views.landing_dashboard_page_view, name="dashboard"),  
-    path('dashboard/get-chart-data/', dashboard_views.get_chart_data, name='get_chart_data'),  # Updated path
-    # Add this to your urlpatterns
+    path('dashboard/get-chart-data/', dashboard_views.get_chart_data, name='get_chart_data'),
+    path('dashboard/get-summary-data/', dashboard_views.get_summary_data, name='get_summary_data'),  # New endpoint
     path('dashboard/refresh-income/', dashboard_views.refresh_income, name='refresh_income'),
     # Add this new URL pattern for get_sale_details
     path('products/get-sale-details/<int:sale_id>/', products_views.get_sale_details, name='get_sale_details'),

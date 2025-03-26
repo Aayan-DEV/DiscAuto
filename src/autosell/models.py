@@ -39,18 +39,18 @@ class AutoSellView(models.Model):
     auto_sell = models.ForeignKey(
         AutoSell, 
         on_delete=models.CASCADE, 
-        related_name='views',
-        null=True,  # Add this to allow null values
-        blank=True  # Add this to allow blank values in forms
+        related_name='views'
     )
     timestamp = models.DateTimeField(default=timezone.now)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField()
+    session_key = models.CharField(max_length=40, blank=True, null=True)  # Add this to track sessions
 
     def __str__(self):
-        return f"View of {self.auto_sell.name if self.auto_sell else 'Unknown'} at {self.timestamp}"
+        return f"View of {self.auto_sell.name} at {self.timestamp}"
 
     class Meta:
         ordering = ['-timestamp']
+        unique_together = ('auto_sell', 'session_key')  # Add this to prevent duplicate views per session
 
 
 class LandingPage(models.Model):

@@ -119,7 +119,7 @@ def custom_landing_page(request, custom_link):
         landing_pages=user_data
     )
 
-    # Record the view
+    # Record the view (only once)
     AutoSellView.objects.create(
         auto_sell=user_data,
         ip_address=request.META.get('REMOTE_ADDR')
@@ -263,13 +263,18 @@ def increment_view_count(request, custom_link):
     except AutoSell.DoesNotExist:
         return JsonResponse({'error': 'Landing page not found'}, status=404)
 
-    # Create view with timestamp only
-    AutoSellView.objects.create(
-        auto_sell=landing_page,
-        ip_address=request.META.get('REMOTE_ADDR')
-    )
-
-    return JsonResponse({'success': True})
+    # Check if this session has already viewed the page
+    if not request.session.get(f'viewed_{custom_link}', False):
+        # Create view with timestamp only
+        AutoSellView.objects.create(
+            auto_sell=landing_page,
+            ip_address=request.META.get('REMOTE_ADDR')
+        )
+        # Mark this session as having viewed the page
+        request.session[f'viewed_{custom_link}'] = True
+        return JsonResponse({'success': True, 'new_view': True})
+    
+    return JsonResponse({'success': True, 'new_view': False})
 
 
 # Add these new views at the top of the file

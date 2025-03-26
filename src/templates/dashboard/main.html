@@ -1,4 +1,3 @@
-
 {% extends "dashboard/base.html" %}
 {% block head_title %} Dashboard - {{ block.super }} {% endblock head_title %}
 {% block content %}
@@ -7,82 +6,107 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+<!-- Activity Summary Header -->
 <div class="pt-5 text-[#359271]">
     <h1 class="text-2xl font-bold text-center flex items-center justify-center gap-2">
         <span class="material-icons">dashboard</span>
-        Weekly Activity Summary
+        Activity Summary
     </h1>
 </div>
 
-<!-- Chart Controls -->
-<div class="flex flex-wrap gap-4 justify-center mt-6 px-4">
-    <div class="flex items-center gap-2">
-        <label class="text-white text-sm">Date Range:</label>
-        <select id="dateRange" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-        </select>
-    </div>
-    <div class="flex items-center gap-2">
-        <label class="text-white text-sm">Chart Type:</label>
-        <select id="chartType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
-            <option value="line">Line</option>
-            <option value="bar">Bar</option>
-            <option value="area">Area</option>
-        </select>
-    </div>
-    <div class="flex items-center gap-2">
-        <label class="text-white text-sm">Display:</label>
-        <select id="displayType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
-            <option value="separate">Separate Graphs</option>
-            <option value="combined">Combined Graph</option>
-        </select>
-    </div>
-    <div class="flex items-center gap-2">
-        <label class="text-white text-sm">Currency:</label>
-        <select id="currencyType" class="bg-gray-800 text-white rounded-lg px-3 py-1 text-sm border border-[#359271]">
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-        </select>
-    </div>
-</div>
-
-<!-- Chart Container with Responsive Grid -->
-<div class="pt-10">
-    <div id="separateCharts" class="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
-        <!-- Sales Chart --> 
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
-            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
-                <span class="material-icons">trending_up</span>
-                Sales (<span class="currency-label">USD</span>)
-            </h3>
-            <div class="relative h-[200px] sm:h-[250px] md:h-[300px]" id="salesChartContainer">
-                <canvas id="salesChart"></canvas>
-            </div>
+<!-- Activity Summary Section -->
+<div class="pt-10 px-4">
+    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
+        <h2 class="text-2xl font-bold text-[#359271] mb-4 flex items-center gap-2">
+            <span class="material-icons">summarize</span>
+            Performance Overview
+        </h2>
+        
+        <!-- Tab Navigation -->
+        <div class="flex mb-6 border-b border-[#359271]/20">
+            <button class="tab-button active px-4 py-2 text-white font-medium border-b-2 border-[#359271] focus:outline-none" data-tab="today">
+                Today
+            </button>
+            <button class="tab-button px-4 py-2 text-gray-400 hover:text-white font-medium border-b-2 border-transparent hover:border-[#359271]/50 focus:outline-none" data-tab="week">
+                This Week
+            </button>
+            <button class="tab-button px-4 py-2 text-gray-400 hover:text-white font-medium border-b-2 border-transparent hover:border-[#359271]/50 focus:outline-none" data-tab="month">
+                Last 30 Days
+            </button>
         </div>
-
-        <!-- Views Chart -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
-            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
-                <span class="material-icons">visibility</span>
-                Views
-            </h3>
-            <div class="relative h-[200px] sm:h-[250px] md:h-[300px]" id="viewsChartContainer">
-                <canvas id="viewsChart"></canvas>
+        
+        <!-- Tab Content -->
+        <div class="tab-content-container">
+            <!-- Today Tab -->
+            <div id="today-tab" class="tab-content active">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">visibility</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Views</h3>
+                            <p class="text-2xl font-bold text-white" id="today-views">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">payments</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Sales</h3>
+                            <p class="text-2xl font-bold text-white">€<span id="today-sales">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    
-    <div id="combinedChart" class="hidden px-4">
-        <div class="bg-gray-800/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-[#359271]/20">
-            <h3 class="text-lg font-medium text-white text-center mb-2 sm:mb-4 flex items-center justify-center gap-2">
-                <span class="material-icons">analytics</span>
-                Sales & Views Analysis
-            </h3>
-            <div class="relative h-[300px] sm:h-[400px] md:h-[500px]">
-                <canvas id="combinedAnalyticsChart"></canvas>
+            
+            <!-- This Week Tab -->
+            <div id="week-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">visibility</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Views</h3>
+                            <p class="text-2xl font-bold text-white" id="this-week-views">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">payments</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Sales</h3>
+                            <p class="text-2xl font-bold text-white">€<span id="this-week-sales">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Last 30 Days Tab -->
+            <div id="month-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">visibility</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Views</h3>
+                            <p class="text-2xl font-bold text-white" id="last-30-days-views">0</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-700/30 p-5 rounded-lg border border-[#359271]/10 flex items-center">
+                        <div class="bg-[#359271]/20 p-3 rounded-full mr-4">
+                            <span class="material-icons text-[#359271]">payments</span>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-sm">Total Sales</h3>
+                            <p class="text-2xl font-bold text-white">€<span id="last-30-days-sales">0.00</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -94,7 +118,7 @@
         <h2 class="text-2xl font-bold flex items-center gap-2">
             <span class="material-icons">receipt_long</span>
             Recent Sales
-            </h2>
+        </h2>
         <button id="viewAllSalesBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition-colors">
             <span class="material-icons text-sm">visibility</span>
             <span>View All</span>
@@ -159,16 +183,12 @@
                                         <div class="grid grid-cols-2 gap-1 text-sm">
                                             <div class="text-gray-300">Gross Amount:</div>
                                             <div class="text-right font-medium text-white gross-amount">$0.00</div>
-                                            
                                             <div class="text-gray-300 converted-amount-row">EUR Amount (Converted):</div>
                                             <div class="text-right font-medium text-white converted-amount">€0.00</div>
-                                            
                                             <div class="text-gray-300">Stripe Fee:</div>
                                             <div class="text-right font-medium text-red-400 stripe-fee">-$0.00</div>
-                                            
                                             <div class="text-gray-300">Platform Fee (1.5%):</div>
                                             <div class="text-right font-medium text-red-400 platform-fee">-$0.00</div>
-                                            
                                             <div class="text-gray-300 font-bold">Net Payout:</div>
                                             <div class="text-right font-bold text-[#359271] payout-amount">$0.00</div>
                                         </div>
@@ -182,7 +202,6 @@
                 </table>
             </div>
         </div>
-        
         <!-- Pagination Controls -->
         <div id="salesPagination" class="flex justify-center items-center gap-2 py-3 px-4 border-t border-[#359271]/20 {% if recent_sales|length <= 5 %}hidden{% endif %}">
             <button id="prevPageBtn" class="bg-[#359271]/20 hover:bg-[#359271]/30 text-[#359271] px-2 py-1 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
@@ -196,6 +215,7 @@
     </div>
 </div>
 
+<!-- Account Balances Section -->
 <div class="pt-8 px-4">
     <div class="text-[#359271] mb-4">
         <h2 class="text-2xl font-bold flex items-center gap-2">
@@ -203,7 +223,6 @@
             Account Balances
         </h2>
     </div>
-        
     <!-- EUR Income Card -->
     <div class="income-card bg-gray-800/50 backdrop-blur-sm p-4 rounded-xl border border-[#359271]/20 mb-6">
         <div class="flex items-center justify-between">
@@ -220,13 +239,11 @@
             </div>
         </div>
     </div>
-    
     <!-- Cryptocurrency Balances -->
     <h3 class="text-xl font-bold text-[#359271] mb-4 flex items-center gap-2">
         <span class="material-icons">currency_bitcoin</span>
         Cryptocurrency Balances
     </h3>
-    
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <!-- Bitcoin -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
@@ -244,7 +261,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- Ethereum -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -261,7 +277,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- Litecoin -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -278,7 +293,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- Solana -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -295,7 +309,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- USDT TRC20 -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -310,7 +323,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- USDT ERC20 -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -325,7 +337,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- USDT BEP20 -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -340,7 +351,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- USDT SOL -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -355,7 +365,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- USDT PRC20 -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -370,7 +379,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- LTCT -->
         <div class="bg-gray-800/50 backdrop-blur-sm p-3 rounded-xl border border-[#359271]/20">
             <div class="flex items-center gap-3">
@@ -396,12 +404,10 @@
             Request Payout
         </h2>
     </div>
-    
     <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-[#359271]/20">
         <form method="post" class="space-y-4">
             {% csrf_token %}
             <input type="hidden" name="payout_form" value="1">
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label for="{{ payout_form.amount.id_for_label }}" class="block text-white mb-2">Amount</label>
@@ -410,7 +416,6 @@
                         <p class="text-red-400 text-sm mt-1">{{ payout_form.amount.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
                 <div>
                     <label for="{{ payout_form.currency.id_for_label }}" class="block text-white mb-2">Currency</label>
                     {% render_field payout_form.currency class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" %}
@@ -421,7 +426,6 @@
                         Note: A 2% conversion fee applies for payouts in USD and GBP. No fee for EUR payouts.
                     </div>
                 </div>
-                
                 <div>
                     <label for="{{ payout_form.payout_method.id_for_label }}" class="block text-white mb-2">Payout Method</label>
                     {% render_field payout_form.payout_method class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" %}
@@ -429,7 +433,6 @@
                         <p class="text-red-400 text-sm mt-1">{{ payout_form.payout_method.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
                 <div>
                     <label for="{{ payout_form.payout_address.id_for_label }}" class="block text-white mb-2">Payout Address</label>
                     {% render_field payout_form.payout_address class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-[#359271]/30 focus:border-[#359271] focus:ring focus:ring-[#359271]/20" placeholder="Enter your payout address" %}
@@ -438,7 +441,6 @@
                     {% endif %}
                 </div>
             </div>
-            
             <div class="mt-6">
                 <button type="submit" class="w-full bg-[#359271] hover:bg-[#2a7259] text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
                     <span class="material-icons">payments</span>
@@ -453,31 +455,23 @@
     body {
         font-family: 'DM Sans', sans-serif;
     }
-
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .grid {
             grid-template-columns: 1fr;
         }
-        
-        /* Mobile table adjustments */
         table {
             font-size: 0.8rem;
         }
-        
         th, td {
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
         }
-        
-        /* Ensure pagination is properly sized on mobile */
         #salesPagination {
             flex-wrap: wrap;
             justify-content: center;
             gap: 0.5rem;
         }
-        
-        /* Adjust button sizes for better touch targets */
         button {
             min-height: 36px;
             min-width: 36px;
@@ -486,91 +480,21 @@
             justify-content: center;
         }
     }
-
     /* Custom scrollbar */
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
-
     ::-webkit-scrollbar-track {
         background: rgba(53, 146, 113, 0.1);
     }
-
     ::-webkit-scrollbar-thumb {
         background: rgba(53, 146, 113, 0.5);
         border-radius: 4px;
     }
-
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(53, 146, 113, 0.7);
     }
-    
-    /* Ensure table is responsive */
-    @media (max-width: 480px) {
-        #salesTableContainer {
-            max-height: 250px;
-        }
-    }
-
-
-    body {
-        font-family: 'DM Sans', sans-serif;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .grid {
-            grid-template-columns: 1fr;
-        }
-        
-        /* Mobile table adjustments */
-        table {
-            font-size: 0.8rem;
-        }
-        
-        th, td {
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-        }
-        
-        /* Ensure pagination is properly sized on mobile */
-        #salesPagination {
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        /* Adjust button sizes for better touch targets */
-        button {
-            min-height: 36px;
-            min-width: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: rgba(53, 146, 113, 0.1);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: rgba(53, 146, 113, 0.5);
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgba(53, 146, 113, 0.7);
-    }
-    
-    /* Ensure table is responsive */
     @media (max-width: 480px) {
         #salesTableContainer {
             max-height: 250px;
@@ -578,147 +502,156 @@
     }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // Initial data from the server
-    let days = {{ days|safe }};
-    let totalSales = {{ total_sales|safe }};
-    let totalClicks = {{ total_clicks|safe }};
-    let currentCurrency = 'USD';
-    
-    // Chart instances
-    let salesChartInstance = null;
-    let viewsChartInstance = null;
-    let combinedChartInstance = null;
-    let originalTotalClicks = [...totalClicks]; 
-    
-    // DOM elements
-    const salesChartEl = document.getElementById('salesChart');
-    const viewsChartEl = document.getElementById('viewsChart');
-    const combinedChartEl = document.getElementById('combinedAnalyticsChart');
-    
-    // Chart controls
-    const dateRangeSelect = document.getElementById('dateRange');
-    const chartTypeSelect = document.getElementById('chartType');
-    const displayTypeSelect = document.getElementById('displayType');
-    const currencyTypeSelect = document.getElementById('currencyType');
-    
-    // Initialize charts on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ensure we're using the correct date format based on range
-        formatDatesIfNeeded();
-        
-        initializeCharts();
-        
-        // Add event listeners to controls - ONLY ONCE
-        dateRangeSelect.addEventListener('change', fetchChartData);
-        chartTypeSelect.addEventListener('change', updateCharts);
-        displayTypeSelect.addEventListener('change', toggleChartDisplay);
-        currencyTypeSelect.addEventListener('change', fetchChartData);
-        
-        // Add event listeners to details buttons
-        document.querySelectorAll('.details-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const saleId = this.getAttribute('data-sale-id');
-                toggleSaleDetails(saleId);
-            });
-        });
-        
-        // Fetch the total net payout
-        fetchTotalNetPayout();
-        
-        // Refresh cryptocurrency balances
-        refreshCryptoBalances();
-        
-        // Initialize currency warning for payout form
-        const currencySelect = document.getElementById('id_currency');
-        if (currencySelect) {
-            showConversionFeeWarning(currencySelect.value);
-            currencySelect.addEventListener('change', function() {
-                showConversionFeeWarning(this.value);
-            });
-        }
-    });
+    // Fetch summary data for today, this week, and last 30 days
+    async function fetchSummaryData() {
+        try {
+            const response = await fetch('/dashboard/get-summary-data/');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
 
-    // Function to format dates if needed
-    function formatDatesIfNeeded() {
-        // Check if we're in 7-day view (default)
-        if (dateRangeSelect.value === '7' && days.length <= 7) {
-            // If dates are in ISO format (YYYY-MM-DD), convert to day names
-            if (days.some(day => day.includes('-'))) {
-                days = days.map(day => {
-                    const date = new Date(day);
-                    return date.toLocaleDateString('en-US', { weekday: 'short' });
-                });
-            }
+            // Update Today
+            document.getElementById('today-views').textContent = data.today.views;
+            document.getElementById('today-sales').textContent = data.today.sales.toFixed(2);
+
+            // Update This Week
+            document.getElementById('this-week-views').textContent = data.this_week.views;
+            document.getElementById('this-week-sales').textContent = data.this_week.sales.toFixed(2);
+
+            // Update Last 30 Days
+            document.getElementById('last-30-days-views').textContent = data.last_30_days.views;
+            document.getElementById('last-30-days-sales').textContent = data.last_30_days.sales.toFixed(2);
+            
+            // Also refresh cryptocurrency balances
+            refreshCryptoBalances();
+        } catch (error) {
+            console.error('Error fetching summary data:', error);
         }
     }
 
-    // Function to fetch total net payout using existing get-sale-details endpoint
-    function fetchTotalNetPayout() {
-        // Get all sale IDs from the table
-        const saleIds = [];
-        document.querySelectorAll('.details-btn').forEach(button => {
-            saleIds.push(button.getAttribute('data-sale-id'));
-        });
+    // Tab switching functionality
+    function setupTabs() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
         
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('border-[#359271]');
+                    btn.classList.add('border-transparent');
+                    btn.classList.add('text-gray-400');
+                    btn.classList.remove('text-white');
+                });
+                
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                });
+                
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                button.classList.add('border-[#359271]');
+                button.classList.remove('border-transparent');
+                button.classList.add('text-white');
+                button.classList.remove('text-gray-400');
+                
+                const tabId = button.getAttribute('data-tab');
+                const activeContent = document.getElementById(`${tabId}-tab`);
+                activeContent.classList.remove('hidden');
+                activeContent.classList.add('active');
+            });
+        });
+    }
+
+    // Toggle sale details
+    function toggleSaleDetails(saleId) {
+        const detailsRow = document.getElementById(`details-${saleId}`);
+        const loadingSpinner = detailsRow.querySelector('.loading-spinner');
+        const feeDetails = detailsRow.querySelector('.fee-details');
+        const errorMessage = detailsRow.querySelector('.error-message');
+
+        if (detailsRow.classList.contains('hidden')) {
+            detailsRow.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            feeDetails.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
+            fetch(`/products/get-sale-details/${saleId}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    loadingSpinner.classList.add('hidden');
+                    let currencySymbol = data.currency === 'USD' ? '$' : data.currency === 'GBP' ? '£' : '€';
+                    feeDetails.querySelector('.gross-amount').textContent = `${currencySymbol}${parseFloat(data.amount).toFixed(2)}`;
+                    const convertedAmountRow = feeDetails.querySelector('.converted-amount-row');
+                    const convertedAmount = feeDetails.querySelector('.converted-amount');
+                    if (data.currency !== 'EUR') {
+                        convertedAmountRow.style.display = '';
+                        convertedAmount.textContent = `€${parseFloat(data.converted_amount_eur).toFixed(2)}`;
+                    } else {
+                        convertedAmountRow.style.display = 'none';
+                    }
+                    feeDetails.querySelector('.stripe-fee').textContent = `-€${parseFloat(data.stripe_fee).toFixed(2)}`;
+                    feeDetails.querySelector('.platform-fee').textContent = `-€${parseFloat(data.platform_fee).toFixed(2)}`;
+                    feeDetails.querySelector('.payout-amount').textContent = `€${parseFloat(data.payout_amount).toFixed(2)}`;
+                    feeDetails.classList.remove('hidden');
+                })
+                .catch(error => {
+                    loadingSpinner.classList.add('hidden');
+                    errorMessage.textContent = 'Failed to load sale details. Please try again.';
+                    errorMessage.classList.remove('hidden');
+                    console.error('Error fetching sale details:', error);
+                });
+        } else {
+            detailsRow.classList.add('hidden');
+        }
+    }
+
+    // Fetch total net payout
+    function fetchTotalNetPayout() {
+        const saleIds = Array.from(document.querySelectorAll('.details-btn')).map(btn => btn.getAttribute('data-sale-id'));
         if (saleIds.length === 0) {
             document.getElementById('eur-total').textContent = '0.00';
             return;
         }
-        
-        // Fetch details for each sale and calculate total
         let totalPayout = 0;
         let completedRequests = 0;
-        
         saleIds.forEach(saleId => {
             fetch(`/products/get-sale-details/${saleId}/`)
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
+                    if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
                 })
                 .then(data => {
-                    // Add the payout amount to the total
-                    if (data.payout_amount) {
-                        totalPayout += parseFloat(data.payout_amount);
-                    }
-                    
-                    // Increment completed requests counter
+                    if (data.payout_amount) totalPayout += parseFloat(data.payout_amount);
                     completedRequests++;
-                    
-                    // If all requests are complete, update the total
                     if (completedRequests === saleIds.length) {
                         document.getElementById('eur-total').textContent = totalPayout.toFixed(2);
-                        console.log("Updated EUR total with net payout:", totalPayout.toFixed(2));
                     }
                 })
                 .catch(error => {
                     console.error(`Error fetching sale details for sale ${saleId}:`, error);
-                    // Still increment counter to ensure we complete
                     completedRequests++;
-                    
                     if (completedRequests === saleIds.length) {
                         document.getElementById('eur-total').textContent = totalPayout.toFixed(2);
                     }
                 });
         });
     }
-    
-    // Function to refresh only cryptocurrency balances
+
+    // Refresh cryptocurrency balances
     function refreshCryptoBalances() {
         fetch('/dashboard/refresh-income/')
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
             .then(data => {
                 if (data.success) {
-                    // Update only cryptocurrency values in the UI
                     document.getElementById('btc-total').textContent = data.income.BTC_TOTAL;
                     document.getElementById('eth-total').textContent = data.income.ETH_TOTAL;
                     document.getElementById('ltc-total').textContent = data.income.LTC_TOTAL;
@@ -731,440 +664,10 @@
                     document.getElementById('ltct-total').textContent = data.income.LTCT_TOTAL;
                 }
             })
-            .catch(error => {
-                console.error('Error refreshing crypto balances:', error);
-            });
-    }
-    
-
-    function toggleSaleDetails(saleId) {
-        const detailsRow = document.getElementById(`details-${saleId}`);
-        const loadingSpinner = detailsRow.querySelector('.loading-spinner');
-        const feeDetails = detailsRow.querySelector('.fee-details');
-        const errorMessage = detailsRow.querySelector('.error-message');
-        
-        if (detailsRow.classList.contains('hidden')) {
-            detailsRow.classList.remove('hidden');
-            
-            // Show loading spinner
-            loadingSpinner.classList.remove('hidden');
-            feeDetails.classList.add('hidden');
-            errorMessage.classList.add('hidden');
-            
-            // Fetch sale details
-            fetch(`/products/get-sale-details/${saleId}/`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Received sale details:", data);
-                    loadingSpinner.classList.add('hidden');
-                    
-                    // Get currency symbol based on the original currency
-                    let currencySymbol = '€';
-                    if (data.currency === 'USD') currencySymbol = '$';
-                    if (data.currency === 'GBP') currencySymbol = '£';
-                    
-                    // Update fee details
-                    const productNameElement = feeDetails.querySelector('.product-name');
-                    if (productNameElement) {
-                        productNameElement.textContent = data.product_name || "Unknown Product";
-                    }
-                    
-                    feeDetails.querySelector('.gross-amount').textContent = `${currencySymbol}${parseFloat(data.amount).toFixed(2)}`;
-                    
-                    const convertedAmountRow = feeDetails.querySelector('.converted-amount-row');
-                    const convertedAmount = feeDetails.querySelector('.converted-amount');
-                    
-                    if (data.currency !== 'EUR') {
-                        convertedAmountRow.style.display = '';
-                        convertedAmount.textContent = `€${parseFloat(data.converted_amount_eur).toFixed(2)}`;
-                    } else {
-                        convertedAmountRow.style.display = 'none';
-                    }
-                    
-                    feeDetails.querySelector('.stripe-fee').textContent = `-€${parseFloat(data.stripe_fee).toFixed(2)}`;
-                    feeDetails.querySelector('.platform-fee').textContent = `-€${parseFloat(data.platform_fee).toFixed(2)}`;
-                    feeDetails.querySelector('.payout-amount').textContent = `€${parseFloat(data.payout_amount).toFixed(2)}`;
-                    
-                    feeDetails.classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error('Error fetching sale details:', error);
-                    loadingSpinner.classList.add('hidden');
-                    errorMessage.textContent = 'Failed to load sale details. Please try again.';
-                    errorMessage.classList.remove('hidden');
-                });
-        } else {
-            detailsRow.classList.add('hidden');
-        }
+            .catch(error => console.error('Error refreshing crypto balances:', error));
     }
 
-        // Add event listeners to details buttons using event delegation
-        document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('salesTableBody').addEventListener('click', function(e) {
-            const detailsBtn = e.target.closest('.details-btn');
-            if (detailsBtn) {
-                const saleId = detailsBtn.getAttribute('data-sale-id');
-                toggleSaleDetails(saleId);
-            }
-        });
-        
-        // Add event listener for View All button and hide it if fewer than 10 sales
-        const viewAllBtn = document.getElementById('viewAllSalesBtn');
-        const hiddenSales = document.querySelectorAll('.sale-row.hidden');
-        
-        if (viewAllBtn) {
-            // Hide the button if there are no hidden sales or less than 10 total sales
-            if (hiddenSales.length === 0) {
-                viewAllBtn.style.display = 'none';
-            }
-            
-            viewAllBtn.addEventListener('click', function() {
-                hiddenSales.forEach(row => {
-                    row.classList.remove('hidden');
-                });
-                
-                // Hide the View All button after showing all sales
-                this.style.display = 'none';
-            });
-        }
-    });
-    
-    // Initialize charts with default data
-    function initializeCharts() {
-        const chartType = chartTypeSelect.value;
-        updateCharts(chartType);
-        toggleChartDisplay();
-    }
-
-    // Initialize charts on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Format initial dates if they are in ISO format
-        if (days && days.length > 0 && days[0].includes('-')) {
-            days = days.map(day => {
-                const date = new Date(day);
-                return date.toLocaleDateString('en-US', { weekday: 'short' });
-            });
-        }
-        
-        initializeCharts();
-        
-        // Add event listeners to controls - ONLY ONCE
-        dateRangeSelect.addEventListener('change', fetchChartData);
-        chartTypeSelect.addEventListener('change', updateCharts);
-        displayTypeSelect.addEventListener('change', toggleChartDisplay);
-        currencyTypeSelect.addEventListener('change', fetchChartData);
-        
-        // Add event listeners to details buttons
-        document.querySelectorAll('.details-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const saleId = this.getAttribute('data-sale-id');
-                toggleSaleDetails(saleId);
-            });
-        });
-        
-        // Fetch the total net payout
-        fetchTotalNetPayout();
-        
-        // Refresh cryptocurrency balances
-        refreshCryptoBalances();
-        
-        // Initialize currency warning for payout form
-        const currencySelect = document.getElementById('id_currency');
-        if (currencySelect) {
-            showConversionFeeWarning(currencySelect.value);
-            currencySelect.addEventListener('change', function() {
-                showConversionFeeWarning(this.value);
-            });
-        }
-    });
-    
-    // Toggle between separate and combined chart views
-    function toggleChartDisplay() {
-        const displayType = displayTypeSelect.value;
-        const separateCharts = document.getElementById('separateCharts');
-        const combinedChartContainer = document.getElementById('combinedChart');
-        
-        if (displayType === 'separate') {
-            separateCharts.style.display = 'grid';
-            combinedChartContainer.style.display = 'none';
-        } else {
-            separateCharts.style.display = 'none';
-            combinedChartContainer.style.display = 'block';
-        }
-
-        // Trigger chart update to ensure proper rendering
-        updateCharts();
-    }
-
-    
-    // Create sales chart
-    function createSalesChart(chartType) {
-        const ctx = salesChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        const currencySymbol = getCurrencySymbol();
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: `Sales (${currentCurrency})`,
-                    data: totalSales,
-                    borderColor: '#359271',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(53, 146, 113, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            callback: function(value) {
-                                return currencySymbol + value.toFixed(2);
-                            },
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        salesChartInstance = new Chart(ctx, chartConfig);
-    }
-
-    // Create views chart
-    function createViewsChart(chartType) {
-        console.log('Creating views chart with data:', {
-        chartType,
-        days,
-        totalClicks
-        });
-        const ctx = viewsChartEl.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Views',
-                    data: totalClicks,
-                    borderColor: '#3b82f6',
-                    backgroundColor: chartType === 'area' 
-                        ? 'rgba(59, 130, 246, 0.2)' 
-                        : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: chartType === 'area',
-                    pointRadius: isMobile ? 2 : 3,
-                    pointHoverRadius: isMobile ? 3 : 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${context.raw}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        viewsChartInstance = new Chart(ctx, chartConfig);
-    }
-
-    function createCombinedChart(chartType) {
-        const combinedAnalyticsChart = document.getElementById('combinedAnalyticsChart');
-        if (!combinedAnalyticsChart) return;
-        
-        const ctx = combinedAnalyticsChart.getContext('2d');
-        const isMobile = window.innerWidth < 768;
-        const currencySymbol = getCurrencySymbol();
-        
-        const chartConfig = {
-            type: chartType === 'area' ? 'line' : chartType,
-            data: {
-                labels: days,
-                datasets: [
-                    {
-                        label: `Sales (${currentCurrency})`,
-                        data: totalSales,
-                        borderColor: '#359271',
-                        backgroundColor: chartType === 'area' 
-                            ? 'rgba(53, 146, 113, 0.2)' 
-                            : (chartType === 'bar' ? 'rgba(53, 146, 113, 0.6)' : 'rgba(53, 146, 113, 0.2)'),
-                        borderWidth: isMobile ? 1 : 2,
-                        tension: 0.4,
-                        fill: chartType === 'area',
-                        pointRadius: isMobile ? 2 : 3,
-                        pointHoverRadius: isMobile ? 3 : 5,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Views',
-                        data: totalClicks,
-                        borderColor: '#3b82f6',
-                        backgroundColor: chartType === 'area' 
-                            ? 'rgba(59, 130, 246, 0.2)' 
-                            : (chartType === 'bar' ? 'rgba(59, 130, 246, 0.6)' : 'rgba(59, 130, 246, 0.2)'),
-                        borderWidth: isMobile ? 1 : 2,
-                        tension: 0.4,
-                        fill: chartType === 'area',
-                        pointRadius: isMobile ? 2 : 3,
-                        pointHoverRadius: isMobile ? 3 : 5,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { color: 'white' }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.label.includes('Sales')) {
-                                    return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                                }
-                                return `${context.dataset.label}: ${context.raw}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            callback: function(value) {
-                                return currencySymbol + value.toFixed(2);
-                            },
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: true,
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        ticks: {
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            font: {
-                                size: isMobile ? 8 : 12
-                            }
-                        }
-                    }
-                }
-            }
-        };
-        
-        combinedChartInstance = new Chart(ctx, chartConfig);
-    }
-
+    // Show conversion fee warning for payout form
     function showConversionFeeWarning(currency) {
         const warningElement = document.getElementById('conversion-fee-warning');
         if (currency === 'EUR') {
@@ -1174,345 +677,115 @@
         }
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
-        if (currencySelect) {
-            showConversionFeeWarning(currencySelect.value);
-        }
-    });
-
-    // Update currency display when currency type changes
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencyTypeSelect = document.getElementById('currencyType');
-        const currencyDisplay = document.getElementById('currencyDisplay');
+    // Setup View All button functionality
+    function setupViewAllButton() {
+        const viewAllBtn = document.getElementById('viewAllSalesBtn');
+        if (!viewAllBtn) return;
         
-        if (currencyTypeSelect && currencyDisplay) {
-            currencyTypeSelect.addEventListener('change', function() {
-                currencyDisplay.textContent = this.value;
+        // Check if there are hidden sales rows
+        const hiddenSales = document.querySelectorAll('.sale-row.hidden');
+        
+        // Only show the button if there are hidden sales
+        if (hiddenSales.length === 0) {
+            viewAllBtn.classList.add('hidden');
+        } else {
+            viewAllBtn.classList.remove('hidden');
+        }
+        
+        // Add click event listener
+        viewAllBtn.addEventListener('click', function() {
+            document.querySelectorAll('.sale-row.hidden').forEach(row => {
+                row.classList.remove('hidden');
             });
-        }
-
-        document.getElementById('dateRange').addEventListener('change', fetchChartData);
-        document.getElementById('currencyType').addEventListener('change', fetchChartData);
-    });
-    
-    async function fetchChartData() {
-        const daysRange = parseInt(document.getElementById('dateRange').value);
-        const currency = document.getElementById('currencyType').value;
-        
-        // Show loading states
-        document.getElementById('salesChart').classList.add('opacity-50');
-        document.getElementById('viewsChart').classList.add('opacity-50');
-        const combinedChart = document.getElementById('combinedAnalyticsChart');
-        if (combinedChart) combinedChart.classList.add('opacity-50');
-        
-        try {
-            const response = await fetch(`/dashboard/get-chart-data/?days=${daysRange}&currency=${currency}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            
-            // Clean and process the data
-            const cleanData = {
-                days: data.days.filter(day => day !== ''),
-                totalSales: data.total_sales.filter((_, index) => data.days[index] !== ''),
-                totalClicks: data.total_clicks.filter((_, index) => data.days[index] !== '')
-            };
-            
-            // Update data and currency
-            days = [...cleanData.days];
-            totalSales = [...cleanData.totalSales];
-            totalClicks = [...cleanData.totalClicks];
-            currentCurrency = data.currency;
-            
-            // Format dates for 7-day view
-            if (daysRange === 7) {
-                days = days.map(day => {
-                    if (day.includes('-')) {
-                        const date = new Date(day);
-                        return date.toLocaleDateString('en-US', { weekday: 'long' });
-                    }
-                    return day;
-                });
-            }
-            
-            // Update chart titles
-            document.querySelectorAll('.currency-label').forEach(el => {
-                el.textContent = currentCurrency;
-            });
-            
-            // Update charts with current chart type
-            const currentChartType = document.getElementById('chartType').value;
-            updateCharts(currentChartType);
-            
-            // Remove loading states
-            document.getElementById('salesChart').classList.remove('opacity-50');
-            document.getElementById('viewsChart').classList.remove('opacity-50');
-            if (combinedChart) combinedChart.classList.remove('opacity-50');
-        } catch (error) {
-            console.error('Error fetching chart data:', error);
-            // Remove loading states
-            document.getElementById('salesChart').classList.remove('opacity-50');
-            document.getElementById('viewsChart').classList.remove('opacity-50');
-            if (combinedChart) combinedChart.classList.remove('opacity-50');
-        }
-    }
-        
-    // Update all charts with current data
-    function updateCharts(chartType) {
-        console.log('updateCharts called with:', {
-            chartType,
-            totalClicks,
-            days
+            this.classList.add('hidden');
         });
-        
-        if (!chartType) {
-            chartType = chartTypeSelect.value;
-        }
-        
-        // Destroy existing charts
-        if (salesChartInstance) salesChartInstance.destroy();
-        if (viewsChartInstance) viewsChartInstance.destroy();
-        if (combinedChartInstance) combinedChartInstance.destroy();
-        
-        // Create new charts
-        createSalesChart(chartType);
-        createViewsChart(chartType);
-        createCombinedChart(chartType);
     }
-        // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const currencySelect = document.getElementById('{{ payout_form.currency.id_for_label }}');
-        if (currencySelect) {
-            showConversionFeeWarning(currencySelect.value);
+
+    // Setup pagination
+    function setupPagination() {
+        const salesTable = document.getElementById('salesTableContainer');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const currentPageEl = document.getElementById('currentPage');
+        const totalPagesEl = document.getElementById('totalPages');
+        const paginationContainer = document.getElementById('salesPagination');
+        
+        if (!salesTable || !prevPageBtn || !nextPageBtn || !paginationContainer) return;
+        
+        const rows = Array.from(salesTable.querySelectorAll('tbody tr:not([id^="details-"])'));
+        const rowsPerPage = 5;
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        
+        // Hide pagination if not enough rows
+        if (rows.length <= rowsPerPage) {
+            paginationContainer.classList.add('hidden');
+            return;
+        } else {
+            paginationContainer.classList.remove('hidden');
         }
-    });
-
-
-    // Update handleResize function to include currency information
-    function handleResize() {
-        const chartType = document.getElementById('chartType').value;
-        const currencySymbol = getCurrencySymbol(currentCurrency);
         
-        if (salesChartInstance) salesChartInstance.destroy();
-        if (viewsChartInstance) viewsChartInstance.destroy();
-        if (combinedChartInstance) combinedChartInstance.destroy();
+        let currentPage = 1;
+        totalPagesEl.textContent = totalPages;
         
-        salesChart = new Chart(
-            document.getElementById('salesChart'),
-            createChartConfig(chartType, days, totalSales, `Sales (${currentCurrency})`, '#359271', true, currencySymbol)
-        );
-        
-        viewsChart = new Chart(
-            document.getElementById('viewsChart'),
-            createChartConfig(chartType, days, totalClicks, 'Views', '#2d4b50', false)
-        );
-        
-        combinedChart = new Chart(
-            document.getElementById('combinedAnalyticsChart'),
-            {
-                type: chartType === 'area' ? 'line' : chartType,
-                data: {
-                    labels: days,
-                    datasets: [
-                        {
-                            label: `Sales (${currentCurrency})`,
-                            data: totalSales,
-                            borderColor: '#359271',
-                            backgroundColor: chartType === 'bar' ? '#35927199' : '#35927133',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: chartType === 'area',
-                            yAxisID: 'y-sales'
-                        },
-                        {
-                            label: 'Views',
-                            data: totalClicks,
-                            borderColor: '#2d4b50',
-                            backgroundColor: chartType === 'bar' ? '#2d4b5099' : '#2d4b5033',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: chartType === 'area',
-                            yAxisID: 'y-views'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    if (context.dataset.label.includes('Sales')) {
-                                        return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                                    }
-                                    return `${context.dataset.label}: ${context.raw}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        'y-sales': {
-                            type: 'linear',
-                            position: 'left',
-                            grid: { color: 'rgba(53, 146, 113, 0.1)' },
-                            ticks: { 
-                                color: '#359271',
-                                callback: function(value) {
-                                    return currencySymbol + value.toFixed(2);
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: `Sales (${currentCurrency})`,
-                                color: '#359271'
-                            }
-                        },
-                        'y-views': {
-                            type: 'linear',
-                            position: 'right',
-                            grid: { display: false },
-                            ticks: { color: '#2d4b50' },
-                            title: {
-                                display: true,
-                                text: 'Views',
-                                color: '#2d4b50'
-                            }
-                        }
+        function showPage(page) {
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            
+            rows.forEach((row, index) => {
+                const saleId = row.querySelector('.details-btn')?.getAttribute('data-sale-id');
+                const detailsRow = saleId ? document.getElementById(`details-${saleId}`) : null;
+                
+                if (index >= start && index < end) {
+                    row.classList.remove('hidden');
+                    if (detailsRow && !detailsRow.classList.contains('hidden')) {
+                        detailsRow.classList.remove('hidden');
                     }
+                } else {
+                    row.classList.add('hidden');
+                    if (detailsRow) detailsRow.classList.add('hidden');
                 }
-            }
-        );
-    }
-
-    // Helper function to get currency symbol
-    function getCurrencySymbol(currency) {
-        switch(currency) {
-            case 'USD': return '$';
-            case 'EUR': return '€';
-            case 'GBP': return '£';
-            default: return '$';
+            });
+            
+            currentPageEl.textContent = page;
+            prevPageBtn.disabled = page === 1;
+            nextPageBtn.disabled = page === totalPages;
         }
-    }
-
-    // Updated chart configuration factory
-    function createChartConfig(type, labels, data, label, color, isCurrency = false, currencySymbol = '$') {
-        const chartType = type === 'area' ? 'line' : type;
-        const isMobile = window.innerWidth < 768;
-        return {
-            type: chartType,
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: data,
-                    borderColor: color,
-                    backgroundColor: type === 'area'
-                        ? `${color}33`
-                        : (type === 'bar' ? `${color}99` : `${color}33`),
-                    borderWidth: isMobile ? 1 : 2,
-                    tension: 0.4,
-                    fill: type === 'area',
-                    spanGaps: true // Connect lines across empty values
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        left: isMobile ? 5 : 10,
-                        right: isMobile ? 5 : 10,
-                        top: isMobile ? 5 : 10,
-                        bottom: isMobile ? 5 : 10
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: !isMobile,
-                        labels: { 
-                            color: 'white',
-                            font: { size: isMobile ? 10 : 12 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#1f2937',
-                        titleColor: 'white',
-                        bodyColor: 'white',
-                        borderColor: '#359271',
-                        borderWidth: 1,
-                        padding: isMobile ? 6 : 10,
-                        displayColors: false,
-                        titleFont: { size: isMobile ? 10 : 14 },
-                        bodyFont: { size: isMobile ? 10 : 14 },
-                        callbacks: isCurrency ? {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${currencySymbol}${context.raw.toFixed(2)}`;
-                            }
-                        } : undefined
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(53, 146, 113, 0.1)' },
-                        ticks: { 
-                            color: 'white',
-                            font: { size: isMobile ? 8 : 12 },
-                            maxTicksLimit: isMobile ? 5 : 8,
-                            callback: isCurrency ? function(value) {
-                                return currencySymbol + value.toFixed(2);
-                            } : undefined
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(53, 146, 113, 0.1)',
-                            display: (_, index) => labels[index] !== ''
-                        },
-                        ticks: { 
-                            color: 'white',
-                            font: { size: isMobile ? 8 : 12 },
-                            maxRotation: isMobile ? 45 : 0,
-                            autoSkip: false,
-                            callback: function(_, index) {
-                                return labels[index] || '';
-                            }
-                        }
-                    }
-                }
-            }
-        };
-    }
-    // Add event listener for currency selection in payout form
-    const currencySelect = document.getElementById('id_currency');
-    const conversionFeeWarning = document.getElementById('conversion-fee-warning');
-
-    if (currencySelect && conversionFeeWarning) {
-        currencySelect.addEventListener('change', function() {
-            const selectedCurrency = this.value;
-            if (selectedCurrency === 'USD' || selectedCurrency === 'GBP') {
-                conversionFeeWarning.classList.remove('hidden');
-            } else {
-                conversionFeeWarning.classList.add('hidden');
+        
+        showPage(currentPage);
+        
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
             }
         });
         
-        // Trigger on page load
-        const initialCurrency = currencySelect.value;
-        if (initialCurrency === 'USD' || initialCurrency === 'GBP') {
-            conversionFeeWarning.classList.remove('hidden');
-        }
+        nextPageBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        });
     }
 
-    // Initialize on page load
+    // Initialize on page load - MAIN ENTRY POINT
     document.addEventListener('DOMContentLoaded', function() {
+        // Setup tabs first
+        setupTabs();
+        
+        // Fetch data
+        fetchSummaryData();
+        fetchTotalNetPayout();
+        
+        // Setup sale details toggle
+        document.querySelectorAll('.details-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const saleId = this.getAttribute('data-sale-id');
+                toggleSaleDetails(saleId);
+            });
+        });
+        
+        // Setup currency select
         const currencySelect = document.getElementById('id_currency');
         if (currencySelect) {
             showConversionFeeWarning(currencySelect.value);
@@ -1520,77 +793,10 @@
                 showConversionFeeWarning(this.value);
             });
         }
-    });
-
-    // Pagination functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const salesTable = document.getElementById('salesTable');
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const currentPageEl = document.getElementById('currentPage');
-        const totalPagesEl = document.getElementById('totalPages');
         
-        if (salesTable && prevPageBtn && nextPageBtn) {
-            const rows = Array.from(salesTable.querySelectorAll('tbody tr:not([id^="details-"])'));
-            const rowsPerPage = 5;
-            const totalPages = Math.ceil(rows.length / rowsPerPage);
-            let currentPage = 1;
-            
-            // Update pagination display
-            totalPagesEl.textContent = totalPages;
-            
-            // Function to show rows for current page
-            function showPage(page) {
-                const start = (page - 1) * rowsPerPage;
-                const end = start + rowsPerPage;
-                
-                rows.forEach((row, index) => {
-                    // Get the corresponding details row
-                    const saleId = row.querySelector('.details-btn')?.getAttribute('data-sale-id');
-                    const detailsRow = saleId ? document.getElementById(`details-${saleId}`) : null;
-                    
-                    if (index >= start && index < end) {
-                        row.classList.remove('hidden');
-                        // If details row is open, show it too
-                        if (detailsRow && !detailsRow.classList.contains('hidden')) {
-                            detailsRow.classList.remove('hidden');
-                        }
-                    } else {
-                        row.classList.add('hidden');
-                        // Always hide details row for hidden sales
-                        if (detailsRow) {
-                            detailsRow.classList.add('hidden');
-                        }
-                    }
-                });
-                
-                // Update current page display
-                currentPageEl.textContent = page;
-                
-                // Update button states
-                prevPageBtn.disabled = page === 1;
-                nextPageBtn.disabled = page === totalPages;
-            }
-            
-            // Initialize with first page
-            showPage(currentPage);
-            
-            // Add event listeners to pagination buttons
-            prevPageBtn.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    showPage(currentPage);
-                }
-            });
-            
-            nextPageBtn.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    showPage(currentPage);
-                }
-            });
-        }
+        // Setup View All button and pagination separately
+        setupViewAllButton();
+        setupPagination();
     });
 </script>
-
 {% endblock content %}

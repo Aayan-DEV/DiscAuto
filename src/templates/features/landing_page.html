@@ -278,54 +278,31 @@
 
     <script>
         function incrementViewCount() {
-            setTimeout(function() {
+            // Only increment if we haven't already in this session
+            if (!sessionStorage.getItem('viewIncremented')) {
                 fetch("{% url 'increment_view_count' user_data.custom_link %}", {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',  
+                        'X-CSRFToken': '{{ csrf_token }}',
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ custom_link: "{{ user_data.custom_link }}" })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.success && data.new_view) {
                         console.log("View count incremented.");
-                    } else {
-                        console.log("Failed to increment view count:", data.error);
+                        sessionStorage.setItem('viewIncremented', 'true');
                     }
                 })
                 .catch(error => {
                     console.error("Error:", error);
                 });
-            }, 100); 
+            }
         }
 
-        window.onload = incrementViewCount;
-
-        function filterProducts() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            let productItems = document.getElementsByClassName('product-item');
-            let categoryItems = document.getElementsByClassName('category-item');
-
-            Array.from(productItems).forEach((item) => {
-                let title = item.getElementsByClassName('product-title')[0].innerText.toLowerCase();
-                if (title.includes(input)) {
-                    item.parentElement.classList.remove('hidden');
-                } else {
-                    item.parentElement.classList.add('hidden');
-                }
-            });
-
-            Array.from(categoryItems).forEach((item) => {
-                let name = item.getElementsByClassName('category-name')[0].innerText.toLowerCase();
-                if (name.includes(input)) {
-                    item.parentElement.classList.remove('hidden');
-                } else {
-                    item.parentElement.classList.add('hidden');
-                }
-            });
-        }
+        // Run on page load
+        incrementViewCount();
     </script>
 </body>
 </html>

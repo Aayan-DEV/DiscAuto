@@ -281,7 +281,8 @@ def get_sale_details(request, sale_id):
             'currency': sale.currency,
             'stripe_fee': float(sale.stripe_fee) if sale.stripe_fee else 0,
             'platform_fee': float(sale.platform_fee) if sale.platform_fee else 0,
-            'payout_amount': float(sale.payout_amount) if sale.payout_amount else 0
+            'payout_amount': float(sale.payout_amount) if sale.payout_amount else 0,
+            'converted_amount_eur': float(sale.amount_in_eur) if hasattr(sale, 'amount_in_eur') and sale.amount_in_eur else 0
         }
         
         return JsonResponse(data)
@@ -292,23 +293,19 @@ def get_sale_details(request, sale_id):
 
 @login_required
 def dashboard_view(request):
-    # First we get the current time and store it in "today"
+    # Get current time
     today = timezone.now()
-    start_of_week = today - timedelta(days=7)  # Default to 7 days
-    end_of_week = today
     exchange_rates = get_exchange_rates()
-    default_currency = 'EUR'  # Changed default currency to EUR
+    default_currency = 'EUR'
     
     # Get or create user income record
     try:
         user_income = UserIncome.objects.get(user=request.user)
         print(f"Found user income for {request.user.username}: EUR_TOTAL={user_income.EUR_TOTAL}")
     except UserIncome.DoesNotExist:
-        # Create a new UserIncome object with only the fields that exist in the model
         user_income = UserIncome.objects.create(
             user=request.user,
-            EUR_TOTAL=Decimal('0.00'),  # Only use EUR_TOTAL for fiat currency
-            # Initialize cryptocurrency fields
+            EUR_TOTAL=Decimal('0.00'),
             BTC_TOTAL=Decimal('0.00000000'),
             ETH_TOTAL=Decimal('0.00000000'),
             LTC_TOTAL=Decimal('0.00000000'),
@@ -322,55 +319,14 @@ def dashboard_view(request):
         )
         print(f"Created new user income for {request.user.username}")
     
-    # Use get_formatted_values() method instead of the non-existent property
+    # Get formatted income values
     formatted_income = user_income.get_formatted_values()
     print(f"User income: {formatted_income}")
 
+    # Get recent sales
     recent_sales = ProductSale.objects.filter(
         user=request.user
     ).select_related('user', 'product', 'unlimited_product').order_by('-created_at')
-
-    # Get initial chart data in USD (default)
-    sales_data = ProductSale.objects.filter(
-        user=request.user,
-        created_at__gte=start_of_week,
-        created_at__lte=end_of_week
-    ).annotate(day=TruncDay('created_at')).values('day').annotate(
-        total=Sum('payout_amount')
-    ).order_by('day')
-    
-    # Convert sales data to USD
-    sales_by_day = {}
-    for item in sales_data:
-        day_name = item['day'].strftime('%A')
-        amount = item['total'] or 0
-        
-        # Convert EUR to USD
-        if amount > 0:
-            eur_rate = Decimal(exchange_rates.get('EUR', 1))
-            usd_rate = Decimal(exchange_rates.get('USD', 1))
-            amount = amount * (usd_rate / eur_rate)
-        
-        # Around line 364
-        sales_by_day[day_name] = Decimal(str(amount)).quantize(Decimal('0.01'))
-    
-    # Get views data
-    views_data = AutoSellView.objects.filter(
-        auto_sell__user=request.user,
-        timestamp__gte=start_of_week,
-        timestamp__lte=end_of_week
-    ).annotate(day=TruncDay('timestamp')).values('day').annotate(
-        total_views=Count('id')
-    ).order_by('day')
-    
-    views_by_day = {item['day'].strftime('%A'): item['total_views'] for item in views_data}
-
-    # Generate days of the week
-    days = [(start_of_week + timedelta(days=i)).strftime('%A') for i in range(7)]
-    
-    # Prepare data for the template
-    total_sales = [float(sales_by_day.get(day, 0)) for day in days]
-    total_clicks = [views_by_day.get(day, 0) for day in days]
 
     # Handle payout form
     if request.method == 'POST' and 'payout_form' in request.POST:
@@ -427,18 +383,14 @@ def dashboard_view(request):
     else:
         payout_form = PayoutRequestForm(user=request.user)
 
-        return render(request, 'dashboard/main.html', {
-        'days': days,
-        'total_sales': total_sales,
-        'total_clicks': total_clicks,
+    return render(request, 'dashboard/main.html', {
         'recent_sales': recent_sales,
         'payout_form': payout_form,
-        'user_income': user_income,  # Pass the user_income object directly
-        'formatted_income': formatted_income,  # Use the formatted_income variable
+        'user_income': user_income,
+        'formatted_income': formatted_income,
         'currencies': ['USD', 'EUR', 'GBP'],
         'default_currency': default_currency
     })
-
 
 @login_required
 def refresh_income(request):
@@ -466,8 +418,88 @@ def refresh_income(request):
         })
         
     except Exception as e:
-        print(f"Error in refresh_income: {str(e)}")  # Add logging for debugging
+        print(f"Error in refresh_income: {str(e)}")
         return JsonResponse({
             'success': False,
             'error': str(e)
         }, status=500)
+
+@login_required
+def get_summary_data(request):
+    """
+    Get summary data for dashboard display:
+    - Today's views and sales
+    - This week's views and sales
+    - Last 30 days views and sales
+    """
+    # Get current time and define time periods
+    now = timezone.now()
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = now - timedelta(days=7)
+    month_start = now - timedelta(days=30)
+    
+    # Get today's sales
+    today_sales = ProductSale.objects.filter(
+        user=request.user,
+        created_at__gte=today_start,
+        created_at__lte=now
+    ).aggregate(total=Sum('payout_amount'))
+    today_sales_amount = today_sales['total'] or Decimal('0.00')
+    
+    # Get today's views
+    today_views = AutoSellView.objects.filter(
+        auto_sell__user=request.user,
+        timestamp__gte=today_start,
+        timestamp__lte=now
+    ).count()
+    
+    # Get this week's sales
+    week_sales = ProductSale.objects.filter(
+        user=request.user,
+        created_at__gte=week_start,
+        created_at__lte=now
+    ).aggregate(total=Sum('payout_amount'))
+    week_sales_amount = week_sales['total'] or Decimal('0.00')
+    
+    # Get this week's views
+    week_views = AutoSellView.objects.filter(
+        auto_sell__user=request.user,
+        timestamp__gte=week_start,
+        timestamp__lte=now
+    ).count()
+    
+    # Get last 30 days sales
+    month_sales = ProductSale.objects.filter(
+        user=request.user,
+        created_at__gte=month_start,
+        created_at__lte=now
+    ).aggregate(total=Sum('payout_amount'))
+    month_sales_amount = month_sales['total'] or Decimal('0.00')
+    
+    # Get last 30 days views
+    month_views = AutoSellView.objects.filter(
+        auto_sell__user=request.user,
+        timestamp__gte=month_start,
+        timestamp__lte=now
+    ).count()
+    
+    # Format all amounts to 2 decimal places
+    today_sales_amount = float(today_sales_amount.quantize(Decimal('0.01')))
+    week_sales_amount = float(week_sales_amount.quantize(Decimal('0.01')))
+    month_sales_amount = float(month_sales_amount.quantize(Decimal('0.01')))
+    
+    # Return the summary data
+    return JsonResponse({
+        'today': {
+            'views': today_views,
+            'sales': today_sales_amount
+        },
+        'this_week': {
+            'views': week_views,
+            'sales': week_sales_amount
+        },
+        'last_30_days': {
+            'views': month_views,
+            'sales': month_sales_amount
+        }
+    })
